@@ -1,0 +1,82 @@
+/* Override default colors for tailwindcss-forms https://github.com/tailwindlabs/tailwindcss-forms */
+[type='text'],
+[type='email'],
+[type='url'],
+[type='password'],
+[type='number'],
+[type='date'],
+[type='datetime-local'],
+[type='month'],
+[type='search'],
+[type='tel'],
+[type='checkbox'],
+[type='radio'],
+[type='time'],
+[type='week'],
+[multiple],
+textarea,
+select {
+  border-color: theme('colors.gray.400');
+  border-radius: theme('borderRadius.DEFAULT');
+  padding: theme('spacing.2');
+  color: theme('colors.gray.700');
+
+  &:focus {
+    --tw-ring-color: theme('colors.primary.400');
+    border-color: theme('colors.primary.400');
+  }
+
+  &:invalid {
+    --tw-ring-color: theme('colors.red.600');
+    border-color: theme('colors.red.600');
+  }
+}
+
+.blue-forms {
+  [type='text'],
+  [type='email'],
+  [type='url'],
+  [type='password'],
+  [type='number'],
+  [type='date'],
+  [type='datetime-local'],
+  [type='month'],
+  [type='search'],
+  [type='tel'],
+  [type='checkbox'],
+  [type='radio'],
+  [type='time'],
+  [type='week'],
+  [multiple],
+  textarea,
+  select {
+    &:focus {
+      --tw-ring-color: theme('colors.secondary.500');
+      border-color: theme('colors.secondary.500');
+    }
+    &:invalid {
+      --tw-ring-color: theme('colors.red.600');
+      border-color: theme('colors.red.600');
+    }
+  }
+}
+
+a {
+  color: theme('colors.slate.600');
+  transition-property: color;
+  transition-delay: 50ms;
+  transition-timing-function: ease-in-out;
+  transition-duration: 200ms;
+  &:hover {
+    text-underline-offset: 2px;
+    text-decoration: underline;
+    color: theme('colors.primary.400');
+  }
+}
+
+.vfm.vfm--fixed.vfm--inset {
+  pointer-events: none;
+  * {
+    pointer-events: all;
+  }
+}

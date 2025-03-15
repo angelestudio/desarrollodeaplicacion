@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "unifiedjs.vscode-mdx",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "jock.svg"
+  ]
+}
