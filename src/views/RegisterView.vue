@@ -1,4 +1,4 @@
-<!-- src/views/RegisterView.vue -->
+
 <template>
     <div class="container">
       <Header />

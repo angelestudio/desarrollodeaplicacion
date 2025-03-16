@@ -1,4 +1,4 @@
-<!-- src/components/atoms/Button.vue -->
+
 <template>
     <button class="btn">
       {{ text }}

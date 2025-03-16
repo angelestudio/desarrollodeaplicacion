@@ -1,4 +1,4 @@
-<!-- src/components/atoms/InputField.vue -->
+
 <template>
     <input
       :type="type"

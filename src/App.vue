@@ -1,4 +1,4 @@
-<!-- src/App.vue -->
+
 <template>
     <div id="app">
       <RegisterView />
@@ -18,5 +18,5 @@
   </script>
   
   <style>
-  /* Estilos globales adicionales si se requieren */
+  
   </style>

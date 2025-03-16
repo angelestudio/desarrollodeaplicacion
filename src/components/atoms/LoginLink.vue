@@ -1,4 +1,4 @@
-<!-- src/components/atoms/LoginLink.vue -->
+
 <template>
     <a href="/login" class="login-link">
       Log in here
@@ -15,13 +15,13 @@
   
   <style scoped>
   .login-link {
-    color: #add8e6; /* azul claro */
+    color: #0000ff; 
     text-decoration: none;
     transition: color 0.3s, text-decoration 0.3s;
   }
   
   .login-link:hover {
-    color: #0000ff; /* azul más fuerte */
+    color: #0000ff; 
     text-decoration: underline;
   }
   </style>

@@ -1,4 +1,4 @@
-<!-- src/components/molecules/RegistrationForm.vue -->
+
 <template>
     <form class="registration-form">
       <InputField type="email" placeholder="Email" />

@@ -1,4 +1,4 @@
-<!-- src/components/molecules/Header.vue -->
+
 <template>
     <header class="header">
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
