@@ -1,17 +1,12 @@
 
-<template>
-    <header class="header">
-      <img src="@/assets/logo.png" alt="Logo" class="logo" />
-    </header>
-  </template>
-  
-  <script lang="ts">
-  import { defineComponent } from 'vue'
-  
-  export default defineComponent({
-    name: 'Header'
-  })
-  </script>
+<script lang="ts">
+import Button from '../atoms/CBButton.vue';
+import { defineComponent } from 'vue'
+
+
+
+
+</script>
   
   <style scoped>
   .header {
@@ -24,3 +19,13 @@
     height: auto;
   }
   </style>
+  
+  
+<template>
+ 
+  
+  
+    <header class="header">
+      <img src="@/assets/logo.png" alt="Logo" class="logo" />
+    </header>
+  </template>

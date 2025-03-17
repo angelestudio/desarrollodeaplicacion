@@ -13,14 +13,12 @@
   
   <script lang="ts">
   import { defineComponent } from 'vue'
-  import Header from '../components/molecules/Header.vue'
-  import RegistrationForm from '../components/molecules/RegistrationForm.vue'
+  import RegistrationForm from '../components/molecules/Login.vue'
   import LoginLink from '../components/atoms/LoginLink.vue'
   
   export default defineComponent({
     name: 'RegisterView',
     components: {
-      Header,
       RegistrationForm,
       LoginLink
     }
@@ -38,6 +36,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+   
   }
   
   .login-section {

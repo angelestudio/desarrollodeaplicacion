@@ -1,5 +1,15 @@
-import { createApp } from 'vue'
-import App from './App.vue'
 import './main.scss'
 
-createApp(App).mount('#app')
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
+
+import 'vue3-timepicker/dist/VueTimepicker.css'
+
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+
+app.mount('#app')

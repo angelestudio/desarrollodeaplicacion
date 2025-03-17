@@ -1,22 +1,11 @@
+<script lang="ts" setup>
+import { RouterView } from 'vue-router'
+import {ref} from 'vue';
+// Import stylesheet
+import 'vue3-loading-overlay/dist/vue3-loading-overlay.css';
+
+</script>
 
 <template>
-    <div id="app">
-      <RegisterView />
-    </div>
-  </template>
-  
-  <script lang="ts">
-  import { defineComponent } from 'vue'
-  import RegisterView from './views/RegisterView.vue'
-  
-  export default defineComponent({
-    name: 'App',
-    components: {
-      RegisterView
-    }
-  })
-  </script>
-  
-  <style>
-  
-  </style>
+  <RouterView />
+</template> 
