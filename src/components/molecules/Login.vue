@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { defineComponent } from 'vue'
-  import InputField from '../atoms/InputField.vue'
   import CBButton from '../atoms/CBButton.vue'
+  import CBInput from '../atoms/CBInput.vue';
   
   const handleClick = () => {
   alert('el boton no tiene nada');
@@ -18,7 +18,25 @@
   }
   </style>
 <template>
-    <div>
+    <div class="registration-form">
+    <CBInput
+      id="email"
+      label="Email"
+      type="email"
+      v-model="email"
+      placeholder="Enter your email"
+      required
+      variant="filled"
+    />
+    <CBInput
+      id="password"
+      label="Password"
+      type="password"
+      v-model="password"
+      placeholder="Enter your password"
+      required
+      variant="outlined"
+    />
     <CBButton
       @on-click="handleClick"
       label="register"

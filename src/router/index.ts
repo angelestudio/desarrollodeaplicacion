@@ -13,7 +13,19 @@ const router = createRouter({
       meta: {
         requiresAuth: false
       }
+    },
+    {
+      path: '/acceder',
+      name: 'acceder',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/AccederView.vue'),
+      meta: {
+        requiresAuth: false
+      }
     }
+   
   ]
 })
 

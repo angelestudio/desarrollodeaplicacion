@@ -1,5 +1,4 @@
-
-    <script setup lang="ts">
+<script setup lang="ts">
 
 import { ref } from 'vue'
 import router from "@/router";
@@ -13,4 +12,3 @@ import Login from '@/components/molecules/Login.vue'
     <Login></Login>
   </div>
 </template>
-  
