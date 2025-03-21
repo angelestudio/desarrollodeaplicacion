@@ -10,7 +10,7 @@ import Login from '@/components/molecules/Login.vue'
 
 <template>
   <div>
-    <Login></Login>
+    
   </div>
 </template>
   
