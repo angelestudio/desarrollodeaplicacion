@@ -25,6 +25,11 @@
   .footer-text{
     margin-top: 1rem;
     text-align: center;
+    color:#9ca3af;
+  }
+
+  .footer-text a {
+    color: #c084fc
   }
 
   .registration-form {
@@ -32,21 +37,26 @@
     max-width: 400px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 30px;
     margin-top: 20px;
   }
   </style>
+
+  
 <template>
     <div class="registration-container">
+      <img src="@/assets/logo.png" alt="Logo" class="logo" />
   <h1>Create an account</h1>
-    <CBInput
+  <div class="registration-form">
+    <div class="w-full max-w-[400px] margin-bottom: 15px">
+    <CBInput 
       id="email"
       label="Email"
       type="email"
       v-model="email"
       placeholder="Enter your email"
       required
-      variant="filled"
+      variant="outlined"
     />
     <CBInput
       id="password"
@@ -66,18 +76,20 @@
         required
         variant="outlined"
       />
+      </div>
+    </div>
 
-    <div class="flex justify-center mt-48">
+    <div class="flex justify-center mt-4 w-full max-w-[400px]">
     <CBButton
       @on-click="handleClick"
       label="register"
       variant="filled"
-      class-name="mt-38"
+      class-name="w-full mt-4"
       ></CBButton>
     </div>
     <div class="footer-text">
     Already have an account?
-    <a>log in here</a>
+    <a class="footer-text a">log in here</a>
     </div>
   </div>
  

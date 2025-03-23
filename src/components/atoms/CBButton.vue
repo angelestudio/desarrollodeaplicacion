@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<CBButtonProps>(), {
 
 const variants: any = {
   filled:
-    'bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full',
+    'bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-full',
   tonal: 'bg-slate-300 border border-transparent text-grey-800',
   'tonal-room': 'bg-slate-600 border border-transparent text-slate-200',
   elevated: 'bg-slate-200 border border-transparent text-secondary-500 shadow',
@@ -40,7 +40,7 @@ const style = computed<string>(() => variants[props.variant] as string)
 
 <template>
   <button
-    :class="` items-center gap-x-1 py-1 px-4 rounded-full text-sm ${style} ${className}`"
+    :class="`flex justify-center items-center gap-x-1 py-2 px-7 rounded-full text-sm ${style} ${className}`"
     type="button"
     @click="$emit('onClick')"
   >

@@ -35,7 +35,7 @@ const style = computed<string>(() => variants[props.variant] as string);
 
 <template>
   <div class="flex flex-col space-y-2">
-    <label v-if="label" :for="id" class="text-sm font-medium text-gray-700">{{ label }}</label>
+    <label v-if="label" :for="id" class="text-sm font-medium text-white-700">{{ label }}</label>
     <input
       :id="id"
       :type="type"
@@ -43,7 +43,7 @@ const style = computed<string>(() => variants[props.variant] as string);
       :required="required"
       :value="modelValue"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-      :class="`px-3 py-2 text-sm ${style} ${className}`"
+      :class="`w-full p-3 rounded-lg bg-gray-800 text-white border-gray-600 focus:outline-none focus:border-purple-500 ${style} ${className}`"
     />
   </div>
 </template>
