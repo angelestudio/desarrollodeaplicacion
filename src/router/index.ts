@@ -20,11 +20,36 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (LoginView-[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AccederView.vue'),
+      component: () => import('../views/AccederDView.vue'),
+      meta: {
+        requiresAuth: false
+      }
+    },
+    {
+      path: '/accederangel',
+      name: 'accederangel',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/LuisAngelview.vue'),
+      meta: {
+        requiresAuth: false
+      }
+    },
+    {
+      path: '/sharonlinda',
+      name: 'sharonlinda',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/sharonView.vue'),
       meta: {
         requiresAuth: false
       }
     }
+    
+    
+    
    
   ]
 })

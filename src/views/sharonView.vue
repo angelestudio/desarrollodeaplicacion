@@ -9,6 +9,6 @@ import Login from '@/components/molecules/Login.vue'
 
 <template>
   <div>
-    <Login></Login>
+    <h1>gl</h1>
   </div>
 </template>
