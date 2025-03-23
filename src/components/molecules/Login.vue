@@ -1,10 +1,15 @@
 <script setup lang="ts">
-  import { defineComponent } from 'vue'
   import CBButton from '../atoms/CBButton.vue'
   import CBInput from '../atoms/CBInput.vue';
+  import { loginStore } from '@/stores/login';
+  import { reactive } from 'vue';
+
+  const login = loginStore();
+  const formData =reactive({username: '',  pass:''})
   
   const handleClick = () => {
-  alert('el boton no tiene nada');
+    login.validateUser(formData.username, formData.pass);
+  
 }
 </script>
 
@@ -53,7 +58,7 @@
       id="email"
       label="Email"
       type="email"
-      v-model="email"
+      v-model="formData.username"
       placeholder="Enter your email"
       required
       variant="outlined"
@@ -62,7 +67,7 @@
       id="password"
       label="Password"
       type="password"
-      v-model="password"
+      v-model="formData.pass"
       placeholder="Enter your password"
       required
       variant="outlined"
@@ -71,7 +76,6 @@
         id="confirm-password"
         label="Confirm your password"
         type="password"
-        v-model="confirmPassword"
         placeholder="Confirm your password"
         required
         variant="outlined"

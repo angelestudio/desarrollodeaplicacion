@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Variants } from '@/types/commons'
 import { computed } from 'vue'
 
 //TODO: Use an icon with 'animate-spin' class from tailwind to replace this package.
