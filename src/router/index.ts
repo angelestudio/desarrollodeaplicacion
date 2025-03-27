@@ -46,6 +46,30 @@ const router = createRouter({
       meta: {
         requiresAuth: false
       }
+    },
+
+    {
+      path: '/natinfluencer',
+      name: 'natinfluencer',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/natiView.vue'),
+      meta: {
+        requiresAuth: false
+      }
+    },
+  
+    {
+      path: '/natinicio',
+      name: 'natinicio',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/InicioNathView.vue'),
+      meta: {
+        requiresAuth: false
+      }
     }
     
     

@@ -3,7 +3,7 @@
 import { ref } from 'vue'
 import router from "@/router";
 import {useRoute} from "vue-router";
-import Login from '@/components/molecules/nath.vue'
+import Login from '@/components/molecules/nati.vue'
 
 </script>
 
