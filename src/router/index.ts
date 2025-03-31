@@ -70,6 +70,17 @@ const router = createRouter({
       meta: {
         requiresAuth: false
       }
+    },
+    {
+      path: '/Profile',
+      name: 'Profile',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/Profileview.vue'),
+      meta: {
+        requiresAuth: false
+      }
     }
     
     

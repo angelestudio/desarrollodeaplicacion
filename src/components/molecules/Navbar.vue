@@ -11,13 +11,13 @@
     </nav>
   </template>
   
-  <script>
-  import Link from "@/components/atoms/Link.vue";
-  import Button from "@/components/atoms/Button.vue";
+  <script setup lang="ts">
+  import Link from "@/components/atoms/NGLink.vue";
+  import Button from "@/components/atoms/NGButton.vue";
   
-  export default {
+  defineOptions( {
     components: { Link, Button },
-  };
+  });
   </script>
   
   <style scoped>
