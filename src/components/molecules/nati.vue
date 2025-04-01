@@ -1,7 +1,7 @@
 <template>
     <div class="container">
       <nav class="navbar">
-        <div class="logo">TailGrids</div>
+        <div class="logo">SENACLUB</div>
         <div class="nav-links">
           <a href="#">Clubs</a>
           <a href="#">News</a>
@@ -19,67 +19,58 @@
           <p class="description">Desde deportes hasta tecnología y finanzas, únete a una comunidad que comparte tus intereses.</p>
           <button class="explore-button">Explorar Clubes</button>
         </div>
-        <div class="clients">
-          <p class="clients-title">Some Of Our Clients</p>
+        <div class="">
+          <p class="clients-title"></p>
           <div class="client-logos">
-            <span>ORACLE</span>
-            <span>intel</span>
-            <span>logitech</span>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
       </div>
       <footer class="footer">
         <div class="footer-links">
           <div class="links-column">
-            <p class="column-title">Useful Links</p>
-            <a href="#">Legal & Privacy</a>
-            <a href="#">Contact</a>
-            <a href="#">Gift Card</a>
-            <a href="#">Customer Service</a>
-            <a href="#">My Account</a>
+            <p class="column-title">Clubes populares</p>
+            <a href="#">Futbol</a>
+            <a href="#">Ingles</a>
+            <a href="#">Danzas</a>
+            <a href="#">Emprendimiento</a>
+            <a href="#">Programacion</a>
           </div>
           <div class="links-column">
-            <p class="column-title">Shop</p>
-            <a href="#">Televisions</a>
-            <a href="#">Washing Machines</a>
-            <a href="#">Air Conditioners</a>
-            <a href="#">Laptops</a>
-            <a href="#">Accessories</a>
+            <p class="column-title">Mi Cuenta</p>
+            <a href="#">Mi perfil</a>
+            <a href="#">Mis clubes</a>
+            <a href="#">Seguidos</a>
+            <a href="#">Noticias</a>
+            <a href="#">Configuracion</a>
           </div>
           <div class="links-column">
-            <p class="column-title">My Account</p>
-            <a href="#">My Profile</a>
-            <a href="#">My Order History</a>
-            <a href="#">My Wish List</a>
-            <a href="#">Order Tracking</a>
-            <a href="#">Shopping Cart</a>
+            <p class="column-title">Plataforma</p>
+            <a href="#">Sobre SenaClub</a>
+            <a href="#">Como funciona</a>
+            <a href="#">Eventos y retos</a>
+            <a href="#">Contactanos</a>
+            <a href="#">Bienestar</a>
           </div>
           <div class="links-column">
-            <p class="column-title">Company</p>
-            <a href="#">About Us</a>
-            <a href="#">Careers</a>
-            <a href="#">Our Blog</a>
-            <a href="#">Affiliate</a>
-            <a href="#">Contact Us</a>
+            <p class="column-title">Recursos Utiles</p>
+            <a href="#">Biblioteca Virtual</a>
+            <a href="#">Bolsa De Empleo Sena</a>
+            <a href="#">Certificados en linea</a>
+            <a href="#">Cursos recomendados</a>
+            <a href="#">Calendario Academico</a>
           </div>
           <div class="links-column">
-            <p class="column-title">Need Help? Call Us Now</p>
-            <p>+99 0214 2542 223</p>
-            <p>Monday - Friday: 9:00-20:00</p>
-            <p>Saturday: 11:00-15:00</p>
+            <p class="column-title">Necesitas ayuda?</p>
+            <p>Horario de atencion en linea</p>
+            <p>Lunes a viernes 9:00a.m - 7:00p.m </p>
+            <p>Sabados 8:00a.m - 1:00p.m</p>
             <div class="social-icons">
               <a>f</a>
               <a>in</a>
             </div>
-          </div>
-        </div>
-        <div class="copyright">
-          <p>Copyright © 2022 TailGrids. All Rights Reserved.</p>
-          <div class="payment-methods">
-            <span>We Accept:</span>
-            <span>PayPal</span>
-            <span>VISA</span>
-            <span>DISCOVER</span>
           </div>
         </div>
       </footer>
@@ -96,13 +87,14 @@
   
   /* Configurar el contenedor principal */
   .container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Mínimo toda la altura de la pantalla */
-    width: 100vw;
-    background-color: black; /* Fondo negro */
-    color: white; /* Letras blancas */
-  }
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Asegura que el contenedor ocupe toda la pantalla */
+  width: 100vw;
+  background-color: black;
+  color: white;
+}
+
   
   /* Barra de navegación */
   .navbar {
