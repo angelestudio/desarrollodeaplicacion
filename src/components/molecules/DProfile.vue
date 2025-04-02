@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col md:flex-row h-screen bg-black text-white overflow-hidden">
-    <!-- Sidebar izquierda - Fondo negro sólido -->
-    <div class="w-full md:w-48 lg:w-52 bg-black flex flex-col relative border-b md:border-b-0 md:border-r border-gray-800">
+    <!-- Sidebar izquierda - Fondo negro sólido (ahora más pequeña) -->
+    <div class="w-full md:w-1/5 lg:w-1/5 bg-black flex flex-col relative border-b md:border-b-0 md:border-r border-gray-800">
       <div class="p-4 flex items-center">
         <div class="flex items-center">
           <div class="w-8 h-8 bg-transparent rounded-full flex items-center justify-center border-2 border-white">
@@ -31,8 +31,8 @@
       </div>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="w-full md:w-3/5 lg:w-2/3 flex flex-col bg-black relative overflow-y-auto">
+    <!-- Contenido principal (ahora un poco más amplio) -->
+    <div class="w-full md:w-3/5 lg:w-3/5 flex flex-col bg-black relative overflow-y-auto">
       <!-- Imagen de fondo en la parte superior - patrón de líneas -->
       <div class="absolute top-0 left-0 right-0 h-36 md:h-52 z-0 overflow-hidden bg-gray-700">
         <img src="" alt="Background Pattern" class="w-full h-full object-cover" style="filter: brightness(0.5) grayscale(0.5);" />
@@ -71,54 +71,133 @@
       <router-view></router-view>
     </div>
 
-    <!-- Sidebar derecha - Noticias (implementación completa) -->
-    <div class="hidden md:block w-full md:w-2/5 lg:w-1/3 bg-gray-900 border-l border-gray-800 overflow-hidden flex flex-col">
-      <div class="p-4 border-b border-gray-800 bg-black">
-        <h2 class="text-lg font-semibold flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"/>
-            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z"/>
+    <!-- Sidebar derecha - Noticias (ahora con scroll explícito) -->
+    <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
+      <!-- Barra de búsqueda -->
+      <div class="p-3 border-b border-gray-800">
+        <div class="bg-gray-900 rounded-full px-4 py-2 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
           </svg>
-          Noticias
-        </h2>
+          <input type="text" placeholder="Search" class="bg-transparent border-none w-full ml-2 text-sm focus:outline-none text-gray-300">
+        </div>
       </div>
       
-      <!-- Contenedor con scroll para las noticias -->
-      <div class="flex-1 overflow-y-auto">
-        <!-- Noticias individuales -->
-        <div v-for="n in 10" :key="n" class="p-4 border-b border-gray-800 hover:bg-gray-800 transition duration-200">
-          <div class="flex">
-            <div class="flex-shrink-0 w-16 h-16 bg-gray-800 rounded overflow-hidden">
-              <img src="" alt="News Thumbnail" class="w-full h-full object-cover" />
+      <!-- Contenedor de noticias con scroll explícito -->
+      <div class="flex-1 overflow-y-auto h-full">
+        <div class="p-4 border border-gray-700 rounded-lg m-4">
+          <!-- Encabezado NEWS -->
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-indigo-500 font-bold">NEWS</h2>
+            <div class="grid grid-cols-3 gap-1">
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
+              <div class="h-1 w-1 bg-indigo-500 rounded-full"></div>
             </div>
-            <div class="ml-3 flex-1">
-              <p class="font-medium text-sm">Noticia SENA {{n}}: Nueva capacitación disponible</p>
-              <p class="text-xs text-gray-400 mt-1">Hace {{n}} horas</p>
-              <div class="flex mt-2 space-x-2">
-                <span class="px-2 py-1 bg-gray-800 text-xs rounded-full text-gray-300">SENA</span>
-                <span class="px-2 py-1 bg-gray-800 text-xs rounded-full text-gray-300">Educación</span>
+          </div>
+          
+          <p class="text-sm text-gray-400 mb-4">noticias csf</p>
+          <hr class="border-gray-700 mb-4">
+          
+          <!-- Noticia 1 -->
+          <div class="bg-gray-200 p-3 mb-4 rounded">
+            <div class="flex">
+              <div class="mr-3">
+                <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
+                  <span class="text-xs font-bold text-black">NEWS</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-black font-medium text-sm">Evento Terraza</h3>
+                <div class="h-px bg-gray-400 my-1"></div>
+                <div class="h-px bg-gray-400 my-1"></div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Botón para cargar más noticias -->
-        <div class="p-4 flex justify-center">
-          <button class="px-4 py-2 bg-indigo-800 rounded-full text-xs hover:bg-indigo-700 transition duration-200">
-            Cargar más noticias
-          </button>
-        </div>
-      </div>
-      
-      <!-- Footer de la sección de noticias -->
-      <div class="p-3 border-t border-gray-800 bg-black">
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-gray-500">© 2025 SENACLUB News</span>
-          <button class="text-gray-400 hover:text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-            </svg>
-          </button>
+          
+          <!-- Noticia 2 -->
+          <div class="bg-gray-200 p-3 mb-4 rounded">
+            <div class="flex">
+              <div class="mr-3">
+                <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
+                  <span class="text-xs font-bold text-black">NEWS</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-black font-medium text-sm">Película Auditorio</h3>
+                <div class="h-px bg-gray-400 my-1"></div>
+                <div class="h-px bg-gray-400 my-1"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Noticia 3 -->
+          <div class="bg-gray-200 p-3 rounded">
+            <div class="flex">
+              <div class="mr-3">
+                <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
+                  <span class="text-xs font-bold text-black">NEWS</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-black font-medium text-sm">Emprendimiento</h3>
+                <div class="h-px bg-gray-400 my-1"></div>
+                <div class="h-px bg-gray-400 my-1"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Noticias adicionales para probar el scroll -->
+          <div class="bg-gray-200 p-3 mt-4 rounded">
+            <div class="flex">
+              <div class="mr-3">
+                <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
+                  <span class="text-xs font-bold text-black">NEWS</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-black font-medium text-sm">Seminario Web</h3>
+                <div class="h-px bg-gray-400 my-1"></div>
+                <div class="h-px bg-gray-400 my-1"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gray-200 p-3 mt-4 rounded">
+            <div class="flex">
+              <div class="mr-3">
+                <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
+                  <span class="text-xs font-bold text-black">NEWS</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-black font-medium text-sm">Taller</h3>
+                <div class="h-px bg-gray-400 my-1"></div>
+                <div class="h-px bg-gray-400 my-1"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
