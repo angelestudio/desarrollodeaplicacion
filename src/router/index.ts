@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
+// router/index.ts
+import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,79 +7,57 @@ const router = createRouter({
     {
       path: '/',
       name: 'login',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/LoginView.vue'),
       meta: {
-        requiresAuth: false
-      }
+        requiresAuth: false,
+      },
     },
     {
       path: '/acceder',
       name: 'acceder',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AccederDView.vue'),
       meta: {
-        requiresAuth: false
-      }
+        requiresAuth: false,
+      },
     },
     {
       path: '/accederangel',
       name: 'accederangel',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/LuisAngelview.vue'),
       meta: {
-        requiresAuth: false
-      }
+        requiresAuth: false,
+      },
     },
     {
       path: '/sharonlinda',
       name: 'sharonlinda',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/sharonView.vue'),
       meta: {
-        requiresAuth: false
-      }
+        requiresAuth: false,
+      },
     },
-
     {
       path: '/natinfluencer',
       name: 'natinfluencer',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/natiView.vue'),
       meta: {
-        requiresAuth: false
-      }
+        requiresAuth: false,
+      },
     },
-  
     {
       path: '/natinicio',
       name: 'natinicio',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/InicioNathView.vue'),
       meta: {
-        requiresAuth: false
-      }
+        requiresAuth: false,
+      },
     },
     {
       path: '/Profile',
       name: 'Profile',
-      // route level code-splitting
-      // this generates a separate chunk (LoginView-[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/Profileview.vue'),
+      component: () => import('../components/molecules/DProfile.vue'), // Cambiado de ../views/DProfile.vue a ../components/molecules/DProfile.vue
       meta: {
+<<<<<<< HEAD
         requiresAuth: false
       }
     },
@@ -108,6 +87,30 @@ const router = createRouter({
    
   ]
 })
+=======
+        requiresAuth: false,
+      },
+      redirect: '/Profile/posts', // Redirige por defecto a "Posts"
+      children: [
+        {
+          path: 'posts',
+          name: 'ProfilePosts',
+          component: () => import('../views/Posts.vue'), // Ya estaba correcto
+        },
+        {
+          path: 'notifications',
+          name: 'ProfileNotifications',
+          component: () => import('../views/Notifications.vue'), // Ya estaba correcto
+        },
+      ],
+    },
+    {
+      path: '/news',
+      name: 'News',
+      component: () => import('../views/News.vue'), // Ya estaba correcto
+    },
+  ],
+});
+>>>>>>> 35fc9e7 (pagina funcional de profile)
 
-
-export default router
+export default router;
