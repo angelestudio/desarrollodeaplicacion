@@ -81,9 +81,29 @@ const router = createRouter({
       meta: {
         requiresAuth: false
       }
+    },
+    {
+      path: '/SignIn',
+      name: 'SignIn',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/SignIn.vue'),
+      meta: {
+        requiresAuth: false
+      }
+    },
+    {
+      path: '/SignUp',
+      name: 'SignUp',
+      // route level code-splitting
+      // this generates a separate chunk (LoginView-[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/SignUp.vue'),
+      meta: {
+        requiresAuth: false
+      }
     }
-    
-    
     
    
   ]
