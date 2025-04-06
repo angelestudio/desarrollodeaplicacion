@@ -13,9 +13,26 @@ const form = ref({
   confirmPassword: ''
 })
 
-const register = () => {
-  console.log('Registrando usuario:', form.value)
+const register = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(form.value)
+    })
+
+    const data = await response.json()
+    console.log('Respuesta del backend:', data)
+    alert('Usuario enviado correctamente')
+
+  } catch (error) {
+    console.error('Error al registrar:', error)
+    alert('Error al registrar usuario')
+  }
 }
+
 </script>
 
 <template>
@@ -50,7 +67,7 @@ const register = () => {
 
     <!-- Sección derecha - Imagen -->
     <div class="w-1/2 flex justify-center items-center bg-white">
-      <img src="@/assets/register-illustration.svg" alt="Illustration" class="w-2/3" />
+      <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3" />
     </div>
   </div>
 </template>
