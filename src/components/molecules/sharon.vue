@@ -2,10 +2,12 @@
 import CBInput from '../atoms/CBInput.vue'
 import CBButton from '../atoms/CBButton.vue'
 import { ref } from 'vue'
+import { toast, type Content } from 'vue3-toastify'
+import router from '@/router'
 
 const form = ref({
-  Nombre: '',
-  Apellido: '',
+  firstName: '',
+  lastName: '',
   rol: '',
   phone: '',
   email: '',
@@ -14,8 +16,9 @@ const form = ref({
 })
 
 const register = async () => {
+  console.log(form)
   try {
-    const response = await fetch('http://localhost:3000/users', {
+    const response = await fetch('http://localhost:3000/auth/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -24,9 +27,17 @@ const register = async () => {
     })
 
     const data = await response.json()
-    console.log('Respuesta del backend:', data)
-    alert('Usuario enviado correctamente')
-
+    if(data.error != "" || data.error != null){
+      if(Array.isArray(data.message)){
+        data.message.forEach((element: Content) => {
+        toast.error(element);
+      });
+      return true;
+      }
+      toast.error(data.message)
+      }
+    toast.success("Usuario creado correctamente");
+      router.push('/signin')
   } catch (error) {
     console.error('Error al registrar:', error)
     alert('Error al registrar usuario')
@@ -43,8 +54,8 @@ const register = async () => {
 
       <div class="w-full max-w-sm space-y-4">
         <div class="flex gap-4">
-          <CBInput id="firstName" v-model="form.Nombre" placeholder="Enter your first name" label="First Name" />
-          <CBInput id="lastName" v-model="form.Apellido" placeholder="Enter your last name" label="Last Name" />
+          <CBInput id="firstName" v-model="form.firstName" placeholder="Enter your first name" label="First Name" />
+          <CBInput id="lastName" v-model="form.lastName" placeholder="Enter your last name" label="Last Name" />
         </div>
 
         <div class="flex gap-4">
