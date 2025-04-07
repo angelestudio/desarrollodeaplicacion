@@ -71,37 +71,13 @@
       <router-view>
         <!-- Template para la vista de Posts -->
         <template v-if="$route.path === '/Profile/posts'">
-          <!-- Componente para crear un nuevo post -->
-          <div class="p-4 border border-gray-800 rounded-lg mx-4 my-4">
-            <div class="flex items-center mb-2">
-              <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
-              <span class="ml-2 text-sm font-medium">Crear nuevo post</span>
-            </div>
-            <textarea v-model="newPostContent" class="w-full bg-gray-900 text-gray-300 rounded-lg p-3 text-sm resize-none border border-gray-700 focus:outline-none focus:border-indigo-500" rows="3" placeholder="¿Qué quieres compartir?"></textarea>
-            <div class="flex justify-between items-center mt-2">
-              <div class="flex space-x-2">
-                <button class="p-2 text-blue-500 rounded-full hover:bg-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-                <button class="p-2 text-blue-500 rounded-full hover:bg-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-              <button @click="createPost" class="px-4 py-1 bg-indigo-600 text-white rounded-full text-sm hover:bg-indigo-700">Publicar</button>
-            </div>
+          <!-- Mensaje cuando no hay posts -->
+          <div v-if="posts.length === 0" class="text-center text-gray-500 py-6 mt-4">
+            No hay posts disponibles
           </div>
           
-          <!-- Lista de posts creados -->
-          <div v-if="posts.length === 0" class="text-center text-gray-500 py-6">
-            Tus posts aparecerán aquí
-          </div>
-          
-          <!-- Posts creados -->
-          <div v-for="(post, index) in posts" :key="index" class="p-4 border border-gray-800 rounded-lg mx-4 mb-4">
+          <!-- Posts existentes -->
+          <div v-for="(post, index) in posts" :key="index" class="p-4 border border-gray-800 rounded-lg mx-4 mb-4 mt-4">
             <div class="flex items-start mb-3">
               <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
               <div class="ml-2">
@@ -135,36 +111,62 @@
         
         <!-- Template para la vista de Notificaciones -->
         <template v-if="$route.path === '/Profile/notifications'">
-          <!-- Componente para crear una nueva notificación (para admin) -->
-          <div class="p-4 border border-gray-800 rounded-lg mx-4 my-4">
-            <div class="flex items-center mb-2">
-              <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
+          <!-- Formulario para crear nuevas notificaciones -->
+          <div class="mx-4 my-4 p-4 border border-gray-700 rounded-lg bg-gray-900">
+            <h3 class="text-sm font-medium mb-3">Crear nueva notificación</h3>
+            <form @submit.prevent="createNotification">
+              <div class="mb-3">
+                <input
+                  v-model="newNotification.title"
+                  type="text"
+                  placeholder="Título"
+                  class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+                  required
+                />
               </div>
-              <span class="ml-2 text-sm font-medium">Crear notificación</span>
-            </div>
-            <input v-model="newNotification.title" type="text" class="w-full bg-gray-900 text-gray-300 rounded-lg p-3 text-sm border border-gray-700 focus:outline-none focus:border-indigo-500 mb-2" placeholder="Título de la notificación">
-            <textarea v-model="newNotification.content" class="w-full bg-gray-900 text-gray-300 rounded-lg p-3 text-sm resize-none border border-gray-700 focus:outline-none focus:border-indigo-500" rows="2" placeholder="Contenido de la notificación"></textarea>
-            <div class="flex justify-between items-center mt-2">
-              <select v-model="newNotification.type" class="bg-gray-900 text-gray-300 rounded-lg px-3 py-1 text-sm border border-gray-700 focus:outline-none focus:border-indigo-500">
-                <option value="">Selecciona el tipo</option>
-                <option value="info">Información</option>
-                <option value="warning">Aviso</option>
-                <option value="alert">Alerta</option>
-              </select>
-              <button @click="createNotification" class="px-4 py-1 bg-indigo-600 text-white rounded-full text-sm hover:bg-indigo-700">Enviar</button>
-            </div>
+              <div class="mb-3">
+                <textarea
+                  v-model="newNotification.content"
+                  placeholder="Contenido"
+                  class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500 h-20"
+                  required
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <select
+                  v-model="newNotification.type"
+                  class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+                  required
+                >
+                  <option value="info">Información</option>
+                  <option value="warning">Advertencia</option>
+                  <option value="alert">Alerta</option>
+                </select>
+              </div>
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
+                  :disabled="isLoading"
+                >
+                  {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Mensaje de estado -->
+          <div v-if="statusMessage" class="mx-4 mb-3 p-2 rounded-lg text-center text-sm" :class="statusMessage.success ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'">
+            {{ statusMessage.text }}
           </div>
           
           <!-- Lista de notificaciones -->
-          <div v-if="notifications.length === 0" class="text-center text-gray-500 py-6">
-            Tus notificaciones aparecerán aquí
+          <div v-if="notifications.length === 0 && !isLoading" class="text-center text-gray-500 py-6 mt-4">
+            No hay notificaciones disponibles
           </div>
           
-          <!-- Notificaciones creadas -->
-          <div v-for="(notification, index) in notifications" :key="index" class="mx-4 mb-3">
+          <!-- Notificaciones existentes -->
+          <div v-for="(notification, index) in notifications" :key="index" class="mx-4 mb-3 mt-4">
             <div class="p-3 rounded-lg" :class="{
               'bg-blue-900 bg-opacity-20 border border-blue-800': notification.type === 'info',
               'bg-yellow-900 bg-opacity-20 border border-yellow-800': notification.type === 'warning',
@@ -188,8 +190,13 @@
                   <h3 class="text-sm font-medium">{{ notification.title }}</h3>
                   <p class="text-xs text-gray-400 mt-1">{{ notification.content }}</p>
                   <div class="flex justify-between items-center mt-2">
-                    <span class="text-xs text-gray-500">Hace un momento</span>
-                    <button class="text-xs text-gray-400 hover:text-white">Marcar como leída</button>
+                    <span class="text-xs text-gray-500">{{ notification.timestamp || 'Hace un momento' }}</span>
+                    <button 
+                      @click="markAsRead(notification.id, index)" 
+                      class="text-xs text-gray-400 hover:text-white"
+                    >
+                      Marcar como leída
+                    </button>
                   </div>
                 </div>
               </div>
@@ -199,7 +206,7 @@
       </router-view>
     </div>
 
-    <!-- Sidebar derecha - Noticias (ahora con scroll explícito) -->
+    <!-- Sidebar derecha - Noticias (ahora solo muestra noticias existentes) -->
     <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
       <!-- Barra de búsqueda -->
       <div class="p-3 border-b border-gray-800">
@@ -208,25 +215,6 @@
             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
           </svg>
           <input type="text" placeholder="Search" class="bg-transparent border-none w-full ml-2 text-sm focus:outline-none text-gray-300">
-        </div>
-      </div>
-      
-      <!-- Componente para crear una nueva noticia -->
-      <div class="p-3 border-b border-gray-800">
-        <div class="p-3 border border-gray-700 rounded-lg bg-gray-900">
-          <div class="flex items-center mb-2">
-            <div class="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <span class="ml-2 text-xs font-medium">Nueva noticia</span>
-          </div>
-          <input v-model="newNews.title" type="text" class="w-full bg-gray-800 text-gray-300 rounded-lg p-2 text-xs border border-gray-700 focus:outline-none focus:border-indigo-500 mb-2" placeholder="Título de la noticia">
-          <textarea v-model="newNews.content" class="w-full bg-gray-800 text-gray-300 rounded-lg p-2 text-xs resize-none border border-gray-700 focus:outline-none focus:border-indigo-500" rows="2" placeholder="Contenido breve"></textarea>
-          <div class="flex justify-end mt-2">
-            <button @click="createNews" class="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs hover:bg-indigo-700">Publicar</button>
-          </div>
         </div>
       </div>
       
@@ -252,7 +240,7 @@
           <p class="text-sm text-gray-400 mb-4">noticias csf</p>
           <hr class="border-gray-700 mb-4">
           
-          <!-- Noticias creadas -->
+          <!-- Noticias ya existentes en el sistema -->
           <div v-for="(news, index) in newsList" :key="index" class="bg-gray-200 p-3 mb-4 rounded">
             <div class="flex">
               <div class="mr-3">
@@ -333,69 +321,177 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // Estado para Posts
-const newPostContent = ref('');
-const posts = ref<Array<{content: string}>>([]);
+const posts = ref<Array<{content: string}>>([
+  { content: "Este es un post de ejemplo que ya existe en el sistema." },
+  { content: "Otro post de ejemplo que muestra cómo se verían los posts en el perfil del usuario." }
+]);
 
-const createPost = () => {
-  if (newPostContent.value.trim()) {
-    posts.value.unshift({
-      content: newPostContent.value
-    });
-    newPostContent.value = '';
+// ===== ACTUALIZACIÓN DE NOTIFICACIONES =====
+// Definición de interfaces
+interface Notification {
+  id?: number;
+  title: string;
+  content: string;
+  type: string;
+  timestamp?: string;
+  read?: boolean;
+}
+
+// Estado para el formulario de nueva notificación
+const newNotification = ref<Notification>({
+  title: '',
+  content: '',
+  type: 'info'
+});
+
+// Estado para las notificaciones
+const notifications = ref<Notification[]>([]);
+
+// Estado para controlar la carga
+const isLoading = ref(false);
+
+// Estado para mensajes de estado
+const statusMessage = ref<{ text: string, success: boolean } | null>(null);
+
+// Función para cargar notificaciones desde la API
+const fetchNotifications = async () => {
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:3000/notifications');
+    if (!response.ok) {
+      throw new Error('Error al cargar notificaciones');
+    }
+    const data = await response.json();
+    notifications.value = data;
+  } catch (error) {
+    console.error('Error:', error);
+    statusMessage.value = {
+      text: 'Error al cargar notificaciones. Por favor, intente de nuevo.',
+      success: false
+    };
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// Estado para Notificaciones
-const newNotification = ref({
-  title: '',
-  content: '',
-  type: ''
-});
-const notifications = ref<Array<{title: string, content: string, type: string}>>([]);
-
-const createNotification = () => {
-  if (newNotification.value.title.trim() && newNotification.value.content.trim()) {
-    notifications.value.unshift({
-      title: newNotification.value.title,
-      content: newNotification.value.content,
-      type: newNotification.value.type || 'info'
+// Función para crear una nueva notificación
+const createNotification = async () => {
+  isLoading.value = true;
+  try {
+    // Preparar los datos para enviar
+    const notificationData = {
+      ...newNotification.value,
+      timestamp: new Date().toLocaleString(),
+      read: false
+    };
+    
+    // Enviar la notificación a la API
+    const response = await fetch('http://localhost:3000/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(notificationData),
     });
-    // Reset form
+    
+    if (!response.ok) {
+      throw new Error('Error al crear notificación');
+    }
+    
+    const savedNotification = await response.json();
+    
+    // Agregar la nueva notificación al estado local
+    notifications.value.unshift(savedNotification);
+    
+    // Limpiar el formulario
     newNotification.value = {
       title: '',
       content: '',
-      type: ''
+      type: 'info'
+    };
+    
+    // Mostrar mensaje de éxito
+    statusMessage.value = {
+      text: 'Notificación creada correctamente',
+      success: true
+    };
+    
+    // Limpiar el mensaje después de 3 segundos
+    setTimeout(() => {
+      statusMessage.value = null;
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    statusMessage.value = {
+      text: 'Error al crear la notificación. Por favor, intente de nuevo.',
+      success: false
+    };
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Función para marcar una notificación como leída
+const markAsRead = async (id: number | undefined, index: number) => {
+  if (!id) return;
+  
+  try {
+    const notification = notifications.value[index];
+    const updatedNotification = { ...notification, read: true };
+    
+    const response = await fetch(`http://localhost:3000/notifications/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedNotification),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al actualizar notificación');
+    }
+    
+    // Actualizar la notificación en el estado local
+    notifications.value[index].read = true;
+    
+    // Opcional: Mostrar un mensaje de éxito o eliminar la notificación
+    statusMessage.value = {
+      text: 'Notificación marcada como leída',
+      success: true
+    };
+    
+    // Limpiar el mensaje después de 3 segundos
+    setTimeout(() => {
+      statusMessage.value = null;
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    statusMessage.value = {
+      text: 'Error al marcar como leída. Por favor, intente de nuevo.',
+      success: false
     };
   }
 };
+
+// Cargar notificaciones al montar el componente
+onMounted(() => {
+  fetchNotifications();
+});
 
 // Estado para Noticias
-const newNews = ref({
-  title: '',
-  content: ''
-});
-const newsList = ref<Array<{title: string, content: string}>>([]);
-
-const createNews = () => {
-  if (newNews.value.title.trim() && newNews.value.content.trim()) {
-    newsList.value.unshift({
-      title: newNews.value.title,
-      content: newNews.value.content
-    });
-    // Reset form
-    newNews.value = {
-      title: '',
-      content: ''
-    };
+const newsList = ref<Array<{title: string, content: string}>>([
+  { 
+    title: "Nuevo evento deportivo", 
+    content: "Este fin de semana tendremos actividades deportivas en el campus." 
+  },
+  { 
+    title: "Conferencia tecnológica", 
+    content: "No te pierdas la conferencia sobre nuevas tecnologías el próximo martes." 
   }
-};
+]);
 </script>
-
-
-
-
-
-
