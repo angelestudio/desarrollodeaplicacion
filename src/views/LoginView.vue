@@ -10,7 +10,7 @@ import Login from '@/components/molecules/LoginD.vue'
 
 <template>
   <div>
-    
+    hola
   </div>
 </template>
   
