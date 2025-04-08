@@ -1,3 +1,199 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
+// Estado para Posts
+const posts = ref<Array<{content: string}>>([
+  { content: "Este es un post de ejemplo que ya existe en el sistema." },
+  { content: "Otro post de ejemplo que muestra cómo se verían los posts en el perfil del usuario." }
+]);
+
+const redirectToSearch = () => {
+  // Find the search container element
+  const searchContainer = document.getElementById('search-container');
+  if (searchContainer) {
+    // Scroll to the search container
+    searchContainer.scrollIntoView({ behavior: 'smooth' });
+    
+    // Find and focus the input field inside the search container
+    const searchInput = searchContainer.querySelector('input');
+    if (searchInput) {
+      searchInput.focus();
+    }
+  }
+};
+
+// ===== ACTUALIZACIÓN DE NOTIFICACIONES =====
+// Definición de interfaces
+interface Notification {
+  id?: number;
+  title: string;
+  content: string;
+  type: string;
+  timestamp?: string;
+  read?: boolean;
+}
+
+// Estado para el formulario de nueva notificación
+const newNotification = ref<Notification>({
+  title: '',
+  content: '',
+  type: 'info'
+});
+
+// Estado para las notificaciones
+const notifications = ref<Notification[]>([]);
+
+// Estado para controlar la carga
+const isLoading = ref(false);
+
+// Estado para mensajes de estado
+const statusMessage = ref<{ text: string, success: boolean } | null>(null);
+
+// Función para cargar notificaciones desde la API
+const fetchNotifications = async () => {
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:3000/notifications');
+    if (!response.ok) {
+      throw new Error('Error al cargar notificaciones');
+    }
+    const data = await response.json();
+    notifications.value = data;
+  } catch (error) {
+    console.error('Error:', error);
+    statusMessage.value = {
+      text: 'Error al cargar notificaciones. Por favor, intente de nuevo.',
+      success: false
+    };
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Función para crear una nueva notificación
+const createNotification = async () => {
+  isLoading.value = true;
+  try {
+    // Preparar los datos para enviar
+    const notificationData = {
+      ...newNotification.value,
+      timestamp: new Date().toLocaleString(),
+      read: false
+    };
+    
+    // Enviar la notificación a la API
+    const response = await fetch('http://localhost:3000/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(notificationData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al crear notificación');
+    }
+    
+    const savedNotification = await response.json();
+    
+    // Agregar la nueva notificación al estado local
+    notifications.value.unshift(savedNotification);
+    
+    // Limpiar el formulario
+    newNotification.value = {
+      title: '',
+      content: '',
+      type: 'info'
+    };
+    
+    // Mostrar mensaje de éxito
+    statusMessage.value = {
+      text: 'Notificación creada correctamente',
+      success: true
+    };
+    
+    // Limpiar el mensaje después de 3 segundos
+    setTimeout(() => {
+      statusMessage.value = null;
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    statusMessage.value = {
+      text: 'Error al crear la notificación. Por favor, intente de nuevo.',
+      success: false
+    };
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Función para marcar una notificación como leída
+const markAsRead = async (id: number | undefined, index: number) => {
+  if (!id) return;
+  
+  try {
+    const notification = notifications.value[index];
+    const updatedNotification = { ...notification, read: true };
+    
+    const response = await fetch(`http://localhost:3000/notifications/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedNotification),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al actualizar notificación');
+    }
+    
+    // Actualizar la notificación en el estado local
+    notifications.value[index].read = true;
+    
+    // Opcional: Mostrar un mensaje de éxito o eliminar la notificación
+    statusMessage.value = {
+      text: 'Notificación marcada como leída',
+      success: true
+    };
+    
+    // Limpiar el mensaje después de 3 segundos
+    setTimeout(() => {
+      statusMessage.value = null;
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    statusMessage.value = {
+      text: 'Error al marcar como leída. Por favor, intente de nuevo.',
+      success: false
+    };
+  }
+};
+
+// Cargar notificaciones al montar el componente
+onMounted(() => {
+  fetchNotifications();
+});
+
+
+
+
+
+// Estado para Noticias
+const newsList = ref<Array<{title: string, content: string}>>([
+  { 
+    title: "Nuevo evento deportivo", 
+    content: "Este fin de semana tendremos actividades deportivas en el campus." 
+  },
+  { 
+    title: "Conferencia tecnológica", 
+    content: "No te pierdas la conferencia sobre nuevas tecnologías el próximo martes." 
+  }
+]);
+</script>
+
+
 <template>
   <div class="flex flex-col md:flex-row h-screen bg-black text-white overflow-hidden">
     <!-- Sidebar izquierda - Fondo negro sólido (ahora más pequeña) -->
@@ -13,14 +209,15 @@
         </div>
       </div>
 
-      <!-- Menú de navegación (News removido) -->
+      <!-- Menú de navegación con hover purple y explore redirigiendo al search -->
       <nav class="flex-1 mt-4 md:mt-8 px-4">
         <div class="grid grid-cols-2 md:grid-cols-1 gap-2 md:space-y-3">
-          <router-link to="/" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm">Home</router-link>
-          <router-link to="/explore" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm">Explore</router-link>
-          <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full bg-indigo-800 text-center text-white text-sm">Notifications</router-link>
-          <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full bg-indigo-800 text-center text-white text-sm">Profile</router-link>
-          <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm">Posts</router-link>
+          <router-link to="/" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Home</router-link>
+          <!-- Modified Explore link to redirect to search -->
+          <a @click="redirectToSearch" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200 cursor-pointer">Explore</a>
+          <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Notifications</router-link>
+          <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Profile</router-link>
+          <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Posts</router-link>
         </div>
       </nav>
 
@@ -35,7 +232,7 @@
     <div class="w-full md:w-3/5 lg:w-3/5 flex flex-col bg-black relative overflow-y-auto">
       <!-- Imagen de fondo en la parte superior - patrón de líneas -->
       <div class="absolute top-0 left-0 right-0 h-36 md:h-52 z-0 overflow-hidden bg-gray-700">
-        <img src="" alt="Background Pattern" class="w-full h-full object-cover" style="filter: brightness(0.5) grayscale(0.5);" />
+        <img src="@/assets/bg_buildings_old.png" alt="Background Pattern" class="w-full h-full object-cover" style="filter: brightness(0.5) grayscale(0.5);" />
       </div>
 
       <!-- Sección de perfil -->
@@ -209,7 +406,7 @@
     <!-- Sidebar derecha - Noticias (ahora solo muestra noticias existentes) -->
     <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
       <!-- Barra de búsqueda -->
-      <div class="p-3 border-b border-gray-800">
+      <div class="p-3 border-b border-gray-800" id="search-container">
         <div class="bg-gray-900 rounded-full px-4 py-2 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
@@ -319,179 +516,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-
-// Estado para Posts
-const posts = ref<Array<{content: string}>>([
-  { content: "Este es un post de ejemplo que ya existe en el sistema." },
-  { content: "Otro post de ejemplo que muestra cómo se verían los posts en el perfil del usuario." }
-]);
-
-// ===== ACTUALIZACIÓN DE NOTIFICACIONES =====
-// Definición de interfaces
-interface Notification {
-  id?: number;
-  title: string;
-  content: string;
-  type: string;
-  timestamp?: string;
-  read?: boolean;
-}
-
-// Estado para el formulario de nueva notificación
-const newNotification = ref<Notification>({
-  title: '',
-  content: '',
-  type: 'info'
-});
-
-// Estado para las notificaciones
-const notifications = ref<Notification[]>([]);
-
-// Estado para controlar la carga
-const isLoading = ref(false);
-
-// Estado para mensajes de estado
-const statusMessage = ref<{ text: string, success: boolean } | null>(null);
-
-// Función para cargar notificaciones desde la API
-const fetchNotifications = async () => {
-  isLoading.value = true;
-  try {
-    const response = await fetch('http://localhost:3000/notifications');
-    if (!response.ok) {
-      throw new Error('Error al cargar notificaciones');
-    }
-    const data = await response.json();
-    notifications.value = data;
-  } catch (error) {
-    console.error('Error:', error);
-    statusMessage.value = {
-      text: 'Error al cargar notificaciones. Por favor, intente de nuevo.',
-      success: false
-    };
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Función para crear una nueva notificación
-const createNotification = async () => {
-  isLoading.value = true;
-  try {
-    // Preparar los datos para enviar
-    const notificationData = {
-      ...newNotification.value,
-      timestamp: new Date().toLocaleString(),
-      read: false
-    };
-    
-    // Enviar la notificación a la API
-    const response = await fetch('http://localhost:3000/notifications', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(notificationData),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error al crear notificación');
-    }
-    
-    const savedNotification = await response.json();
-    
-    // Agregar la nueva notificación al estado local
-    notifications.value.unshift(savedNotification);
-    
-    // Limpiar el formulario
-    newNotification.value = {
-      title: '',
-      content: '',
-      type: 'info'
-    };
-    
-    // Mostrar mensaje de éxito
-    statusMessage.value = {
-      text: 'Notificación creada correctamente',
-      success: true
-    };
-    
-    // Limpiar el mensaje después de 3 segundos
-    setTimeout(() => {
-      statusMessage.value = null;
-    }, 3000);
-    
-  } catch (error) {
-    console.error('Error:', error);
-    statusMessage.value = {
-      text: 'Error al crear la notificación. Por favor, intente de nuevo.',
-      success: false
-    };
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Función para marcar una notificación como leída
-const markAsRead = async (id: number | undefined, index: number) => {
-  if (!id) return;
-  
-  try {
-    const notification = notifications.value[index];
-    const updatedNotification = { ...notification, read: true };
-    
-    const response = await fetch(`http://localhost:3000/notifications/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedNotification),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error al actualizar notificación');
-    }
-    
-    // Actualizar la notificación en el estado local
-    notifications.value[index].read = true;
-    
-    // Opcional: Mostrar un mensaje de éxito o eliminar la notificación
-    statusMessage.value = {
-      text: 'Notificación marcada como leída',
-      success: true
-    };
-    
-    // Limpiar el mensaje después de 3 segundos
-    setTimeout(() => {
-      statusMessage.value = null;
-    }, 3000);
-    
-  } catch (error) {
-    console.error('Error:', error);
-    statusMessage.value = {
-      text: 'Error al marcar como leída. Por favor, intente de nuevo.',
-      success: false
-    };
-  }
-};
-
-// Cargar notificaciones al montar el componente
-onMounted(() => {
-  fetchNotifications();
-});
-
-// Estado para Noticias
-const newsList = ref<Array<{title: string, content: string}>>([
-  { 
-    title: "Nuevo evento deportivo", 
-    content: "Este fin de semana tendremos actividades deportivas en el campus." 
-  },
-  { 
-    title: "Conferencia tecnológica", 
-    content: "No te pierdas la conferencia sobre nuevas tecnologías el próximo martes." 
-  }
-]);
-</script>
