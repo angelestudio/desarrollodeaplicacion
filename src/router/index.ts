@@ -65,13 +65,6 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
-      path: '/nath',
-      name: 'nath',
-      component: () => import('../components/molecules/nath.vue'),
-      meta: { requiresAuth: false }
-    },
-    
-    {
       path: '/SignUp',
       name: 'SignUp',
       component: () => import('../views/SignUp.vue'),

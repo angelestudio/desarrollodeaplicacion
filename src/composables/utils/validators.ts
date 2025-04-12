@@ -6,7 +6,7 @@ export default {
     return message || `Este campo no puede estar vacío`
   },
   email: (value: string, message?: string): boolean | string => {
-    // eslint-disable-next-line no-useless-escape
+   
     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value)) {
       return false
     }
