@@ -56,6 +56,11 @@ const router = createRouter({
           name: 'ProfileNotifications',
           component: () => import('../views/Notifications.vue'),
         },
+        {
+          path: 'news',
+          name: 'ProfileNews',
+          component: () => import('../views/News.vue'),
+        },
       ],
     },
     {
