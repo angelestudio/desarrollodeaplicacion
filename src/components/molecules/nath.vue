@@ -61,8 +61,6 @@ const loginUser = async () => {
           />
         </div>
         <div class="auth-links">
-        <router-link to="/singup">Start here</router-link>
-
       </div>
 
         <div class="mb-6 text-left">
