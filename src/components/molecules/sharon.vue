@@ -15,7 +15,8 @@ const form = ref({
   confirmPassword: ''
 })
 
-const register = async () => {
+const register = async (event: Event) => {
+  event.preventDefault()  // Evita que el formulario se recargue
   console.log(form)
   try {
     const response = await fetch('http://localhost:3000/auth/signup', {
@@ -27,23 +28,22 @@ const register = async () => {
     })
 
     const data = await response.json()
-    if(data.error != "" || data.error != null){
-      if(Array.isArray(data.message)){
+    if (data.error != "" || data.error != null) {
+      if (Array.isArray(data.message)) {
         data.message.forEach((element: Content) => {
-        toast.error(element);
-      });
-      return true;
+          toast.error(element);
+        });
+        return true;
       }
       toast.error(data.message)
-      }
+    }
     toast.success("Usuario creado correctamente");
-      router.push('/signin')
+    router.push('/signin')  // Redirección al login
   } catch (error) {
     console.error('Error al registrar:', error)
     alert('Error al registrar usuario')
   }
 }
-
 </script>
 
 <template>
@@ -68,11 +68,8 @@ const register = async () => {
         <CBInput id="confirmPassword" v-model="form.confirmPassword" placeholder="Confirm your password" label="Confirm your password" type="password" />
 
         <CBButton label="Register" class="w-full bg-blue-600 text-white py-2 rounded-lg" @click="register" />
+        router-link
 
-        <p class="text-center text-sm mt-2">
-          Already have an account? 
-          <a href="#" class="text-blue-400 hover:underline">Log in here</a>
-        </p>
       </div>
     </div>
 

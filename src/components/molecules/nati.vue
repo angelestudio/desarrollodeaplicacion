@@ -8,7 +8,6 @@
         <a href="#">SENA</a>
       </div>
       <div class="auth-links">
-        <!-- Cambiamos los botones para usar router-link -->
         <router-link to="/signin">Sign In</router-link>
         <router-link to="/signup" class="signup-button">Sign Up</router-link>
       </div>
@@ -72,30 +71,57 @@
       </div>
     </footer>
   </div>
+  <div class="w-1/2 flex justify-center items-center bg-white">
+      <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3" />
+    </div>
 </template>
 
-<style scoped>
-html, body, .container {
-  height: 100%;
+<style>
+/* Estilos para la aplicación principal */
+#app {
+  width: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Aplicamos estilos globales para resetear margins y paddings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  width: 100%;
   background-color: #111;
   color: white;
+  overflow-x: hidden;
+  position: relative;
+  left: 0;
+  right: 0;
 }
 
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 20px 5%;
   background-color: #111;
+  width: 100%;
 }
 
 .logo {
@@ -126,11 +152,12 @@ html, body, .container {
   flex: 1;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 50px;
+  padding: 50px 5%;
+  width: 100%;
 }
 
 .text-content {
-  max-width: 400px;
+  max-width: 500px;
 }
 
 .explore-text {
@@ -176,17 +203,21 @@ html, body, .container {
 
 .footer {
   background-color: #111;
-  padding: 50px;
+  padding: 50px 5%;
+  width: 100%;
 }
 
 .footer-links {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  margin-bottom: 30px;
+  width: 100%;
 }
 
 .links-column {
   flex: 1;
+  min-width: 150px; /* Reducido de 200px para evitar desbordamiento */
+  margin-bottom: 20px;
 }
 
 .column-title {
@@ -204,6 +235,7 @@ html, body, .container {
 
 .social-icons {
   display: flex;
+  margin-top: 10px;
 }
 
 .social-icons a {
@@ -216,5 +248,63 @@ html, body, .container {
   line-height: 30px;
   border-radius: 50%;
   margin-right: 10px;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+  }
+  
+  .text-content {
+    max-width: 100%;
+    margin-bottom: 30px;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+  }
+  
+  .links-column {
+    margin-bottom: 30px;
+  }
+  
+  .navbar {
+    padding: 15px 3%;
+    flex-wrap: wrap;
+  }
+  
+  .nav-links, .auth-links {
+    margin-top: 10px;
+  }
+}
+body, html, #app, .container {
+  max-width: 100%;
+  overflow-x: hidden !important;
+  position: relative;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+.container > * {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .nav-links, .auth-links {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .nav-links a, .auth-links a {
+    margin: 5px 0;
+  }
 }
 </style>
