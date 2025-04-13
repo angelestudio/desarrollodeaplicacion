@@ -33,7 +33,7 @@ const loginUser = async () => {
     showToast('¡Inicio de sesión exitoso!', 'success');
 
     setTimeout(() => {
-      router.push('/Profile');
+      router.push('/home');
     }, 1000);
   } catch (error: any) {
     console.error('Error al iniciar sesión ❌', error);

@@ -10,11 +10,11 @@
     </div>
 
     <nav class="flex flex-col space-y-2">
-      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/">Casa</miButtonAtom>
-      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/clubs">Clubs</miButtonAtom>
-      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/explorar">Explorar</miButtonAtom>
-      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/noticias">Noticias</miButtonAtom>
-      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/notificationes">Notificationes</miButtonAtom>
+      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/home">home</miButtonAtom>
+     
+      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/explorar">explore</miButtonAtom>
+      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/news">Notifications</miButtonAtom>
+      <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/Profile">profile</miButtonAtom>
       <miButtonAtom class="text-white text-center px-4 py-2 rounded-full hover:bg-gray-700" to="/posteos">Posteos</miButtonAtom>
     </nav>
   </div>
