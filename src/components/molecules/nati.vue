@@ -21,11 +21,7 @@
         <button class="explore-button">Explorar Clubes</button>
       </div>
       <div class="clients">
-        <p class="clients-title">Clientes felices</p>
         <div class="client-logos">
-          <span>Logo 1</span>
-          <span>Logo 2</span>
-          <span>Logo 3</span>
         </div>
       </div>
     </div>
