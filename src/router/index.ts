@@ -80,7 +80,20 @@ const router = createRouter({
       name: 'News',
       component: () => import('../views/News.vue'),
     },
+    {
+      path: '/home',
+      name: 'home',
+      component: () => import('../views/home.vue'),
+    },
+    {
+      path: '/angpost',
+      name: 'angpost',
+      component: () => import('../views/angpost.vue'),
+    },
+    
+    
   ],
 });
+
 
 export default router;

@@ -5,11 +5,11 @@
       </aside>
       <main class="w-2/4 bg-black flex flex-col relative p-4">
         <div class="flex items-center justify-center">
-          <router-link to="/clubs" class="block text-white mb-2 hover:underline">
+          <router-link to="/angpost.vue" class="block text-white mb-2 hover:underline">
             todos los clubs
           </router-link>
           <div class="mx-4"></div>
-          <router-link to="/user-posts" class="block text-white mb-2 hover:underline">
+          <router-link to="/anguserposts" class="block text-white mb-2 hover:underline">
             mis clubs
           </router-link>
         </div>
