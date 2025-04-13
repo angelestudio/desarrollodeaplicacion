@@ -71,6 +71,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      path: '/Start here',
+      name: 'Start here',
+      component: () => import('../views/StartHereview.vue'),
+      meta: { requiresAuth: false },
+    },
+    {
       path: '/news',
       name: 'News',
       component: () => import('../views/News.vue'),

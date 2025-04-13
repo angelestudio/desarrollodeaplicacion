@@ -58,6 +58,7 @@ const fetchNotifications = async () => {
       throw new Error('Error al cargar notificaciones');
     }
     const data = await response.json();
+    console.log('Respuesta API:', data);
     notifications.value = data;
   } catch (error) {
     console.error('Error:', error);
@@ -94,7 +95,14 @@ const createNotification = async () => {
       throw new Error('Error al crear notificación');
     }
     
-    const savedNotification = await response.json();
+    const result = await response.json();
+
+    const savedNotification = result.data;
+    
+    // Asegurarnos de que notifications.value es un array
+    if (!Array.isArray(notifications.value)) {
+      notifications.value = [];
+    }
     
     // Agregar la nueva notificación al estado local
     notifications.value.unshift(savedNotification);

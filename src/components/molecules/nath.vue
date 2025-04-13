@@ -15,11 +15,6 @@
             class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
           />
         </div>
-        <div class="auth-links">
-        <router-link to="/singup">Start here</router-link>
-
-      </div>
-
         <div class="mb-6 text-left">
           <label for="password" class="block font-semibold mb-1">Password</label>
           <input
@@ -29,7 +24,6 @@
             v-model="password"
             class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
           />
-          <a href="#" class="text-indigo-400 text-sm block text-right mt-2">Forgot password?</a>
         </div>
 
         <button
