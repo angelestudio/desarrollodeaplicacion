@@ -68,7 +68,7 @@ const register = async (event: Event) => {
         <CBInput id="confirmPassword" v-model="form.confirmPassword" placeholder="Confirm your password" label="Confirm your password" type="password" />
 
         <CBButton label="Register" class="w-full bg-blue-600 text-white py-2 rounded-lg" @click="register" />
-        router-link
+        
 
       </div>
     </div>
