@@ -1,10 +1,111 @@
-<script setup lang="ts">
-import CBButton from '../atoms/CBButton.vue';
-import CBInput from '../atoms/CBInput.vue';
-import { loginStore } from '@/stores/login';
-import { reactive } from 'vue';
+<template>
+  <div class="flex flex-col items-center bg-zinc-900 text-white p-8 min-h-screen">
+    <img src="@/assets/logo.png" alt="Logo" class="w-24 mb-4" />
+    <h1 class="text-2xl font-bold mb-6">Create an account</h1>
 
-const login = loginStore();
+    <form class="w-full max-w-md space-y-4" @submit.prevent="handleClick">
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="block mb-1">First Name</label>
+          <input
+            v-model="formData.firstName"
+            type="text"
+            placeholder="Enter your first name"
+            required
+            class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+          />
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">Last Name</label>
+          <input
+            v-model="formData.lastName"
+            type="text"
+            placeholder="Enter your last name"
+            required
+            class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="block mb-1">Role</label>
+          <input
+            v-model="formData.role"
+            type="text"
+            placeholder="Your Role"
+            required
+            class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+          />
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">Phone</label>
+          <input
+            v-model="formData.phone"
+            type="tel"
+            placeholder="Your phone number"
+            required
+            class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block mb-1">Email</label>
+        <input
+          v-model="formData.email"
+          type="email"
+          placeholder="Enter your email"
+          required
+          class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1">Password</label>
+        <input
+          v-model="formData.password"
+          type="password"
+          placeholder="Enter your password"
+          required
+          class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1">Confirm your password</label>
+        <input
+          v-model="formData.confirmPassword"
+          type="password"
+          placeholder="Confirm your password"
+          required
+          class="w-full bg-zinc-800 border border-zinc-600 rounded px-4 py-2 text-white placeholder-zinc-400"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-full mt-4"
+      >
+        Register
+      </button>
+
+      <p class="text-center text-zinc-400 mt-4">
+        Already have an account?
+        <RouterLink to="/login" class="text-purple-400 hover:underline">
+          Log in here
+        </RouterLink>
+      </p>
+    </form>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { reactive } from 'vue'
+import { loginStore } from '@/stores/login'
+
+const login = loginStore()
+
 const formData = reactive({
   firstName: '',
   lastName: '',
@@ -12,185 +113,14 @@ const formData = reactive({
   phone: '',
   email: '',
   password: '',
-  confirmPassword: ''
-});
+  confirmPassword: '',
+})
 
 const handleClick = () => {
-  // Validate all fields before submission
   if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match!");
-    return;
+    alert('Passwords do not match!')
+    return
   }
-  // Call the login store to validate the user (you might need to adjust this based on your store logic)
-  login.validateUser(formData.email, formData.password);
-};
+  login.validateUser(formData.email, formData.password)
+}
 </script>
-
-<style scoped>
-.registration-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #1a1a1a; /* Dark background as in the image */
-  padding: 2rem;
-  min-height: 100vh;
-  color: white;
-}
-
-.logo {
-  width: 100px; /* Adjust based on your logo size */
-  margin-bottom: 1rem;
-}
-
-h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-}
-
-.registration-form {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Reduced gap to match the image */
-  margin-top: 20px;
-}
-
-.input-row {
-  display: flex;
-  gap: 15px;
-}
-
-.input-row > div {
-  flex: 1;
-}
-
-.footer-text {
-  margin-top: 1rem;
-  text-align: center;
-  color: #9ca3af;
-}
-
-.footer-text a {
-  color: #c084fc;
-  text-decoration: none;
-}
-
-.footer-text a:hover {
-  text-decoration: underline;
-}
-
-/* Style for the CBButton to match the purple button in the image */
-:deep(.cb-button-filled) {
-  background-color: #c084fc !important; /* Purple button */
-  color: white !important;
-  border-radius: 25px !important; /* Rounded button */
-  padding: 0.75rem 0 !important;
-  font-weight: bold;
-}
-
-/* Style for the CBInput to match the dark theme */
-:deep(.cb-input-outlined) {
-  background-color: #333 !important; /* Dark input background */
-  border: 1px solid #555 !important; /* Dark border */
-  color: white !important;
-  border-radius: 5px !important;
-}
-
-:deep(.cb-input-outlined::placeholder) {
-  color: #9ca3af !important; /* Placeholder color */
-}
-
-:deep(.cb-input-label) {
-  color: white !important; /* Label color */
-}
-</style>
-
-<template>
-  <div class="registration-container">
-    <img src="@/assets/logo.png" alt="Logo" class="logo" />
-    <h1>Create an account</h1>
-    <div class="registration-form">
-      <div class="input-row">
-        <CBInput
-          id="first-name"
-          label="First Name"
-          type="text"
-          v-model="formData.firstName"
-          placeholder="Enter your first name"
-          required
-          variant="outlined"
-        />
-        <CBInput
-          id="last-name"
-          label="Last Name"
-          type="text"
-          v-model="formData.lastName"
-          placeholder="Enter your last name"
-          required
-          variant="outlined"
-        />
-      </div>
-      <div class="input-row">
-        <CBInput
-          id="role"
-          label="Role"
-          type="text"
-          v-model="formData.role"
-          placeholder="Your Role"
-          required
-          variant="outlined"
-        />
-        <CBInput
-          id="phone"
-          label="Phone"
-          type="tel"
-          v-model="formData.phone"
-          placeholder="Your phone number"
-          required
-          variant="outlined"
-        />
-      </div>
-      <CBInput
-        id="email"
-        label="Email"
-        type="email"
-        v-model="formData.email"
-        placeholder="Enter your email"
-        required
-        variant="outlined"
-      />
-      <CBInput
-        id="password"
-        label="Password"
-        type="password"
-        v-model="formData.password"
-        placeholder="Enter your password"
-        required
-        variant="outlined"
-      />
-      <CBInput
-        id="confirm-password"
-        label="Confirm your password"
-        type="password"
-        v-model="formData.confirmPassword"
-        placeholder="Confirm your password"
-        required
-        variant="outlined"
-      />
-      <div class="flex justify-center mt-4 w-full">
-        <CBButton
-          @on-click="handleClick"
-          label="Register"
-          variant="filled"
-          class-name="w-full"
-        />
-      </div>
-      <div class="footer-text">
-        Already have an account?
-        <a href="/login">Log in here</a>
-      </div>
-    </div>
-  </div>
-</template>
