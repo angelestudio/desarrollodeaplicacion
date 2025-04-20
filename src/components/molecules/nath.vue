@@ -10,8 +10,8 @@
           <input
             type="email"
             id="email"
-            placeholder="Enter your email"
             v-model="email"
+            placeholder="Enter your email"
             class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
           />
         </div>
@@ -21,8 +21,8 @@
           <input
             type="password"
             id="password"
-            placeholder="Enter your password"
             v-model="password"
+            placeholder="Enter your password"
             class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
           />
           <a href="#" class="text-indigo-400 text-sm block text-right mt-2">Forgot password?</a>
@@ -50,8 +50,9 @@
   <transition name="slide-up">
     <div
       v-if="toastMessage"
-      :class="[ 'fixed bottom-6 left-6 md:left-auto md:right-6 px-6 py-4 rounded-md shadow-xl text-white font-semibold z-50',
-        toastType === 'success' ? 'bg-green-500' : 'bg-red-500',
+      :class="[
+        'fixed bottom-6 left-6 md:left-auto md:right-6 px-6 py-4 rounded-md shadow-xl text-white font-semibold z-50',
+        toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
       ]"
     >
       <div class="flex items-center">
@@ -64,47 +65,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
-import logo from '@/assets/logo.png';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import jwt_decode from 'jwt-decode'
+import logo from '@/assets/logo.png'
 
-const email = ref('');
-const password = ref('');
-const toastMessage = ref('');
-const toastType = ref<'success' | 'error' | ''>('');
+const email = ref('')
+const password = ref('')
+const toastMessage = ref('')
+const toastType = ref<'success' | 'error' | ''>('')
 
-const router = useRouter();
-
+const router = useRouter()
 const showToast = (text: string, type: 'success' | 'error') => {
-  toastMessage.value = text;
-  toastType.value = type;
+  toastMessage.value = text
+  toastType.value = type
   setTimeout(() => {
-    toastMessage.value = '';
-    toastType.value = '';
-  }, 3000);
-};
+    toastMessage.value = ''
+    toastType.value = ''
+  }, 3000)
+}
+
+interface JwtPayload { sub: string; email: string; rol: string }
 
 const loginUser = async () => {
   try {
-    const response = await axios.post('http://localhost:3000/auth/login', {
+    const { data } = await axios.post('http://localhost:3000/auth/login', {
       email: email.value,
-      password: password.value,
-    });
+      password: password.value
+    })
 
-    console.log('Login exitoso:', response.data);
-    localStorage.setItem('token', response.data.token);
-    showToast('¡Inicio de sesión exitoso!', 'success');
+    const { token, rol } = data
+    // 1) Guardar token + rol
+    localStorage.setItem('token', token)
+    localStorage.setItem('rol', rol)
 
-    setTimeout(() => {
-      router.push('/profile');
-    }, 1000);
+    // 2) Configurar Axios para futuras peticiones
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-  } catch (error: any) {
-    console.error('Error al iniciar sesión ❌', error);
-    showToast('Credenciales incorrectas. Inténtalo de nuevo.', 'error');
+    // (opcional) Decodificar si necesitas más info
+    const decoded = jwt_decode<JwtPayload>(token)
+    console.log('Decoded JWT:', decoded)
+
+    showToast('¡Inicio de sesión exitoso!', 'success')
+    setTimeout(() => { router.push('/home') }, 800)
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error)
+    showToast('Credenciales incorrectas. Inténtalo de nuevo.', 'error')
   }
-};
+}
 </script>
 
 <style scoped>
@@ -112,12 +121,7 @@ const loginUser = async () => {
 .slide-up-leave-active {
   transition: all 0.3s ease-out;
 }
-
-.slide-up-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
+.slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(20px);

@@ -1,11 +1,101 @@
+<template>
+  <div class="flex min-h-screen bg-gray-100">
+    <div class="w-1/2 flex flex-col justify-center items-center bg-black text-white p-8">
+      <h2 class="text-2xl font-semibold mb-6">Create an Account</h2>
+      <form @submit.prevent="register" class="w-full max-w-sm space-y-4">
+        <div class="flex gap-4">
+          <CBInput id="firstName" v-model="form.firstName" placeholder="Enter your first name" label="First Name" />
+          <CBInput id="lastName"  v-model="form.lastName"  placeholder="Enter your last name"  label="Last Name" />
+        </div>
+
+        <!-- Select de rol -->
+        <div class="mb-4 text-left">
+          <label for="rol" class="block font-semibold mb-1">Role</label>
+          <select
+            id="rol"
+            v-model="form.rol"
+            class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+            required
+          >
+            <option disabled value="">-- Select a role --</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <!-- Multi-select Clubs -->
+        <div ref="clubsContainer" class="mb-4 relative text-left">
+          <label class="block font-semibold mb-1">Clubs</label>
+          <div
+            @click="toggleClubs"
+            class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white cursor-pointer"
+          >
+            <span v-if="selectedClubs.length">{{ selectedClubs.join(', ') }}</span>
+            <span v-else class="text-gray-400">Select one or more clubs</span>
+          </div>
+          <ul
+            v-show="showClubs"
+            class="absolute z-10 bg-white border border-gray-300 rounded w-full mt-1 max-h-40 overflow-auto text-black"
+          >
+            <li
+              v-for="club in clubOptions"
+              :key="club"
+              class="px-3 py-2 hover:bg-gray-200 flex items-center"
+            >
+              <input
+                type="checkbox"
+                :value="club"
+                v-model="selectedClubs"
+                class="mr-2"
+              />
+              <span class="capitalize">{{ club }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <CBInput id="phone"           v-model="form.phone"           placeholder="Your phone number"        label="Phone" />
+        <CBInput id="email" type="email"       v-model="form.email"           placeholder="Enter your Email"         label="Email" />
+        <CBInput id="password" type="password" v-model="form.password"        placeholder="Enter your Password"      label="Password" />
+        <CBInput
+          id="confirmPassword"
+          type="password"
+          v-model="form.confirmPassword"
+          placeholder="Confirm your password"
+          label="Confirm Password"
+        />
+
+        <CBButton
+          type="submit"
+          label="Register"
+          class="w-full bg-blue-600 text-white py-2 rounded-lg"
+        />
+      </form>
+    </div>
+
+    <div class="w-1/2 flex justify-center items-center bg-white">
+      <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3" />
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import CBInput from '../atoms/CBInput.vue'
 import CBButton from '../atoms/CBButton.vue'
-import { ref } from 'vue'
 import { toast, type Content } from 'vue3-toastify'
 import router from '@/router'
 
-const form = ref({
+interface SignupForm {
+  firstName: string
+  lastName: string
+  rol: string
+  phone: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+const form = ref<SignupForm>({
   firstName: '',
   lastName: '',
   rol: '',
@@ -15,67 +105,76 @@ const form = ref({
   confirmPassword: ''
 })
 
-const register = async (event: Event) => {
-  event.preventDefault()  // Evita que el formulario se recargue
-  console.log(form)
+// Clubs dropdown
+const clubOptions = ['futbol','ajedrez','tenis','matematicas','programacion','finanzas','economia','fisica']
+const selectedClubs = ref<string[]>([])
+const showClubs = ref(false)
+const clubsContainer = ref<HTMLElement|null>(null)
+
+const toggleClubs = () => {
+  showClubs.value = !showClubs.value
+}
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (
+    clubsContainer.value &&
+    !clubsContainer.value.contains(e.target as Node)
+  ) {
+    showClubs.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+})
+
+const register = async () => {
+  if (!form.value.rol) {
+    toast.error('Selecciona un rol')
+    return
+  }
+  if (form.value.password !== form.value.confirmPassword) {
+    toast.error('Las contraseñas no coinciden')
+    return
+  }
+  if (selectedClubs.value.length === 0) {
+    toast.error('Selecciona al menos un club')
+    return
+  }
+
   try {
-    const response = await fetch('http://localhost:3000/auth/signup', {
+    const res = await fetch('http://localhost:3000/auth/signup', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(form.value)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName:    form.value.firstName,
+        lastName:     form.value.lastName,
+        rol:          form.value.rol,
+        phone:        form.value.phone,
+        email:        form.value.email,
+        password:     form.value.password,
+        clubs:        selectedClubs.value
+      })
     })
 
-    const data = await response.json()
-    if (data.error != "" || data.error != null) {
+    const data = await res.json()
+    if (!res.ok) {
       if (Array.isArray(data.message)) {
-        data.message.forEach((element: Content) => {
-          toast.error(element);
-        });
-        return true;
+        data.message.forEach((msg: Content) => toast.error(msg))
+      } else {
+        toast.error(data.message)
       }
-      toast.error(data.message)
+      return
     }
-    toast.success("Usuario creado correctamente");
-    router.push('/signin')  // Redirección al login
-  } catch (error) {
-    console.error('Error al registrar:', error)
-    alert('Error al registrar usuario')
+
+    toast.success('Usuario creado correctamente')
+    router.push('/signin')
+  } catch (err) {
+    console.error(err)
+    toast.error('Error al registrar usuario')
   }
 }
 </script>
-
-<template>
-  <div class="flex min-h-screen bg-gray-100">
-    <!-- Sección izquierda - Formulario -->
-    <div class="w-1/2 flex flex-col justify-center items-center bg-black text-white p-8">
-      <h2 class="text-2xl font-semibold mb-6">Create an Account</h2>
-
-      <div class="w-full max-w-sm space-y-4">
-        <div class="flex gap-4">
-          <CBInput id="firstName" v-model="form.firstName" placeholder="Enter your first name" label="First Name" />
-          <CBInput id="lastName" v-model="form.lastName" placeholder="Enter your last name" label="Last Name" />
-        </div>
-
-        <div class="flex gap-4">
-          <CBInput id="role" v-model="form.rol" placeholder="Your role" label="Role" />
-          <CBInput id="phone" v-model="form.phone" placeholder="Your phone number" label="Phone" />
-        </div>
-
-        <CBInput id="email" v-model="form.email" placeholder="Enter your Email" label="Email" type="email" />
-        <CBInput id="password" v-model="form.password" placeholder="Enter your Password" label="Password" type="password" />
-        <CBInput id="confirmPassword" v-model="form.confirmPassword" placeholder="Confirm your password" label="Confirm your password" type="password" />
-
-        <CBButton label="Register" class="w-full bg-blue-600 text-white py-2 rounded-lg" @click="register" />
-        
-
-      </div>
-    </div>
-
-    <!-- Sección derecha - Imagen -->
-    <div class="w-1/2 flex justify-center items-center bg-white">
-      <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3" />
-    </div>
-  </div>
-</template>
