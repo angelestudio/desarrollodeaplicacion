@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import News from './News.vue';
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
