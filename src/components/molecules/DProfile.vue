@@ -341,9 +341,32 @@ const formatDate = (dateString: string): string => {
 
 
 <template>
-  <Sidebarizquierda>
+  <div class="flex flex-col md:flex-row h-screen bg-black text-white overflow-hidden">
+    <!-- Sidebar izquierda - Fondo negro sólido (ahora más pequeña) -->
+    <div class="w-full md:w-1/5 lg:w-1/5 bg-black flex flex-col relative border-b md:border-b-0 md:border-r border-gray-800">
+      <div class="p-4 flex items-center">
+        <div class="flex items-center">
+          <div class="w-8 h-8 bg-transparent rounded-full flex items-center justify-center border-2 border-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
+            </svg>
+          </div>
+          <span class="ml-2 font-semibold text-white">SENACLUB</span>
+        </div>
+      </div>
 
-  </Sidebarizquierda>
+      <!-- Menú de navegación con hover purple y explore redirigiendo al search -->
+      <nav class="flex-1 mt-4 md:mt-8 px-4">
+        <div class="grid grid-cols-2 md:grid-cols-1 gap-2 md:space-y-3">
+          <router-link to="/home" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Home</router-link>
+          <!-- Modified Explore link to redirect to search -->
+          <a @click="redirectToSearch" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200 cursor-pointer">Explore</a>
+          <router-link to="/Profile/news" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">News</router-link>
+          <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Notifications</router-link>
+          <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Profile</router-link>
+          <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Posts</router-link>
+        </div>
+      </nav>
       
 
       <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
@@ -351,7 +374,7 @@ const formatDate = (dateString: string): string => {
         <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
         <span class="ml-2 text-sm">Roberta Jimenez</span>
       </div>
-    
+    </div>
 
     <!-- Contenido principal (ahora un poco más amplio) -->
     <div class="w-full md:w-3/5 lg:w-3/5 flex flex-col bg-black relative overflow-y-auto">
@@ -678,6 +701,6 @@ const formatDate = (dateString: string): string => {
             </div>
           </div>
         </div>
-      
+      </div>
   
 </template>
