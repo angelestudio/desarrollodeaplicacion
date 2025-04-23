@@ -2,12 +2,8 @@
 import { ref, onMounted } from 'vue';
 import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
-<<<<<<< HEAD
 import { getUserFromToken } from '@/composables/useAuth';
-import type { JwtPayload } from '@/composables/useAuth';
-=======
-import { getUserFromToken } from "@/composables/useAuth";
->>>>>>> 5a05a3e8e6c3a20be93b0b6900025bb12622a2e7
+import type { JwtPayload } from 'jwt-decode';
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
@@ -29,6 +25,8 @@ const redirectToSearch = () => {
     }
   }
 };
+
+
 
 // ===== ACTUALIZACIÓN DE NOTIFICACIONES =====
 // Definición de interfaces
@@ -252,6 +250,9 @@ onMounted(() => {
 });
 
 
+
+
+
 interface NewsItem {
   _id?: string
   title: string
@@ -267,7 +268,7 @@ const newsItems = ref<NewsItem[]>([]);
 const notificationMessage = ref('');
 const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
-const currentUser = ref<JwtPayload | null>(getUserFromToken()); // Usuario actual
+const currentUse = ref<JwtPayload | null>(getUserFromToken()); // Usuario actual
 
 // API base URL
 const API_URL = 'http://localhost:3000/news';
