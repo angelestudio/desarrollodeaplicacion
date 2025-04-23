@@ -2,8 +2,12 @@
 import { ref, onMounted } from 'vue';
 import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
+<<<<<<< HEAD
 import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload } from '@/composables/useAuth';
+=======
+import { getUserFromToken } from "@/composables/useAuth";
+>>>>>>> 5a05a3e8e6c3a20be93b0b6900025bb12622a2e7
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
@@ -247,11 +251,13 @@ onMounted(() => {
   }
 });
 
+
 interface NewsItem {
   _id?: string
   title: string
   content: string
   createdAt?: string
+  author?: string // Para mostrar quién creó la noticia
 }
 
 // Reactive state
@@ -261,7 +267,7 @@ const newsItems = ref<NewsItem[]>([]);
 const notificationMessage = ref('');
 const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
-
+const currentUser = ref<JwtPayload | null>(getUserFromToken()); // Usuario actual
 
 // API base URL
 const API_URL = 'http://localhost:3000/news';
@@ -270,6 +276,15 @@ const API_URL = 'http://localhost:3000/news';
 onMounted(async () => {
   await fetchNews();
 });
+
+// Function to get authorization headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : ''
+  };
+};
 
 // Function to fetch all news from the API
 const fetchNews = async () => {
@@ -293,6 +308,12 @@ const fetchNews = async () => {
 
 // Function to publish a new news item
 const publishNews = async () => {
+  // Verificar si el usuario está autenticado
+  if (!currentUser.value) {
+    displayNotification('Debes iniciar sesión para publicar noticias', 'error');
+    return;
+  }
+
   // Validate inputs
   if (!title.value.trim() || !content.value.trim()) {
     displayNotification('Por favor, completa tanto el título como el contenido de la noticia.', 'error');
@@ -305,19 +326,21 @@ const publishNews = async () => {
     // Create news item object
     const newNewsItem: NewsItem = {
       title: title.value.trim(),
-      content: content.value.trim()
+      content: content.value.trim(),
+      author: `${currentUser.value.firstName} ${currentUser.value.lastName}` // Agregamos el autor
     };
     
-    // Send to API
+    // Send to API with auth token
     const response = await fetch(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(newNewsItem),
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      }
       throw new Error(`Error: ${response.status}`);
     }
     
@@ -335,14 +358,26 @@ const publishNews = async () => {
     displayNotification('Noticia publicada con éxito!', 'success');
   } catch (error) {
     console.error('Error publishing news:', error);
-    displayNotification('Error al publicar la noticia. Inténtalo de nuevo.', 'error');
+    const errorMessage = error instanceof Error ? error.message : 'Error al publicar la noticia. Inténtalo de nuevo.';
+    displayNotification(errorMessage, 'error');
+    
+    // Si la sesión expiró, refrescamos el usuario
+    if (errorMessage.includes('Sesión expirada')) {
+      currentUser.value = getUserFromToken();
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
 // Function to delete a news item
-const deleteNews = async (id: string) => {
+const deleteNews = async (id?: string) => {
+  // Verificar si el usuario está autenticado
+  if (!currentUser.value) {
+    displayNotification('Debes iniciar sesión para eliminar noticias', 'error');
+    return;
+  }
+
   if (!id) {
     displayNotification('ID de noticia no válido', 'error');
     return;
@@ -355,12 +390,18 @@ const deleteNews = async (id: string) => {
   try {
     isLoading.value = true;
     
-    // Send delete request con el ID correcto
+    // Send delete request con el ID correcto y el token de autorización
     const response = await fetch(`${API_URL}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      } else if (response.status === 403) {
+        throw new Error('No tienes permisos para eliminar esta noticia.');
+      }
       throw new Error(`Error: ${response.status}`);
     }
     
@@ -370,7 +411,13 @@ const deleteNews = async (id: string) => {
     displayNotification('Noticia eliminada correctamente', 'success');
   } catch (error) {
     console.error('Error deleting news:', error);
-    displayNotification('Error al eliminar la noticia', 'error');
+    const errorMessage = error instanceof Error ? error.message : 'Error al eliminar la noticia';
+    displayNotification(errorMessage, 'error');
+    
+    // Si la sesión expiró, refrescamos el usuario
+    if (errorMessage.includes('Sesión expirada')) {
+      currentUser.value = getUserFromToken();
+    }
   } finally {
     isLoading.value = false;
   }
@@ -396,6 +443,17 @@ const formatDate = (dateString: string): string => {
   } catch (e) {
     return dateString;
   }
+};
+
+// Comprobar si el usuario puede eliminar una noticia (admin o autor de la noticia)
+const canDelete = (item: NewsItem): boolean => {
+  if (!currentUser.value) return false;
+  
+  // Admin puede eliminar cualquier noticia
+  if (currentUser.value.rol === 'admin') return true;
+  
+  // El autor puede eliminar su propia noticia
+  return item.author === `${currentUser.value.firstName} ${currentUser.value.lastName}`;
 };
 
 </script>
@@ -652,85 +710,105 @@ const formatDate = (dateString: string): string => {
       </div>
       
       
-  <!-- News creation form -->   
-<div class="bg-gray-900 p-3 mb-4 rounded-lg border border-gray-700">     
-  <h3 class="text-blue-500 font-medium text-sm mb-2">Crear nueva noticia</h3>          
-  <div class="mb-3">       
-    <label for="news-title" class="block text-xs text-gray-400 mb-1">Título:</label>       
-    <input         
-      type="text"         
-      id="news-title"         
-      v-model="title"         
-      class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500"         
-      placeholder="Título de la noticia"       
-    >     
-  </div>          
-  <div class="mb-3">       
-    <label for="news-content" class="block text-xs text-gray-400 mb-1">Contenido:</label>       
-    <textarea         
-      id="news-content"         
-      v-model="content"         
-      class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 h-24"         
-      placeholder="Contenido de la noticia"       
-    ></textarea>     
-  </div>          
-  <div class="flex justify-end">       
-    <button         
-      @click="publishNews"         
-      :disabled="isLoading"         
-      class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"       
-    >         
-      <span v-if="isLoading">Publicando...</span>         
-      <span v-else>Publicar noticia</span>       
-    </button>     
-  </div>   
-</div>    
+  <!-- Estado de autenticación -->
+  <div v-if="currentUser" class="bg-gray-800 p-2 mb-4 rounded text-xs text-gray-300">
+    Conectado como: {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.rol }})
+  </div>
 
-<!-- News items display -->   
-<div id="news-items-container" class="overflow-y-auto max-h-96">     
-  <div v-if="isLoading && newsItems.length === 0" class="text-center py-4 text-gray-400">       
-    Cargando noticias...     
-  </div>          
-  <div v-else-if="newsItems.length === 0" class="text-center py-4 text-gray-400">       
-    No hay noticias disponibles.     
-  </div>          
-  <div v-else v-for="item in newsItems" :key="item._id" class="bg-gray-200 p-3 mb-4 rounded">       
-    <div class="flex">         
-      <div class="mr-3">           
-        <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">             
-          <span class="text-xs font-bold text-black">NEWS</span>             
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">               
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />             
-          </svg>           
-        </div>         
-      </div>         
-      <div class="flex-1">           
-        <h3 class="text-black font-medium text-sm">{{ item.title }}</h3>           
-        <p class="text-xs text-gray-600">{{ item.content }}</p>           
-        <p v-if="item.createdAt" class="text-xs text-gray-500 mt-1">{{ formatDate(item.createdAt) }}</p>           
-        <div class="flex justify-end mt-2">             
-          <button               
-            @click="deleteNews(item._id)"               
-            class="text-xs text-red-600 hover:text-red-800"             
-          >               
-            Eliminar             
-          </button>           
-        </div>         
-      </div>       
-    </div>     
-  </div>   
-</div>    
+  <!-- News creation form -->
+  <div class="bg-gray-900 p-3 mb-4 rounded-lg border border-gray-700">
+    <h3 class="text-blue-500 font-medium text-sm mb-2">Crear nueva noticia</h3>
+    
+    <div v-if="!currentUser" class="bg-red-800 text-white p-2 mb-3 rounded text-xs">
+      Debes iniciar sesión para publicar noticias
+    </div>
+    
+    <div class="mb-3">
+      <label for="news-title" class="block text-xs text-gray-400 mb-1">Título:</label>
+      <input
+        type="text"
+        id="news-title"
+        v-model="title"
+        :disabled="!currentUser"
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+        placeholder="Título de la noticia"
+      >
+    </div>
+    
+    <div class="mb-3">
+      <label for="news-content" class="block text-xs text-gray-400 mb-1">Contenido:</label>
+      <textarea
+        id="news-content"
+        v-model="content"
+        :disabled="!currentUser"
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 h-24 disabled:opacity-50"
+        placeholder="Contenido de la noticia"
+      ></textarea>
+    </div>
+    
+    <div class="flex justify-end">
+      <button
+        @click="publishNews"
+        :disabled="isLoading || !currentUser"
+        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+      >
+        <span v-if="isLoading">Publicando...</span>
+        <span v-else>Publicar noticia</span>
+      </button>
+    </div>
+  </div>
 
-<!-- Notification component -->   
-<Teleport to="body">     
-  <div       
-    v-if="showNotification"       
-    class="fixed bottom-4 right-4 p-3 rounded shadow-lg text-white text-sm z-50"       
-    :class="notificationType === 'success' ? 'bg-green-600' : 'bg-red-600'"     
-  >       
-    {{ notificationMessage }}     
-  </div>   
-</Teleport>
+  <!-- News items display -->
+  <div id="news-items-container" class="overflow-y-auto max-h-96">
+    <div v-if="isLoading && newsItems.length === 0" class="text-center py-4 text-gray-400">
+      Cargando noticias...
+    </div>
+    
+    <div v-else-if="newsItems.length === 0" class="text-center py-4 text-gray-400">
+      No hay noticias disponibles.
+    </div>
+    
+    <div v-else v-for="item in newsItems" :key="item._id" class="bg-gray-200 p-3 mb-4 rounded">
+      <div class="flex">
+        <div class="mr-3">
+          <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
+            <span class="text-xs font-bold text-black">NEWS</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-black font-medium text-sm">{{ item.title }}</h3>
+          <p class="text-xs text-gray-600">{{ item.content }}</p>
+          <div class="flex justify-between items-center mt-1">
+            <p v-if="item.createdAt" class="text-xs text-gray-500">{{ formatDate(item.createdAt) }}</p>
+            <p v-if="item.author" class="text-xs text-gray-500">Por: {{ item.author }}</p>
+          </div>
+          <div class="flex justify-end mt-2">
+            <button
+              v-if="currentUser && canDelete(item)"
+              @click="deleteNews(item._id)"
+              class="text-xs text-red-600 hover:text-red-800"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification component -->
+  <Teleport to="body">
+    <div
+      v-if="showNotification"
+      class="fixed bottom-4 right-4 p-3 rounded shadow-lg text-white text-sm z-50"
+      :class="notificationType === 'success' ? 'bg-green-600' : 'bg-red-600'"
+    >
+      {{ notificationMessage }}
+    </div>
+  </Teleport>
           
           <!-- Noticia 1 -->
           <div class="bg-gray-200 p-3 mb-4 rounded">
