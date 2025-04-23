@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue';
 import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
+import { getUserFromToken } from '@/composables/useAuth';
+import type { JwtPayload } from '@/composables/useAuth';
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
@@ -33,7 +35,12 @@ interface Notification {
   type: string;
   timestamp?: string;
   read?: boolean;
+  userId?: string;  // ID del usuario dueño de la notificación
+  userName?: string; // Nombre del usuario para mostrar
 }
+
+
+ // Importamos la función que creaste
 
 // Estado para el formulario de nueva notificación
 const newNotification = ref<Notification>({
@@ -51,11 +58,27 @@ const isLoading = ref(false);
 // Estado para mensajes de estado
 const statusMessage = ref<{ text: string, success: boolean } | null>(null);
 
+// Estado para el usuario actual
+const currentUser = ref<JwtPayload | null>(null);
+
 // Función para cargar notificaciones desde la API
 const fetchNotifications = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch('http://localhost:3000/notifications');
+    // Obtenemos el usuario del token
+    currentUser.value = getUserFromToken();
+    if (!currentUser.value) {
+      throw new Error('Usuario no autenticado');
+    }
+    
+    // Agregamos el token a la petición
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:3000/notifications?userId=${currentUser.value.sub}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
     if (!response.ok) {
       throw new Error('Error al cargar notificaciones');
     }
@@ -77,18 +100,30 @@ const fetchNotifications = async () => {
 const createNotification = async () => {
   isLoading.value = true;
   try {
+    // Obtenemos el usuario del token
+    currentUser.value = getUserFromToken();
+    if (!currentUser.value) {
+      throw new Error('Usuario no autenticado');
+    }
+    
     // Preparar los datos para enviar
     const notificationData = {
       ...newNotification.value,
       timestamp: new Date().toLocaleString(),
-      read: false
+      read: false,
+      userId: currentUser.value.sub,
+      userName: `${currentUser.value.firstName} ${currentUser.value.lastName}`
     };
+    
+    // Obtenemos el token para la autorización
+    const token = localStorage.getItem('token');
     
     // Enviar la notificación a la API
     const response = await fetch('http://localhost:3000/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(notificationData),
     });
@@ -143,6 +178,12 @@ const markAsRead = async (id: number | undefined, index: number) => {
   if (!id) return;
   
   try {
+    // Obtener el token para autorización
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Usuario no autenticado');
+    }
+    
     const notification = notifications.value[index];
     const updatedNotification = { ...notification, read: true };
     
@@ -150,6 +191,7 @@ const markAsRead = async (id: number | undefined, index: number) => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(updatedNotification),
     });
@@ -181,9 +223,28 @@ const markAsRead = async (id: number | undefined, index: number) => {
   }
 };
 
+// Función para verificar si el usuario está autenticado
+const checkAuthentication = () => {
+  const user = getUserFromToken();
+  if (!user) {
+    // Redirigir al login si no hay usuario autenticado
+    // Asumiendo que usas Vue Router
+    // router.push('/login');
+    statusMessage.value = {
+      text: 'Debes iniciar sesión para ver las notificaciones',
+      success: false
+    };
+    return false;
+  }
+  currentUser.value = user;
+  return true;
+};
+
 // Cargar notificaciones al montar el componente
 onMounted(() => {
-  fetchNotifications();
+  if (checkAuthentication()) {
+    fetchNotifications();
+  }
 });
 
 interface NewsItem {
@@ -454,103 +515,130 @@ const formatDate = (dateString: string): string => {
           </div>
         </template>
         
-        <!-- Template para la vista de Notificaciones -->
-        <template v-if="$route.path === '/Profile/notifications'">
-          <!-- Formulario para crear nuevas notificaciones -->
-          <div class="mx-4 my-4 p-4 border border-gray-700 rounded-lg bg-gray-900">
-            <h3 class="text-sm font-medium mb-3">Crear nueva notificación</h3>
-            <form @submit.prevent="createNotification">
-              <div class="mb-3">
-                <input
-                  v-model="newNotification.title"
-                  type="text"
-                  placeholder="Título"
-                  class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <textarea
-                  v-model="newNotification.content"
-                  placeholder="Contenido"
-                  class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500 h-20"
-                  required
-                ></textarea>
-              </div>
-              <div class="mb-3">
-                <select
-                  v-model="newNotification.type"
-                  class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
-                  required
-                >
-                  <option value="info">Información</option>
-                  <option value="warning">Advertencia</option>
-                  <option value="alert">Alerta</option>
-                </select>
-              </div>
-              <div class="flex justify-end">
-                <button
-                  type="submit"
-                  class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
-                  :disabled="isLoading"
-                >
-                  {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
-                </button>
-              </div>
-            </form>
-          </div>
-          
-          <!-- Mensaje de estado -->
-          <div v-if="statusMessage" class="mx-4 mb-3 p-2 rounded-lg text-center text-sm" :class="statusMessage.success ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'">
-            {{ statusMessage.text }}
-          </div>
-          
-          <!-- Lista de notificaciones -->
-          <div v-if="notifications.length === 0 && !isLoading" class="text-center text-gray-500 py-6 mt-4">
-            No hay notificaciones disponibles
-          </div>
-          
-          <!-- Notificaciones existentes -->
-          <div v-for="(notification, index) in notifications" :key="index" class="mx-4 mb-3 mt-4">
-            <div class="p-3 rounded-lg" :class="{
-              'bg-blue-900 bg-opacity-20 border border-blue-800': notification.type === 'info',
-              'bg-yellow-900 bg-opacity-20 border border-yellow-800': notification.type === 'warning',
-              'bg-red-900 bg-opacity-20 border border-red-800': notification.type === 'alert',
-              'bg-gray-800': !notification.type
+        
+        
+       <!-- Template para la vista de Notificaciones -->
+<template v-if="$route.path === '/Profile/notifications'">
+  <!-- Mensaje de autenticación -->
+  <div v-if="!currentUser" class="mx-4 my-4 p-4 border border-red-700 rounded-lg bg-red-900 text-white text-center">
+    Debes iniciar sesión para acceder a las notificaciones
+  </div>
+
+  <template v-else>
+    <!-- Formulario para crear nuevas notificaciones (solo visible para usuarios autenticados) -->
+    <div class="mx-4 my-4 p-4 border border-gray-700 rounded-lg bg-gray-900">
+      <h3 class="text-sm font-medium mb-3">Crear nueva notificación</h3>
+      <div class="text-xs text-gray-400 mb-3">
+        Usuario: {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.email }})
+      </div>
+      <form @submit.prevent="createNotification">
+        <div class="mb-3">
+          <input
+            v-model="newNotification.title"
+            type="text"
+            placeholder="Título"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <textarea
+            v-model="newNotification.content"
+            placeholder="Contenido"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500 h-20"
+            required
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <select
+            v-model="newNotification.type"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+            required
+          >
+            <option value="info">Información</option>
+            <option value="warning">Advertencia</option>
+            <option value="alert">Alerta</option>
+          </select>
+        </div>
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
+            :disabled="isLoading"
+          >
+            {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Mensaje de estado -->
+    <div v-if="statusMessage" class="mx-4 mb-3 p-2 rounded-lg text-center text-sm" :class="statusMessage.success ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'">
+      {{ statusMessage.text }}
+    </div>
+    
+    <!-- Estado de carga -->
+    <div v-if="isLoading" class="text-center my-4">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+    
+    <!-- Lista de notificaciones -->
+    <div v-if="notifications.length === 0 && !isLoading" class="text-center text-gray-500 py-6 mt-4">
+      No hay notificaciones disponibles
+    </div>
+    
+    <!-- Notificaciones existentes -->
+    <div v-for="(notification, index) in notifications" :key="index" class="mx-4 mb-3 mt-4">
+      <div class="p-3 rounded-lg" :class="{
+        'bg-blue-900 bg-opacity-20 border border-blue-800': notification.type === 'info',
+        'bg-yellow-900 bg-opacity-20 border border-yellow-800': notification.type === 'warning',
+        'bg-red-900 bg-opacity-20 border border-red-800': notification.type === 'alert',
+        'bg-gray-800': !notification.type
+      }">
+        <div class="flex">
+          <div class="mr-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="{
+              'bg-blue-500': notification.type === 'info',
+              'bg-yellow-500': notification.type === 'warning',
+              'bg-red-500': notification.type === 'alert',
+              'bg-gray-500': !notification.type
             }">
-              <div class="flex">
-                <div class="mr-3">
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="{
-                    'bg-blue-500': notification.type === 'info',
-                    'bg-yellow-500': notification.type === 'warning',
-                    'bg-red-500': notification.type === 'alert',
-                    'bg-gray-500': !notification.type
-                  }">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <h3 class="text-sm font-medium">{{ notification.title }}</h3>
-                  <p class="text-xs text-gray-400 mt-1">{{ notification.content }}</p>
-                  <div class="flex justify-between items-center mt-2">
-                    <span class="text-xs text-gray-500">{{ notification.timestamp || 'Hace un momento' }}</span>
-                    <button 
-                      @click="markAsRead(notification.id, index)" 
-                      class="text-xs text-gray-400 hover:text-white"
-                    >
-                      Marcar como leída
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+              </svg>
             </div>
           </div>
-        </template>
-      </router-view>
+          <div class="flex-grow">
+            <h3 class="text-sm font-medium">{{ notification.title }}</h3>
+            <p class="text-xs text-gray-400 mt-1">{{ notification.content }}</p>
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-xs text-gray-500">
+                {{ notification.timestamp || 'Hace un momento' }}
+                <span v-if="notification.userName" class="ml-1">- por {{ notification.userName }}</span>
+              </span>
+              <button 
+                v-if="!notification.read"
+                @click="markAsRead(notification.id, index)" 
+                class="text-xs text-gray-400 hover:text-white"
+              >
+                Marcar como leída
+              </button>
+              <span v-else class="text-xs text-green-500">Leída</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</template>
+</router-view>
     </div>
 
+    
+    
+    
+    
+    
     <!-- Sidebar derecha - Noticias (ahora solo muestra noticias existentes) -->
     <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
       <!-- Barra de búsqueda -->
