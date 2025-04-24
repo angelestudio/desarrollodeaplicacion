@@ -271,7 +271,7 @@ const canDelete = (item: NewsItem): boolean => {
       <span v-else>Publicar noticia</span>
     </button>
   </div>
-</div>
+
 
 <!-- News items display -->
 <div id="news-items-container" class="overflow-y-auto max-h-96">
@@ -309,13 +309,10 @@ const canDelete = (item: NewsItem): boolean => {
             Eliminar
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
+     
 
 <!-- Notification component -->
-<Teleport to="body">
+  <Teleport to="body">
   <div
     v-if="showNotification"
     class="fixed bottom-4 right-4 p-3 rounded shadow-lg text-white text-sm z-50"
