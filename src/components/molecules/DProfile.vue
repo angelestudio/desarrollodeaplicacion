@@ -4,6 +4,17 @@ import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
 import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload } from 'jwt-decode';
+// Estado para el nombre del usuario
+const userName = ref<string>(''); 
+
+onMounted(() => {
+  const currentUser = getUserFromToken();
+  if (currentUser) {
+    userName.value = `${currentUser.firstName} ${currentUser.lastName}`;
+  } else {
+    userName.value = 'Usuario no autenticado';
+  }
+});
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
@@ -233,7 +244,7 @@ const checkAuthentication = () => {
     // Asumiendo que usas Vue Router
     // router.push('/login');
     statusMessage.value = {
-      text: 'Debes iniciar sesión para ver las notificaciones',
+      text: 'Debes ser administrador para publicar notificaciones',
       success: false
     };
     return false;
@@ -242,13 +253,18 @@ const checkAuthentication = () => {
   return true;
 };
 
-// Cargar notificaciones al montar el componente
 onMounted(() => {
-  if (checkAuthentication()) {
-    fetchNotifications();
+  const currentUser = getUserFromToken();
+  console.log('Contenido completo del token:', currentUser); // Muestra los datos del token
+
+  if (currentUser) {
+    userName.value = currentUser.email || 'Usuario sin nombre'; // Usamos el email si no hay nombres
+    console.log('Nombre generado:', userName.value); // Verifica el valor asignado a userName
+  } else {
+    console.log('No se encontró usuario en el token');
+    userName.value = 'Usuario no autenticado';
   }
 });
-
 
 
 
@@ -527,7 +543,7 @@ const canDelete = (item: NewsItem): boolean => {
       <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
       <div class="hidden md:flex p-4 items-center mt-auto">
         <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
-        <span class="ml-2 text-sm">Roberta Jimenez</span>
+       <span class="ml-2 text-sm">{{ user ? `${user.firstName} ${user.lastName}` : 'Usuario' }}</span>
       </div>
     </div>
 
@@ -540,9 +556,9 @@ const canDelete = (item: NewsItem): boolean => {
 
       <!-- Sección de perfil -->
       <div class="flex flex-col items-center pt-6 md:pt-12 relative z-10 mt-4 md:mt-8">
-        <img src="https://i.pravatar.cc/300" alt="Roberta Jimenez" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white" />
-        <h1 class="mt-2 font-medium text-base md:text-lg text-white">Roberta Jimenez</h1>
-        <p class="text-gray-400 text-xs md:text-sm">Aprendiz</p>
+  <img src="https://i.pravatar.cc/300" alt="Avatar del usuario" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white" />
+  <h1 class="mt-2 font-medium text-base md:text-lg text-white">{{ userName }}</h1>
+  <p class="text-gray-400 text-xs md:text-sm">Aprendiz</p>
 
         <!-- Contador y botón -->
         <div class="flex space-x-4 md:space-x-6 mt-2 md:mt-3">
@@ -578,13 +594,14 @@ const canDelete = (item: NewsItem): boolean => {
           
           <!-- Posts existentes -->
           <div v-for="(post, index) in posts" :key="index" class="p-4 border border-gray-800 rounded-lg mx-4 mb-4 mt-4">
-            <div class="flex items-start mb-3">
-              <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
-              <div class="ml-2">
-                <p class="text-sm font-medium">Roberta Jimenez</p>
-                <p class="text-xs text-gray-400">Hace un momento</p>
-              </div>
-            </div>
+            <<div class="flex items-start mb-3">
+  <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
+  <div class="ml-2">
+    <p class="text-sm font-medium">{{ userName }}</p> <!-- Usamos la variable userName -->
+    <p class="text-xs text-gray-400">Hace un momento</p>
+  </div>
+</div>
+
             <p class="text-sm text-gray-300">{{ post.content }}</p>
             <div class="flex space-x-4 mt-3 pt-3 border-t border-gray-800">
               <button class="flex items-center text-xs text-gray-400 hover:text-blue-500">
@@ -615,7 +632,7 @@ const canDelete = (item: NewsItem): boolean => {
 <template v-if="$route.path === '/Profile/notifications'">
   <!-- Mensaje de autenticación -->
   <div v-if="!currentUser" class="mx-4 my-4 p-4 border border-red-700 rounded-lg bg-red-900 text-white text-center">
-    Debes iniciar sesión para acceder a las notificaciones
+    Debes ser administrador para publicar notificaciones
   </div>
 
   <template v-else>
