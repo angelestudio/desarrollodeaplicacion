@@ -9,13 +9,28 @@ const userName = ref<string>('');
 
 onMounted(() => {
   const currentUser = getUserFromToken();
+  console.log("Token decodificado:", currentUser); // Para depuración
+  
   if (currentUser) {
-    userName.value = `${currentUser.firstName} ${currentUser.lastName}`;
+    // Si tienes firstName y lastName disponibles
+    if (currentUser.firstName && currentUser.lastName) {
+      userName.value = `${currentUser.firstName} ${currentUser.lastName}`;
+    } 
+    // Si no tienes esos datos pero sí tienes email
+    else if (currentUser.email) {
+      // Opción 1: Usar el email completo
+      userName.value = currentUser.email;
+      
+      // Opción 2: Extraer nombre del email (si el formato lo permite)
+      // const emailName = currentUser.email.split('@')[0];
+      // userName.value = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    } else {
+      userName.value = 'Usuario';
+    }
   } else {
     userName.value = 'Usuario no autenticado';
   }
 });
-
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
   { content: "Este es un post de ejemplo que ya existe en el sistema." },
@@ -253,23 +268,6 @@ const checkAuthentication = () => {
   return true;
 };
 
-onMounted(() => {
-  const currentUser = getUserFromToken();
-  console.log('Contenido completo del token:', currentUser); // Muestra los datos del token
-
-  if (currentUser) {
-    userName.value = currentUser.email || 'Usuario sin nombre'; // Usamos el email si no hay nombres
-    console.log('Nombre generado:', userName.value); // Verifica el valor asignado a userName
-  } else {
-    console.log('No se encontró usuario en el token');
-    userName.value = 'Usuario no autenticado';
-  }
-});
-
-
-
-
-
 
 
 
@@ -492,25 +490,6 @@ const canDelete = (item: NewsItem): boolean => {
 };
 
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <template>
   <div class="flex flex-col md:flex-row h-screen bg-black text-white overflow-hidden">
     <!-- Sidebar izquierda - Fondo negro sólido (ahora más pequeña) -->
@@ -543,7 +522,7 @@ const canDelete = (item: NewsItem): boolean => {
       <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
       <div class="hidden md:flex p-4 items-center mt-auto">
         <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
-       <span class="ml-2 text-sm">{{ user ? `${user.firstName} ${user.lastName}` : 'Usuario' }}</span>
+        <span class="ml-2 text-sm">{{ userName }}</span>
       </div>
     </div>
 
@@ -594,7 +573,7 @@ const canDelete = (item: NewsItem): boolean => {
           
           <!-- Posts existentes -->
           <div v-for="(post, index) in posts" :key="index" class="p-4 border border-gray-800 rounded-lg mx-4 mb-4 mt-4">
-            <<div class="flex items-start mb-3">
+            <div class="flex items-start mb-3">
   <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
   <div class="ml-2">
     <p class="text-sm font-medium">{{ userName }}</p> <!-- Usamos la variable userName -->
@@ -635,9 +614,10 @@ const canDelete = (item: NewsItem): boolean => {
     Debes ser administrador para publicar notificaciones
   </div>
 
-  <template v-else>
-    <!-- Formulario para crear nuevas notificaciones (solo visible para usuarios autenticados) -->
-    <div class="mx-4 my-4 p-4 border border-gray-700 rounded-lg bg-gray-900">
+  <template v-else-if="currentUser.rol === 'admin'">
+  <!-- Formulario para crear nuevas notificaciones (solo visible para administradores) -->
+  <div class="mx-4 my-4 p-4 border border-gray-700 rounded-lg bg-gray-900">
+
       <h3 class="text-sm font-medium mb-3">Crear nueva notificación</h3>
       <div class="text-xs text-gray-400 mb-3">
         Usuario: {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.email }})
@@ -760,29 +740,6 @@ const canDelete = (item: NewsItem): boolean => {
         </div>
       </div>
       
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  <!-- Estado de autenticación -->
 <div v-if="newsUser" class="bg-gray-800 p-2 mb-4 rounded text-xs text-gray-300">
   Conectado como: {{ newsUser.firstName }} {{ newsUser.lastName }} ({{ newsUser.rol }})
