@@ -1,3 +1,4 @@
+
 <template>
 
   <aside class="w-52 bg-black flex flex-col justify-between h-screen">
@@ -69,3 +70,4 @@
     </div>
   </aside>
 </template>
+
