@@ -4,6 +4,20 @@ import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
 import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload } from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
+const currentUser = ref(null);
+
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      currentUser.value = jwtDecode(token); // Asegúrate de que esta función esté decodificando correctamente el JWT
+    } catch (e) {
+      console.error('Error al decodificar el token', e);
+      currentUser.value = null; // En caso de que haya un error al decodificar
+    }
+  }
+});
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
@@ -59,7 +73,7 @@ const notifications = ref<Notification[]>([]);
 const statusMessage = ref<{ text: string, success: boolean } | null>(null);
 
 // Estado para el usuario actual
-const currentUser = ref<JwtPayload | null>(null);
+// const currentUser = ref<JwtPayload | null>(null);
 
 // Función para cargar notificaciones desde la API
 const fetchNotifications = async () => {
@@ -246,12 +260,6 @@ onMounted(() => {
     fetchNotifications();
   }
 });
-
-
-
-
-
-
 
 
 
@@ -594,10 +602,12 @@ const canManageNews = (item: NewsItem): boolean => {
       
 
       <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
-      <div class="hidden md:flex p-4 items-center mt-auto">
-        <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
-        <span class="ml-2 text-sm">Roberta Jimenez</span>
-      </div>
+<div class="hidden md:flex p-4 items-center mt-auto">
+  <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
+  <span class="ml-2 text-sm">
+    {{ currentUser?.firstName }} {{ currentUser?.lastName }}
+  </span>
+</div>
     </div>
 
     <!-- Contenido principal (ahora un poco más amplio) -->
@@ -610,8 +620,11 @@ const canManageNews = (item: NewsItem): boolean => {
       <!-- Sección de perfil -->
       <div class="flex flex-col items-center pt-6 md:pt-12 relative z-10 mt-4 md:mt-8">
         <img src="https://i.pravatar.cc/300" alt="Roberta Jimenez" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white" />
-        <h1 class="mt-2 font-medium text-base md:text-lg text-white">Roberta Jimenez</h1>
-        <p class="text-gray-400 text-xs md:text-sm">Aprendiz</p>
+        <h1 class="mt-2 font-medium text-base md:text-lg text-white">{{ currentUser?.firstName }} {{ currentUser?.lastName }}
+        </h1>
+        
+        <p class="text-gray-400 text-xs md:text-sm">{{ currentUser?.rol }}
+        </p>
 
         <!-- Contador y botón -->
         <div class="flex space-x-4 md:space-x-6 mt-2 md:mt-3">
@@ -650,7 +663,7 @@ const canManageNews = (item: NewsItem): boolean => {
             <div class="flex items-start mb-3">
               <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
               <div class="ml-2">
-                <p class="text-sm font-medium">Roberta Jimenez</p>
+                <p class="text-sm font-medium">hola Jimenez</p>
                 <p class="text-xs text-gray-400">Hace un momento</p>
               </div>
             </div>
@@ -681,7 +694,7 @@ const canManageNews = (item: NewsItem): boolean => {
         
         
        <!-- Template para la vista de Notificaciones -->
-<template v-if="$route.path === '/Profile/notifications'">
+<template v-if="$route.path === '/Profile/notifications'">¡
   <!-- Mensaje de autenticación -->
   <div v-if="!currentUser" class="mx-4 my-4 p-4 border border-red-700 rounded-lg bg-red-900 text-white text-center">
     Debes iniciar sesión para acceder a las notificaciones
@@ -725,12 +738,13 @@ const canManageNews = (item: NewsItem): boolean => {
         </div>
         <div class="flex justify-end">
           <button
-            type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
-            :disabled="isLoading"
-          >
-            {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
-          </button>
+  type="submit"
+  class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
+  :disabled="isLoading || currentUser?.rol?.toLowerCase() !== 'admin'"
+  @click="createNotification"
+>
+  {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
+</button>
         </div>
       </form>
     </div>
@@ -796,9 +810,6 @@ const canManageNews = (item: NewsItem): boolean => {
 </template>
 </router-view>
     </div>
-
-    
-    
     
  <!-- Sidebar derecha  -->
     <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
@@ -811,23 +822,6 @@ const canManageNews = (item: NewsItem): boolean => {
       <input type="text" placeholder="Search" class="bg-transparent border-none w-full ml-2 text-sm focus:outline-none text-gray-300">
     </div>
    </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
  <!-- Estado de autenticación -->
 <div v-if="newsUser" class="bg-gray-800 p-2 mb-4 rounded text-xs text-gray-300">
