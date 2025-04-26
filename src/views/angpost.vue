@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-black text-white relative">
+  <div class="min-h-screen overflow-y-auto bg-black text-white flex relative">
     <!-- Modal para crear club -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
     <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center">
@@ -34,22 +34,11 @@
       </div>
     </div>
 
-    <!-- Aside Izquierdo -->
-    <aside class="w-1/4 p-4 flex flex-col justify-between border-r border-gray-700">
-      <miSidebarMenu />
-      <div class="mt-4">
-        <button
-          v-if="isAdmin"
-          @click="openModal"
-          class="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-center font-semibold mb-4"
-        >+ Club</button>
-        <!-- CORRECCIÓN: interpolación Vue sin '@' -->
-        <p class="text-gray-400">{{ userName }}</p>
-      </div>
-    </aside>
+    <!-- Sidebar Izquierdo -->
+    <Sidebarizquierda class="w-[300px] flex-shrink-0 border-gray-900 border-2" />
 
-    <!-- Main Content -->
-    <main class="flex-1 p-4 overflow-y-auto">
+    <!-- Contenido principal -->
+    <main class="flex-1 bg-black flex flex-col relative p-4 overflow-y-auto">
       <h2 class="text-2xl font-bold mb-6">SELECT YOUR FAVORITES</h2>
 
       <!-- Sección Sports -->
@@ -100,7 +89,7 @@
           >
             <router-link
               :to="{ name: 'UserPosts', query: { club } }"
-              class="text-lg font-semibold hover:underline"
+                class="text-lg font-semibold hover:underline"
             >{{ club }}</router-link>
             <button
               @click="leaveClub(club)"
@@ -111,21 +100,27 @@
       </section>
     </main>
 
-    <!-- Aside Derecho -->
-    <aside class="w-1/4 p-4 border-l border-gray-700">
-      <miTextInputAtom placeholder="Search" class="mb-4" />
-      <div class="bg-gray-800 p-4 rounded">
-        <h3 class="font-semibold mb-2">What happens?</h3>
-        <ul class="text-sm space-y-1">
-          <li>noticias cef</li>
-          <li>actividad terraza</li>
-          <li>apoyo de sostenimiento</li>
-          <li>película sabrosona</li>
-          <li>talleres</li>
-          <li>inglés y otras oportunidades</li>
-        </ul>
-      </div>
+    <!-- Sidebar Derecho -->
+    <aside class="w-[300px] flex-shrink-0 bg-black border-l border-gray-900 p-4 relative overflow-y-auto">
+      <News />
     </aside>
+
+    <!-- Botón Crear Club (sólo admin) -->
+    <button
+      v-if="isAdmin"
+      @click="openModal"
+      class="absolute bottom-20 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-lg"
+    >
+      Crear Club
+    </button>
+
+    <!-- Botón Cerrar sesión -->
+    <button
+      @click="logout"
+      class="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg"
+    >
+      Cerrar sesión
+    </button>
   </div>
 </template>
 
@@ -133,16 +128,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import jwt_decode from 'jwt-decode'
 import axios from 'axios'
-import miSidebarMenu from '@/components/molecules/miSidebarMenu.vue'
-import miTextInputAtom from '@/components/atoms/miTextInputAtom.vue'
+import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
+import News from '@/components/molecules/News.vue'
 import { useClubsStore } from '@/stores/clubsStore'
 import { useLoginStore } from '@/stores/milogin'
 
-// --- JWT payload interface
 interface JwtPayload {
   sub: string
   email: string
-  role: string
+  rol: string      // ← coincide con el campo 'rol' que metes en el JWT
   firstName: string
   lastName: string
   clubs: string[]
@@ -150,14 +144,12 @@ interface JwtPayload {
   exp: number
 }
 
-// --- Configurar axios
 const token = localStorage.getItem('token') || ''
 if (token) {
   axios.defaults.baseURL = import.meta.env.VITE_API_URL
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }
 
-// --- Decodificar token
 let payload: JwtPayload | null = null
 try {
   if (token) payload = jwt_decode<JwtPayload>(token)
@@ -165,11 +157,9 @@ try {
   console.warn('Token inválido o expirado')
 }
 
-// --- Stores
 const clubsStore = useClubsStore()
 const loginStore = useLoginStore()
 
-// --- Estado local
 const showModal = ref(false)
 const newClub = ref({ name: '', description: '' })
 const sports = [
@@ -178,41 +168,34 @@ const sports = [
   { name: 'Ajedrez', description: 'Mueve tu mente, gana estrategia', _id: 'sport3' }
 ]
 
-// --- On mounted: cargar clubs y sincronizar usuario
 onMounted(async () => {
   await clubsStore.fetchClubs()
   if (payload) {
+    // Inicializamos el usuario en el store con los datos del token
     loginStore.setUser({
       _id:       payload.sub,
       firstName: payload.firstName,
       lastName:  payload.lastName,
-      role:      payload.role,
+      role:      payload.rol,
       clubs:     payload.clubs || []
     })
   }
 })
 
-// --- Computed
-const userName  = computed(() => payload?.firstName || 'Usuario')
-const isAdmin   = computed(() => payload?.role === 'admin')
+const isAdmin   = computed(() => payload?.rol === 'admin')
 const userClubs = computed(() => loginStore.user?.clubs || [])
 
-// --- Métodos
-function openModal() {
-  showModal.value = true
+/** Modal **/
+function openModal() { showModal.value = true }
+function closeModal() { 
+  showModal.value = false 
+  newClub.value = { name: '', description: '' } 
 }
 
-function closeModal() {
-  showModal.value = false
-  newClub.value = { name: '', description: '' }
-}
-
+/** Clubs **/
 async function submitClub() {
   if (!newClub.value.name || !newClub.value.description) return
-  await clubsStore.createClub({
-    name:        newClub.value.name,
-    description: newClub.value.description
-  })
+  await clubsStore.createClub({ name: newClub.value.name, description: newClub.value.description })
   closeModal()
 }
 
@@ -222,26 +205,35 @@ const onDeleteClub = async (id: string) => {
   }
 }
 
-function joinClub(clubName: string) {
-  loginStore.joinClub(clubName)
+/** Join / Leave **/
+async function joinClub(clubName: string) {
+  try {
+    await loginStore.joinClub(clubName)
+  } catch {
+    alert('Error al unirte al club')
+  }
 }
-
-function leaveClub(clubName: string) {
-  loginStore.leaveClub(clubName)
+async function leaveClub(clubName: string) {
+  try {
+    await loginStore.leaveClub(clubName)
+  } catch {
+    alert('Error al salir del club')
+  }
 }
-
 function hasJoined(clubName: string): boolean {
   return loginStore.user?.clubs.includes(clubName) ?? false
 }
 
-// Modal scroll lock
+/** Watchers y Logout **/
 watch(showModal, open => {
   document.body.classList.toggle('modal-open', open)
 })
+function logout() {
+  loginStore.logout()
+  window.location.href = '/login'
+}
 </script>
 
 <style scoped>
-.modal-open {
-  overflow: hidden;
-}
+.modal-open { overflow: hidden; }
 </style>

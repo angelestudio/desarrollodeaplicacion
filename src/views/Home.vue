@@ -45,18 +45,16 @@
             ></textarea>
           </div>
 
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Crear</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded my-5">Crear</button>
         </form>
       </div>
     </div>
 
     <!-- Sidebar izquierdo -->
-    <aside class="w-1/4 bg-black border-r border-gray-700 h-full">
-      <miSidebarMenu />
-    </aside>
+    <Sidebarizquierda class="w-[300px] flex-shrink-0 border-gray-900 border-2" />
 
-    <!-- Contenido principal -->
-    <main class="w-2/4 bg-black flex flex-col relative p-4">
+    <!-- Contenido principal ocupa todo el espacio restante -->
+    <main class="flex-1 bg-black flex flex-col relative p-4">
       <!-- Navegación de clubs -->
       <div class="flex items-center justify-center mb-4">
         <router-link to="/clubs" class="text-white hover:underline">Todos los clubs</router-link>
@@ -64,11 +62,16 @@
         <router-link to="/user-posts" class="text-white hover:underline">Mis clubs</router-link>
       </div>
 
-      <!-- Header Posts -->
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">Posts</h2>
-        <button @click="onAddPost" title="Agregar post"
-                class="bg-blue-600 hover:bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center">+</button>
+      <!-- Header Posts centrado -->
+      <div class="flex justify-center items-center mb-4 relative">
+        <h2 class="text-2xl font-bold text-center w-full">Posts</h2>
+        <button
+          @click="onAddPost"
+          title="Agregar post"
+          class="absolute right-0 bg-blue-600 hover:bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center"
+        >
+          +
+        </button>
       </div>
 
       <!-- Filtros por club -->
@@ -77,13 +80,13 @@
           v-for="club in userClubs"
           :key="club"
           @click="filterByClub(club)"
-          class="inline-block px-4 py-2 mr-2 bg-gray-700 hover:bg-gray-600 rounded-full"
+          class="inline-block px-4 py-2 my-5 mr-2 bg-gray-700 hover:bg-gray-600 rounded-full"
         >
           {{ club }}
         </button>
         <button
           @click="filterByClub('')"
-          class="inline-block px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-full"
+          class="inline-block px-4 py-2 my-5 bg-gray-600 hover:bg-gray-500 rounded-full"
         >
           Todos
         </button>
@@ -112,18 +115,17 @@
     </main>
 
     <!-- Sidebar derecho -->
-    <aside class="w-1/4 bg-black border-l border-gray-700 p-4">
-      <miTextInputAtom placeholder="Search" class="mb-4" />
-      <miWidgetInfo />
+    <aside class="w-[300px] flex-shrink-0 bg-black border-l border-gray-900 p-0 relative">
+      
+      <News />
+      
     </aside>
-
-    <!-- Botón de Cerrar sesión -->
     <button
-      @click="logout"
-      class="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg z-50"
-    >
-      Cerrar sesión
-    </button>
+        @click="logout"
+        class="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg"
+      >
+        Cerrar sesión
+      </button>
   </div>
 </template>
 
@@ -131,40 +133,33 @@
 import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-
-// Importación de solo tipo para la interfaz
 import type { JwtPayload } from '@/composables/useAuth'
 import { getUserFromToken } from '@/composables/useAuth'
 
-import miSidebarMenu from '@/components/molecules/miSidebarMenu.vue'
+import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
+import News from '@/components/molecules/News.vue'
 import miTextInputAtom from '@/components/atoms/miTextInputAtom.vue'
-import miWidgetInfo from '@/components/molecules/miWidgetInfo.vue'
+
 import { useClubsStore } from '@/stores/clubsStore'
 import { usePostsStore } from '@/stores/postsStore'
 
 const router = useRouter()
 const route = useRoute()
 
-// Inicializamos valores vacíos
 const username = ref('')
 const userRole = ref('')
 const userClubs = ref<string[]>([])
 
-// Intentamos leer el token
 const payload = getUserFromToken()
-
-// Si no existe, redirigimos
 if (!payload) {
   router.replace({ name: 'SignUp' })
 } else {
-  // Solo aquí sabemos payload != null
   username.value = `${payload.firstName} ${payload.lastName}`
   userRole.value = payload.rol
   userClubs.value = payload.clubs
   axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
 }
 
-// Stores y estado local
 const clubsStore = useClubsStore()
 const postsStore = usePostsStore()
 const showModal = ref(false)
@@ -172,13 +167,11 @@ const selectedClub = ref('')
 const selectedFormClub = ref('')
 const newPost = reactive({ title: '', content: '' })
 
-// Filtrar posts
 const filteredPosts = computed(() => {
   const clubsToShow = selectedClub.value ? [selectedClub.value] : userClubs.value
   return postsStore.posts.filter(p => clubsToShow.includes(p.club))
 })
 
-// Fetch inicial
 onMounted(async () => {
   await clubsStore.fetchClubs()
   await postsStore.fetchPosts()
@@ -187,7 +180,6 @@ onMounted(async () => {
   }
 })
 
-// Handlers
 function filterByClub(club: string) {
   selectedClub.value = club
 }
@@ -224,7 +216,6 @@ watch(showModal, open => {
   document.body.classList.toggle('modal-open', open)
 })
 
-// Cerrar sesión
 function logout() {
   localStorage.removeItem('token')
   delete axios.defaults.headers.common['Authorization']
@@ -233,6 +224,25 @@ function logout() {
 </script>
 
 <style>
-html, body { background-color: black; margin: 0; padding: 0; }
-.modal-open { overflow: hidden; }
+html, body {
+  background-color: black;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #5e5e5e;
+  border-radius: 4px;
+}
+
+.modal-open {
+  overflow: hidden;
+}
 </style>

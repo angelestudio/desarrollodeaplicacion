@@ -4,6 +4,20 @@ import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
 import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload } from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
+const currentUser = ref(null);
+
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      currentUser.value = jwtDecode(token); // Asegúrate de que esta función esté decodificando correctamente el JWT
+    } catch (e) {
+      console.error('Error al decodificar el token', e);
+      currentUser.value = null; // En caso de que haya un error al decodificar
+    }
+  }
+});
 
 // Estado para Posts
 const posts = ref<Array<{content: string}>>([
@@ -27,7 +41,6 @@ const redirectToSearch = () => {
 };
 
 
-
 // ===== ACTUALIZACIÓN DE NOTIFICACIONES =====
 // Definición de interfaces
 interface Notification {
@@ -40,7 +53,6 @@ interface Notification {
   userId?: string;  // ID del usuario dueño de la notificación
   userName?: string; // Nombre del usuario para mostrar
 }
-
 
  // Importamos la función que creaste
 
@@ -55,13 +67,13 @@ const newNotification = ref<Notification>({
 const notifications = ref<Notification[]>([]);
 
 // Estado para controlar la carga
-const isLoading = ref(false);
+
 
 // Estado para mensajes de estado
 const statusMessage = ref<{ text: string, success: boolean } | null>(null);
 
 // Estado para el usuario actual
-const currentUser = ref<JwtPayload | null>(null);
+// const currentUser = ref<JwtPayload | null>(null);
 
 // Función para cargar notificaciones desde la API
 const fetchNotifications = async () => {
@@ -252,13 +264,6 @@ onMounted(() => {
 
 
 
-
-
-
-
-
-
-
 //news
 
 interface NewsItem {
@@ -277,7 +282,11 @@ const notificationMessage = ref('');
 const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
 const newsUser = ref<JwtPayload | null>(getUserFromToken()); // Cambiado de currentUser a newsUser
+const isLoading = ref(false);
 
+// Variables para la edición
+const isEditing = ref(false);
+const editingNewsId = ref<string | null>(null);
 
 // API base URL
 const API_URL = 'http://localhost:3000/news';
@@ -339,41 +348,46 @@ const publishNews = async () => {
   try {
     isLoading.value = true;
     
-    // Create news item object
-    const newNewsItem: NewsItem = {
-      title: title.value.trim(),
-      content: content.value.trim(),
-      author: `${newsUser.value.firstName} ${newsUser.value.lastName}` // Cambiado a newsUser
-    };
-    
-    // Send to API with auth token
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(newNewsItem),
-    });
-    
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+    // Si estamos editando, enviamos una petición PUT, de lo contrario POST
+    if (isEditing.value && editingNewsId.value) {
+      await updateNews();
+    } else {
+      // Create news item object
+      const newNewsItem: NewsItem = {
+        title: title.value.trim(),
+        content: content.value.trim(),
+        author: `${newsUser.value.firstName} ${newsUser.value.lastName}` // Cambiado a newsUser
+      };
+      
+      // Send to API with auth token
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(newNewsItem),
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        }
+        throw new Error(`Error: ${response.status}`);
       }
-      throw new Error(`Error: ${response.status}`);
+      
+      // Get the response which contains message and newsId
+      const result = await response.json();
+      
+      // Show success message
+      displayNotification('Noticia publicada con éxito!', 'success');
     }
-    
-    // Get the response which contains message and newsId
-    const result = await response.json();
     
     // Refetch the news to get the latest data including the new item
     await fetchNews();
     
-    // Clear form
-    title.value = '';
-    content.value = '';
+    // Clear form and reset editing state
+    resetForm();
     
-    // Show success message
-    displayNotification('Noticia publicada con éxito!', 'success');
   } catch (error) {
-    console.error('Error publishing news:', error);
+    console.error('Error publishing/updating news:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al publicar la noticia. Inténtalo de nuevo.';
     displayNotification(errorMessage, 'error');
     
@@ -383,6 +397,85 @@ const publishNews = async () => {
     }
   } finally {
     isLoading.value = false;
+  }
+};
+
+// Function to start editing a news item
+const editNews = (item: NewsItem) => {
+  if (!item._id) {
+    displayNotification('ID de noticia no válido', 'error');
+    return;
+  }
+  
+  // Set editing state
+  isEditing.value = true;
+  editingNewsId.value = item._id;
+  
+  // Fill form with news data
+  title.value = item.title;
+  content.value = item.content;
+  
+  // Scroll to the form
+  scrollToForm();
+};
+
+// Function to update an existing news item
+const updateNews = async () => {
+  if (!editingNewsId.value) return;
+  
+  try {
+    // Create updated news item object
+    const updatedNewsItem: NewsItem = {
+      title: title.value.trim(),
+      content: content.value.trim(),
+    };
+    
+    // Send PUT request to API
+    const response = await fetch(`${API_URL}/${editingNewsId.value}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updatedNewsItem),
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      }
+      throw new Error(`Error: ${response.status}`);
+    }
+    
+    // Show success message
+    displayNotification('Noticia actualizada con éxito!', 'success');
+  } catch (error) {
+    console.error('Error updating news:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la noticia. Inténtalo de nuevo.';
+    displayNotification(errorMessage, 'error');
+    
+    // Si la sesión expiró, refrescamos el usuario
+    if (errorMessage.includes('Sesión expirada')) {
+      newsUser.value = getUserFromToken();
+    }
+  }
+};
+
+// Function to cancel editing
+const cancelEdit = () => {
+  resetForm();
+};
+
+// Function to reset form and editing state
+const resetForm = () => {
+  title.value = '';
+  content.value = '';
+  isEditing.value = false;
+  editingNewsId.value = null;
+};
+
+// Helper function to scroll to form
+const scrollToForm = () => {
+  const formElement = document.getElementById('news-form');
+  if (formElement) {
+    formElement.scrollIntoView({ behavior: 'smooth' });
   }
 };
 
@@ -467,32 +560,16 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-// Comprobar si el usuario puede eliminar una noticia (solo admin)
-const canDelete = (item: NewsItem): boolean => {
+// Comprobar si el usuario puede editar/eliminar una noticia (solo admin)
+const canManageNews = (item: NewsItem): boolean => {
   if (!newsUser.value) return false;
   
-  // Solo admin puede eliminar noticias
+  // Solo admin puede editar/eliminar noticias
   return newsUser.value.rol === 'admin';
 };
 
+
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <template>
@@ -525,10 +602,12 @@ const canDelete = (item: NewsItem): boolean => {
       
 
       <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
-      <div class="hidden md:flex p-4 items-center mt-auto">
-        <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
-        <span class="ml-2 text-sm">Roberta Jimenez</span>
-      </div>
+<div class="hidden md:flex p-4 items-center mt-auto">
+  <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
+  <span class="ml-2 text-sm">
+    {{ currentUser?.firstName }} {{ currentUser?.lastName }}
+  </span>
+</div>
     </div>
 
     <!-- Contenido principal (ahora un poco más amplio) -->
@@ -541,8 +620,11 @@ const canDelete = (item: NewsItem): boolean => {
       <!-- Sección de perfil -->
       <div class="flex flex-col items-center pt-6 md:pt-12 relative z-10 mt-4 md:mt-8">
         <img src="https://i.pravatar.cc/300" alt="Roberta Jimenez" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white" />
-        <h1 class="mt-2 font-medium text-base md:text-lg text-white">Roberta Jimenez</h1>
-        <p class="text-gray-400 text-xs md:text-sm">Aprendiz</p>
+        <h1 class="mt-2 font-medium text-base md:text-lg text-white">{{ currentUser?.firstName }} {{ currentUser?.lastName }}
+        </h1>
+        
+        <p class="text-gray-400 text-xs md:text-sm">{{ currentUser?.rol }}
+        </p>
 
         <!-- Contador y botón -->
         <div class="flex space-x-4 md:space-x-6 mt-2 md:mt-3">
@@ -581,7 +663,7 @@ const canDelete = (item: NewsItem): boolean => {
             <div class="flex items-start mb-3">
               <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
               <div class="ml-2">
-                <p class="text-sm font-medium">Roberta Jimenez</p>
+                <p class="text-sm font-medium">hola Jimenez</p>
                 <p class="text-xs text-gray-400">Hace un momento</p>
               </div>
             </div>
@@ -612,7 +694,7 @@ const canDelete = (item: NewsItem): boolean => {
         
         
        <!-- Template para la vista de Notificaciones -->
-<template v-if="$route.path === '/Profile/notifications'">
+<template v-if="$route.path === '/Profile/notifications'">¡
   <!-- Mensaje de autenticación -->
   <div v-if="!currentUser" class="mx-4 my-4 p-4 border border-red-700 rounded-lg bg-red-900 text-white text-center">
     Debes iniciar sesión para acceder a las notificaciones
@@ -656,12 +738,13 @@ const canDelete = (item: NewsItem): boolean => {
         </div>
         <div class="flex justify-end">
           <button
-            type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
-            :disabled="isLoading"
-          >
-            {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
-          </button>
+  type="submit"
+  class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
+  :disabled="isLoading || currentUser?.rol?.toLowerCase() !== 'admin'"
+  @click="createNotification"
+>
+  {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
+</button>
         </div>
       </form>
     </div>
@@ -727,9 +810,6 @@ const canDelete = (item: NewsItem): boolean => {
 </template>
 </router-view>
     </div>
-
-    
-    
     
  <!-- Sidebar derecha  -->
     <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
@@ -739,32 +819,9 @@ const canDelete = (item: NewsItem): boolean => {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
           </svg>
-          <input type="text" placeholder="Search" class="bg-transparent border-none w-full ml-2 text-sm focus:outline-none text-gray-300">
-        </div>
-      </div>
-      
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      <input type="text" placeholder="Search" class="bg-transparent border-none w-full ml-2 text-sm focus:outline-none text-gray-300">
+    </div>
+   </div>
 
  <!-- Estado de autenticación -->
 <div v-if="newsUser" class="bg-gray-800 p-2 mb-4 rounded text-xs text-gray-300">
@@ -772,8 +829,10 @@ const canDelete = (item: NewsItem): boolean => {
 </div>
 
 <!-- News creation form -->
-<div class="bg-gray-900 p-3 mb-4 rounded-lg border border-gray-700">
-  <h3 class="text-blue-500 font-medium text-sm mb-2">Crear nueva noticia</h3>
+<div id="news-form" class="bg-gray-900 p-3 mb-4 rounded-lg border border-gray-700">
+  <h3 class="text-blue-500 font-medium text-sm mb-2">
+    {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
+  </h3>
   
   <div v-if="!newsUser" class="bg-red-800 text-white p-2 mb-3 rounded text-xs">
     Debes iniciar sesión para publicar noticias
@@ -806,14 +865,22 @@ const canDelete = (item: NewsItem): boolean => {
     ></textarea>
   </div>
   
-  <div class="flex justify-end">
+  <div class="flex justify-end gap-2">
+    <button
+      v-if="isEditing"
+      @click="cancelEdit"
+      class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200"
+    >
+      Cancelar
+    </button>
+    
     <button
       @click="publishNews"
       :disabled="isLoading || !newsUser || newsUser.rol !== 'admin'"
       class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
     >
-      <span v-if="isLoading">Publicando...</span>
-      <span v-else>Publicar noticia</span>
+      <span v-if="isLoading">{{ isEditing ? 'Actualizando...' : 'Publicando...' }}</span>
+      <span v-else>{{ isEditing ? 'Actualizar noticia' : 'Publicar noticia' }}</span>
     </button>
   </div>
 </div>
@@ -845,9 +912,16 @@ const canDelete = (item: NewsItem): boolean => {
           <p v-if="item.createdAt" class="text-xs text-gray-500">{{ formatDate(item.createdAt) }}</p>
           <p v-if="item.author" class="text-xs text-gray-500">Por: {{ item.author }}</p>
         </div>
-        <div class="flex justify-end mt-2">
+        <div class="flex justify-end mt-2 gap-2">
           <button
-            v-if="canDelete(item)"
+            v-if="canManageNews(item)"
+            @click="editNews(item)"
+            class="text-xs text-blue-600 hover:text-blue-800"
+          >
+            Editar
+          </button>
+          <button
+            v-if="canManageNews(item)"
             @click="deleteNews(item._id)"
             class="text-xs text-red-600 hover:text-red-800"
           >
@@ -869,8 +943,9 @@ const canDelete = (item: NewsItem): boolean => {
     {{ notificationMessage }}
   </div>
 </Teleport>
-          
+
         </div>
       </div>
   
 </template>
+

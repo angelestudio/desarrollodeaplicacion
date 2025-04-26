@@ -32,4 +32,17 @@
   </template>
   
   <script setup lang="ts">
+  // En tu <script setup>
+import { ref, computed, onMounted } from 'vue';
+import { getUserFromToken } from '@/composables/useAuth';
+
+// Variable para controlar si el usuario es admin
+const isAdmin = ref(false);
+
+onMounted(() => {
+  const currentUser = getUserFromToken();
+  if (currentUser && currentUser.rol === 'admin') {
+    isAdmin.value = true;
+  }
+});
   </script>
