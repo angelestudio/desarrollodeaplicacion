@@ -1,14 +1,8 @@
 <script setup lang="ts">
-<<<<<<< HEAD
-
-
-
-
-=======
 import { ref, onMounted } from 'vue';
 import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload } from 'jwt-decode';
->>>>>>> c7f176f758d224a25cfa2f60ef2d14f9199910df
+
 
 interface NewsItem {
   _id?: string;

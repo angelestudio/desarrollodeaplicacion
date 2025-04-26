@@ -17,7 +17,7 @@
         <p class="explore-text">Explora nuestros clubes y encuentra el ideal para ti</p>
         <h1 class="welcome-title">¡Bienvenidos a SenaClub!</h1>
         <p class="description">Desde deportes hasta tecnología y finanzas, únete a una comunidad que comparte tus intereses.</p>
-        <button class="explore-button">Explorar Clubes</button>
+        <h1 class="welcome-subtitle">Explorar Clubes</h1>
       </div>
       <div class="clients">
         <div class="client-logos">

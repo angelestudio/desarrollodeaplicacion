@@ -69,6 +69,17 @@
           label="Register"
           class="w-full bg-blue-600 text-white py-2 rounded-lg"
         />
+
+        <!-- Botón de iniciar sesión si ya tiene cuenta -->
+        <div class="text-center mt-4 animate-fadeIn">
+          <p class="text-gray-400">
+            ¿Ya tienes una cuenta?
+            <RouterLink to="/signin" class="text-blue-600 hover:underline ml-1">
+              Inicia sesión
+            </RouterLink>
+          </p>
+        </div>
+
       </form>
     </div>
 
@@ -178,3 +189,15 @@ const register = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Animación para el texto "¿Ya tienes cuenta?" */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-in-out;
+}
+</style>

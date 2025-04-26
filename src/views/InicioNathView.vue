@@ -1,11 +1,10 @@
 <template>
   <div class="min-h-screen flex flex-col bg-black text-white">
+    <!-- NAVBAR -->
     <nav class="flex justify-between items-center px-6 py-4 bg-black">
       <div class="text-2xl font-bold">SENACLUB</div>
       <div class="flex space-x-4">
-        <a href="#" class="hover:text-purple-400">Clubs</a>
-        <a href="#" class="hover:text-purple-400">News</a>
-        <a href="#" class="hover:text-purple-400">SENA</a>
+        <a href="#" class="hover:text-purple-400">Sena mejora tu vida</a>
       </div>
       <div class="flex space-x-4">
         <RouterLink to="/signin" class="hover:text-purple-400">Sign In</RouterLink>
@@ -18,61 +17,59 @@
       </div>
     </nav>
 
-    <div class="flex flex-1 justify-between items-start p-12 flex-wrap gap-12">
+    <!-- MAIN CONTENT -->
+    <div class="flex flex-1 justify-between items-center p-12 flex-wrap gap-12">
       <div class="max-w-md">
         <p class="text-lg mb-4">Explora nuestros clubes y encuentra el ideal para ti</p>
         <h1 class="text-4xl font-bold text-purple-500 mb-4">¡Bienvenidos a SenaClub!</h1>
         <p class="text-base mb-6">
           Desde deportes hasta tecnología y finanzas, únete a una comunidad que comparte tus intereses.
         </p>
-        <button class="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700">
+        <RouterLink to="/clubs" class="text-purple-500 hover:text-purple-400 text-lg underline">
           Explorar Clubes
-        </button>
+        </RouterLink>
       </div>
 
-      <div class="max-w-sm">
-        <p class="text-lg font-semibold mb-4">Clientes felices</p>
-        <div class="flex justify-around space-x-4">
-          <span>Logo 1</span>
-          <span>Logo 2</span>
-          <span>Logo 3</span>
-        </div>
+      <!-- IMAGEN -->
+      <div class="max-w-sm animate-fade-in">
+        <img src="@/assets/inicio.png.jpeg" alt="Imagen de Inicio" class="w-full rounded-lg shadow-lg" />
       </div>
     </div>
 
+    <!-- FOOTER -->
     <footer class="bg-black p-12">
       <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
         <div>
           <p class="text-lg font-semibold mb-4">Clubes populares</p>
-          <a href="#" class="block mb-2 hover:text-purple-400">Futbol</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Ingles</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Danzas</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Emprendimiento</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Programacion</a>
+          <p class="block mb-2 hover:text-purple-400">Futbol</p>
+          <p class="block mb-2 hover:text-purple-400">Ingles</p>
+          <p class="block mb-2 hover:text-purple-400">Danzas</p>
+          <p class="block mb-2 hover:text-purple-400">Emprendimiento</p>
+          <p class="block mb-2 hover:text-purple-400">Programacion</p>
         </div>
         <div>
           <p class="text-lg font-semibold mb-4">Mi Cuenta</p>
-          <a href="#" class="block mb-2 hover:text-purple-400">Mi perfil</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Mis clubes</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Seguidos</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Noticias</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Configuracion</a>
+          <p class="block mb-2 hover:text-purple-400">Mi perfil</p>
+          <p class="block mb-2 hover:text-purple-400">Mis clubes</p>
+          <p class="block mb-2 hover:text-purple-400">Seguidos</p>
+          <p class="block mb-2 hover:text-purple-400">Noticias</p>
+          <p class="block mb-2 hover:text-purple-400">Configuracion</p>
         </div>
         <div>
           <p class="text-lg font-semibold mb-4">Plataforma</p>
-          <a href="#" class="block mb-2 hover:text-purple-400">Sobre SenaClub</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Como funciona</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Eventos y retos</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Contactanos</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Bienestar</a>
+          <p class="block mb-2 hover:text-purple-400">Sobre SenaClub</p>
+          <p class="block mb-2 hover:text-purple-400">Como funciona</p>
+          <p class="block mb-2 hover:text-purple-400">Eventos y retos</p>
+          <p class="block mb-2 hover:text-purple-400">Contactanos</p>
+          <p class="block mb-2 hover:text-purple-400">Bienestar</p>
         </div>
         <div>
           <p class="text-lg font-semibold mb-4">Recursos Utiles</p>
-          <a href="#" class="block mb-2 hover:text-purple-400">Biblioteca Virtual</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Bolsa De Empleo Sena</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Certificados en linea</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Cursos recomendados</a>
-          <a href="#" class="block mb-2 hover:text-purple-400">Calendario Academico</a>
+          <p class="block mb-2 hover:text-purple-400">Biblioteca Virtual</p>
+          <p class="block mb-2 hover:text-purple-400">Bolsa De Empleo Sena</p>
+          <p class="block mb-2 hover:text-purple-400">Certificados en linea</p>
+          <p class="block mb-2 hover:text-purple-400">Cursos recomendados</p>
+          <p class="block mb-2 hover:text-purple-400">Calendario Academico</p>
         </div>
         <div>
           <p class="text-lg font-semibold mb-4">¿Necesitas ayuda?</p>
@@ -90,5 +87,17 @@
 </template>
 
 <script setup>
-// No logic needed here for esta vista estática por ahora
+// No logic needed here todavía amor
 </script>
+
+<style scoped>
+/* Animación para que la imagen aparezca suavemente */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+</style>
