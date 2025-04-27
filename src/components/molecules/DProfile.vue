@@ -41,10 +41,14 @@ const redirectToSearch = () => {
 };
 
 
-// ===== ACTUALIZACIÓN DE NOTIFICACIONES =====
+
+
+// Asegúrate de que ya tengas importados ref y onMounted
+// import { ref, onMounted } from 'vue';
+
 // Definición de interfaces
 interface Notification {
-  id?: number;
+  _id?: string;
   title: string;
   content: string;
   type: string;
@@ -54,51 +58,70 @@ interface Notification {
   userName?: string; // Nombre del usuario para mostrar
 }
 
- // Importamos la función que creaste
+// Variables de estado
+const isLoading = ref(false);
 
-// Estado para el formulario de nueva notificación
+const editingNotification = ref<Notification | null>(null);
+const notifications = ref<Notification[]>([]);
+const statusMessage = ref<{ text: string, success: boolean } | null>(null);
 const newNotification = ref<Notification>({
   title: '',
   content: '',
   type: 'info'
 });
+// Ajusta "any" si tienes tipado de tu token
 
-// Estado para las notificaciones
-const notifications = ref<Notification[]>([]);
+// Funciones auxiliares
+const getUserFromToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload;
+  } catch (error) {
+    console.error('Error decodificando token:', error);
+    return null;
+  }
+};
 
-// Estado para controlar la carga
+// Función para verificar si el usuario está autenticado
+const checkAuthentication = () => {
+  const user = getUserFromToken();
+  if (!user) {
+    statusMessage.value = {
+      text: 'Debes iniciar sesión para ver las notificaciones',
+      success: false
+    };
+    return false;
+  }
+  currentUser.value = user;
+  return true;
+};
 
-
-// Estado para mensajes de estado
-const statusMessage = ref<{ text: string, success: boolean } | null>(null);
-
-// Estado para el usuario actual
-// const currentUser = ref<JwtPayload | null>(null);
-
-// Función para cargar notificaciones desde la API
+// Función para cargar notificaciones
 const fetchNotifications = async () => {
   isLoading.value = true;
   try {
-    // Obtenemos el usuario del token
     currentUser.value = getUserFromToken();
     if (!currentUser.value) {
       throw new Error('Usuario no autenticado');
     }
-    
-    // Agregamos el token a la petición
+
     const token = localStorage.getItem('token');
     const response = await fetch(`http://localhost:3000/notifications?userId=${currentUser.value.sub}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     if (!response.ok) {
       throw new Error('Error al cargar notificaciones');
     }
+
     const data = await response.json();
     console.log('Respuesta API:', data);
     notifications.value = data;
+
   } catch (error) {
     console.error('Error:', error);
     statusMessage.value = {
@@ -114,13 +137,11 @@ const fetchNotifications = async () => {
 const createNotification = async () => {
   isLoading.value = true;
   try {
-    // Obtenemos el usuario del token
     currentUser.value = getUserFromToken();
     if (!currentUser.value) {
       throw new Error('Usuario no autenticado');
     }
-    
-    // Preparar los datos para enviar
+
     const notificationData = {
       ...newNotification.value,
       timestamp: new Date().toLocaleString(),
@@ -128,11 +149,8 @@ const createNotification = async () => {
       userId: currentUser.value.sub,
       userName: `${currentUser.value.firstName} ${currentUser.value.lastName}`
     };
-    
-    // Obtenemos el token para la autorización
+
     const token = localStorage.getItem('token');
-    
-    // Enviar la notificación a la API
     const response = await fetch('http://localhost:3000/notifications', {
       method: 'POST',
       headers: {
@@ -141,41 +159,37 @@ const createNotification = async () => {
       },
       body: JSON.stringify(notificationData),
     });
-    
-    if (!response.ok) {
-      throw new Error('Error al crear notificación');
-    }
-    
-    const result = await response.json();
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error de API:', errorData);
+      throw new Error(`Error al crear notificación: ${errorData.message || response.statusText}`);
+    }
+
+    const result = await response.json();
     const savedNotification = result.data;
-    
-    // Asegurarnos de que notifications.value es un array
+
     if (!Array.isArray(notifications.value)) {
       notifications.value = [];
     }
-    
-    // Agregar la nueva notificación al estado local
+
     notifications.value.unshift(savedNotification);
-    
-    // Limpiar el formulario
+
     newNotification.value = {
       title: '',
       content: '',
       type: 'info'
     };
-    
-    // Mostrar mensaje de éxito
+
     statusMessage.value = {
       text: 'Notificación creada correctamente',
       success: true
     };
-    
-    // Limpiar el mensaje después de 3 segundos
+
     setTimeout(() => {
       statusMessage.value = null;
     }, 3000);
-    
+
   } catch (error) {
     console.error('Error:', error);
     statusMessage.value = {
@@ -187,21 +201,89 @@ const createNotification = async () => {
   }
 };
 
-// Función para marcar una notificación como leída
-const markAsRead = async (id: number | undefined, index: number) => {
-  if (!id) return;
-  
+// Funciones para edición
+const startEdit = (notification: Notification) => {
+  editingNotification.value = JSON.parse(JSON.stringify(notification));
+  isEditing.value = true;
+};
+
+const cancelEdit = () => {
+  editingNotification.value = null;
+  isEditing.value = false;
+};
+
+const saveEdit = async () => {
+  if (!editingNotification.value || !editingNotification.value._id) return;
+
+  isLoading.value = true;
   try {
-    // Obtener el token para autorización
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('Usuario no autenticado');
     }
-    
+
+    console.log('Enviando actualización para ID:', editingNotification.value._id);
+    console.log('Datos de actualización:', JSON.stringify(editingNotification.value));
+
+    const response = await fetch(`http://localhost:3000/notifications/${editingNotification.value._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(editingNotification.value),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error de API:', errorData);
+      throw new Error(`Error al actualizar notificación: ${errorData.message || response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Respuesta exitosa:', result);
+
+    const index = notifications.value.findIndex(n => n._id === editingNotification.value?._id);
+    if (index !== -1) {
+      notifications.value[index] = result.data;
+    }
+
+    statusMessage.value = {
+      text: 'Notificación actualizada correctamente',
+      success: true
+    };
+
+    setTimeout(() => {
+      statusMessage.value = null;
+    }, 3000);
+
+    cancelEdit();
+
+  } catch (error) {
+    console.error('Error completo:', error);
+    statusMessage.value = {
+      text: error.message || 'Error al actualizar la notificación',
+      success: false
+    };
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Función para marcar como leída
+const markAsRead = async (_id: string | undefined, index: number) => {
+  if (!_id) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Usuario no autenticado');
+    }
+
     const notification = notifications.value[index];
     const updatedNotification = { ...notification, read: true };
-    
-    const response = await fetch(`http://localhost:3000/notifications/${id}`, {
+
+    const response = await fetch(`http://localhost:3000/notifications/${_id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -209,25 +291,22 @@ const markAsRead = async (id: number | undefined, index: number) => {
       },
       body: JSON.stringify(updatedNotification),
     });
-    
+
     if (!response.ok) {
       throw new Error('Error al actualizar notificación');
     }
-    
-    // Actualizar la notificación en el estado local
+
     notifications.value[index].read = true;
-    
-    // Opcional: Mostrar un mensaje de éxito o eliminar la notificación
+
     statusMessage.value = {
       text: 'Notificación marcada como leída',
       success: true
     };
-    
-    // Limpiar el mensaje después de 3 segundos
+
     setTimeout(() => {
       statusMessage.value = null;
     }, 3000);
-    
+
   } catch (error) {
     console.error('Error:', error);
     statusMessage.value = {
@@ -237,29 +316,13 @@ const markAsRead = async (id: number | undefined, index: number) => {
   }
 };
 
-// Función para verificar si el usuario está autenticado
-const checkAuthentication = () => {
-  const user = getUserFromToken();
-  if (!user) {
-    // Redirigir al login si no hay usuario autenticado
-    // Asumiendo que usas Vue Router
-    // router.push('/login');
-    statusMessage.value = {
-      text: 'Debes iniciar sesión para ver las notificaciones',
-      success: false
-    };
-    return false;
-  }
-  currentUser.value = user;
-  return true;
-};
-
-// Cargar notificaciones al montar el componente
+// Hook para cargar notificaciones al iniciar
 onMounted(() => {
   if (checkAuthentication()) {
     fetchNotifications();
   }
 });
+
 
 
 
@@ -271,7 +334,8 @@ interface NewsItem {
   title: string
   content: string
   createdAt?: string
-  author?: string // Para mostrar quién creó la noticia
+  author?: string 
+  // Para mostrar quién creó la noticia
 }
 
 // Reactive state
@@ -282,7 +346,7 @@ const notificationMessage = ref('');
 const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
 const newsUser = ref<JwtPayload | null>(getUserFromToken()); // Cambiado de currentUser a newsUser
-const isLoading = ref(false);
+
 
 // Variables para la edición
 const isEditing = ref(false);
@@ -459,9 +523,7 @@ const updateNews = async () => {
 };
 
 // Function to cancel editing
-const cancelEdit = () => {
-  resetForm();
-};
+
 
 // Function to reset form and editing state
 const resetForm = () => {
@@ -693,8 +755,8 @@ const canManageNews = (item: NewsItem): boolean => {
         
         
         
-       <!-- Template para la vista de Notificaciones -->
-<template v-if="$route.path === '/Profile/notifications'">¡
+      <!-- Template para la vista de Notificaciones -->
+<template v-if="$route.path === '/Profile/notifications'">
   <!-- Mensaje de autenticación -->
   <div v-if="!currentUser" class="mx-4 my-4 p-4 border border-red-700 rounded-lg bg-red-900 text-white text-center">
     Debes iniciar sesión para acceder a las notificaciones
@@ -738,13 +800,64 @@ const canManageNews = (item: NewsItem): boolean => {
         </div>
         <div class="flex justify-end">
           <button
-  type="submit"
-  class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
-  :disabled="isLoading || currentUser?.rol?.toLowerCase() !== 'admin'"
-  @click="createNotification"
->
-  {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
-</button>
+            type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
+            :disabled="isLoading || currentUser?.rol?.toLowerCase() !== 'admin'"
+            @click="createNotification"
+          >
+            {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Formulario de edición de notificaciones -->
+    <div v-if="isEditing && editingNotification" class="mx-4 my-4 p-4 border border-yellow-700 rounded-lg bg-gray-900">
+      <h3 class="text-sm font-medium mb-3">Editar notificación</h3>
+      <form @submit.prevent="saveEdit">
+        <div class="mb-3">
+          <input
+            v-model="editingNotification.title"
+            type="text"
+            placeholder="Título"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <textarea
+            v-model="editingNotification.content"
+            placeholder="Contenido"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500 h-20"
+            required
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <select
+            v-model="editingNotification.type"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+            required
+          >
+            <option value="info">Información</option>
+            <option value="warning">Advertencia</option>
+            <option value="alert">Alerta</option>
+          </select>
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button
+            type="button"
+            class="bg-gray-600 hover:bg-gray-700 text-white rounded-full px-4 py-1 text-sm"
+            @click="cancelEdit"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="bg-yellow-600 hover:bg-yellow-700 text-white rounded-full px-4 py-1 text-sm"
+            :disabled="isLoading"
+          >
+            {{ isLoading ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
         </div>
       </form>
     </div>
@@ -793,14 +906,23 @@ const canManageNews = (item: NewsItem): boolean => {
                 {{ notification.timestamp || 'Hace un momento' }}
                 <span v-if="notification.userName" class="ml-1">- por {{ notification.userName }}</span>
               </span>
-              <button 
-                v-if="!notification.read"
-                @click="markAsRead(notification.id, index)" 
-                class="text-xs text-gray-400 hover:text-white"
-              >
-                Marcar como leída
-              </button>
-              <span v-else class="text-xs text-green-500">Leída</span>
+              <div class="flex space-x-2">
+                <button 
+                  v-if="!notification.read"
+                  @click="markAsRead(notification._id, index)" 
+                  class="text-xs text-gray-400 hover:text-white"
+                >
+                  Marcar como leída
+                </button>
+                <span v-else class="text-xs text-green-500">Leída</span>
+                <button
+                  v-if="currentUser?.rol?.toLowerCase() === 'admin'"
+                  @click="startEdit(notification)"
+                  class="text-xs text-yellow-400 hover:text-yellow-300"
+                >
+                  Editar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -809,8 +931,19 @@ const canManageNews = (item: NewsItem): boolean => {
   </template>
 </template>
 </router-view>
-    </div>
+  
+      </div>
     
+  
+    <!-- Notificación de estado -->
+    <transition name="fade">
+      <div v-if="showNotification" :class="`fixed bottom-4 right-4 p-3 rounded-lg text-sm ${notificationType === 'success' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`">
+        {{ notificationMessage }}
+      </div>
+    </transition>
+
+
+
  <!-- Sidebar derecha  -->
     <div class="hidden md:block w-full md:w-1/5 lg:w-1/5 bg-black border-l border-gray-800 flex flex-col">
    
