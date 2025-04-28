@@ -35,10 +35,10 @@
     </div>
 
     <!-- Sidebar Izquierdo -->
-    <Sidebarizquierda class="w-[300px] flex-shrink-0 border-gray-900 border-2" />
+    <Sidebarizquierda class="w-1/5 bg-black flex flex-col border-r border-gray-800" />
 
     <!-- Contenido principal -->
-    <main class="flex-1 bg-black flex flex-col relative p-4 overflow-y-auto">
+    <main class="w-3/5 bg-black flex flex-col p-4 overflow-y-auto border-r border-gray-800">
       <h2 class="text-2xl font-bold mb-6">SELECT YOUR FAVORITES</h2>
 
       <!-- Sección Sports -->
@@ -89,7 +89,7 @@
           >
             <router-link
               :to="{ name: 'UserPosts', query: { club } }"
-                class="text-lg font-semibold hover:underline"
+              class="text-lg font-semibold hover:underline"
             >{{ club }}</router-link>
             <button
               @click="leaveClub(club)"
@@ -101,7 +101,7 @@
     </main>
 
     <!-- Sidebar Derecho -->
-    <aside class="w-[300px] flex-shrink-0 bg-black border-l border-gray-900 p-4 relative overflow-y-auto">
+    <aside class="w-[295px] flex-shrink-0 bg-black border-l border-gray-900 p-0 relative">
       <News />
     </aside>
 
@@ -136,7 +136,7 @@ import { useLoginStore } from '@/stores/milogin'
 interface JwtPayload {
   sub: string
   email: string
-  rol: string      // ← coincide con el campo 'rol' que metes en el JWT
+  rol: string
   firstName: string
   lastName: string
   clubs: string[]
@@ -171,28 +171,25 @@ const sports = [
 onMounted(async () => {
   await clubsStore.fetchClubs()
   if (payload) {
-    // Inicializamos el usuario en el store con los datos del token
     loginStore.setUser({
-      _id:       payload.sub,
+      _id: payload.sub,
       firstName: payload.firstName,
-      lastName:  payload.lastName,
-      role:      payload.rol,
-      clubs:     payload.clubs || []
+      lastName: payload.lastName,
+      role: payload.rol,
+      clubs: payload.clubs || []
     })
   }
 })
 
-const isAdmin   = computed(() => payload?.rol === 'admin')
+const isAdmin = computed(() => payload?.rol === 'admin')
 const userClubs = computed(() => loginStore.user?.clubs || [])
 
-/** Modal **/
 function openModal() { showModal.value = true }
 function closeModal() { 
   showModal.value = false 
   newClub.value = { name: '', description: '' } 
 }
 
-/** Clubs **/
 async function submitClub() {
   if (!newClub.value.name || !newClub.value.description) return
   await clubsStore.createClub({ name: newClub.value.name, description: newClub.value.description })
@@ -205,7 +202,6 @@ const onDeleteClub = async (id: string) => {
   }
 }
 
-/** Join / Leave **/
 async function joinClub(clubName: string) {
   try {
     await loginStore.joinClub(clubName)
@@ -224,7 +220,6 @@ function hasJoined(clubName: string): boolean {
   return loginStore.user?.clubs.includes(clubName) ?? false
 }
 
-/** Watchers y Logout **/
 watch(showModal, open => {
   document.body.classList.toggle('modal-open', open)
 })

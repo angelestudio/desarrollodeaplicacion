@@ -51,16 +51,12 @@
     </div>
 
     <!-- Sidebar izquierdo -->
-    <Sidebarizquierda class="w-[300px] flex-shrink-0 border-gray-900 border-2" />
+    <Sidebarizquierda class="w-full md:w-1/5 lg:w-1/5 bg-black flex flex-col relative border-b md:border-b-0 md:border-r border-gray-800" />
 
     <!-- Contenido principal ocupa todo el espacio restante -->
     <main class="flex-1 bg-black flex flex-col relative p-4">
       <!-- Navegación de clubs -->
-      <div class="flex items-center justify-center mb-4">
-        <router-link to="/clubs" class="text-white hover:underline">Todos los clubs</router-link>
-        <span class="mx-4"></span>
-        <router-link to="/user-posts" class="text-white hover:underline">Mis clubs</router-link>
-      </div>
+      
 
       <!-- Header Posts centrado -->
       <div class="flex justify-center items-center mb-4 relative">
@@ -115,7 +111,7 @@
     </main>
 
     <!-- Sidebar derecho -->
-    <aside class="w-[300px] flex-shrink-0 bg-black border-l border-gray-900 p-0 relative">
+    <aside class="w-[297px] flex-shrink-0 bg-black border-l border-gray-900 p-0 relative">
       
       <News />
       
@@ -128,7 +124,6 @@
       </button>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -138,7 +133,6 @@ import { getUserFromToken } from '@/composables/useAuth'
 
 import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
 import News from '@/components/molecules/News.vue'
-import miTextInputAtom from '@/components/atoms/miTextInputAtom.vue'
 
 import { useClubsStore } from '@/stores/clubsStore'
 import { usePostsStore } from '@/stores/postsStore'
@@ -146,30 +140,45 @@ import { usePostsStore } from '@/stores/postsStore'
 const router = useRouter()
 const route = useRoute()
 
-const username = ref('')
-const userRole = ref('')
-const userClubs = ref<string[]>([])
+const username    = ref('')
+const userRole    = ref('')
+const userClubs   = ref<string[]>([])    // inicializado a arreglo vacío
 
+// Extraemos los datos del JWT
 const payload = getUserFromToken()
 if (!payload) {
   router.replace({ name: 'SignUp' })
 } else {
-  username.value = `${payload.firstName} ${payload.lastName}`
-  userRole.value = payload.rol
-  userClubs.value = payload.clubs
-  axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
+  username.value    = `${payload.firstName} ${payload.lastName}`
+  userRole.value    = payload.rol
+  // Nos aseguramos de asignar un arreglo aunque payload.clubs sea undefined
+  userClubs.value   = payload.clubs ?? []
+
+  axios.defaults.headers.common['Authorization'] =
+    `Bearer ${localStorage.getItem('token')}`
 }
 
 const clubsStore = useClubsStore()
 const postsStore = usePostsStore()
-const showModal = ref(false)
-const selectedClub = ref('')
-const selectedFormClub = ref('')
-const newPost = reactive({ title: '', content: '' })
 
+const showModal        = ref(false)
+const selectedClub     = ref('')
+const selectedFormClub = ref('')
+const newPost          = reactive({ title: '', content: '' })
+
+// Computed con defensas: usamos coalescencia para clubs y posts
 const filteredPosts = computed(() => {
-  const clubsToShow = selectedClub.value ? [selectedClub.value] : userClubs.value
-  return postsStore.posts.filter(p => clubsToShow.includes(p.club))
+  const clubsArr   = userClubs.value ?? []
+  const clubsToShow = selectedClub.value
+    ? [selectedClub.value]
+    : clubsArr
+
+  // Por si postsStore.posts aún no está poblado
+  const allPosts = postsStore.posts ?? []
+
+  return allPosts.filter(p =>
+    clubsToShow.includes(p.club)
+  )
 })
 
 onMounted(async () => {
@@ -187,9 +196,9 @@ function onAddPost() {
   showModal.value = true
 }
 function closeModal() {
-  showModal.value = false
-  newPost.title = ''
-  newPost.content = ''
+  showModal.value        = false
+  newPost.title          = ''
+  newPost.content        = ''
   selectedFormClub.value = ''
 }
 async function submitPost() {
@@ -199,10 +208,10 @@ async function submitPost() {
     return
   }
   await postsStore.addPost({
-    title: newPost.title,
+    title:   newPost.title,
     content: newPost.content,
-    club: clubToSend,
-    user: username.value,
+    club:    clubToSend,
+    user:    username.value,
   })
   closeModal()
 }
@@ -222,27 +231,3 @@ function logout() {
   router.push({ name: 'SignUp' })
 }
 </script>
-
-<style>
-html, body {
-  background-color: black;
-  margin: 0;
-  padding: 0;
-}
-
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #000000;
-}
-::-webkit-scrollbar-thumb {
-  background-color: #5e5e5e;
-  border-radius: 4px;
-}
-
-.modal-open {
-  overflow: hidden;
-}
-</style>
