@@ -60,7 +60,7 @@
     <!-- Perfil abajo -->
     <div class="hidden md:flex p-6 items-center mt-auto">
       <img
-        src="https://i.pravatar.cc/300"
+        src="@/assets/images/user.jpg"
         alt="Avatar"
         class="w-8 h-8 rounded-full border-2 border-gray-700"
       />

@@ -664,7 +664,7 @@ const canManageNews = (item: NewsItem): boolean => {
 
       <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
 <div class="hidden md:flex p-4 items-center mt-auto">
-  <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
+  <img src="@/assets/images/user.jpg" alt="User" class="w-8 h-8 rounded-full" />
   <span class="ml-2 text-sm">
     {{ currentUser?.firstName }} {{ currentUser?.lastName }}
   </span>
@@ -680,7 +680,7 @@ const canManageNews = (item: NewsItem): boolean => {
 
       <!-- Sección de perfil -->
       <div class="flex flex-col items-center pt-6 md:pt-12 relative z-10 mt-4 md:mt-8">
-        <img src="https://i.pravatar.cc/300" alt="Roberta Jimenez" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white" />
+        <img src="@/assets/images/user.jpg" alt="Roberta Jimenez" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white" />
         <h1 class="mt-2 font-medium text-base md:text-lg text-white">{{ currentUser?.firstName }} {{ currentUser?.lastName }}
         </h1>
         
@@ -722,7 +722,7 @@ const canManageNews = (item: NewsItem): boolean => {
           <!-- Posts existentes -->
           <div v-for="(post, index) in posts" :key="index" class="p-4 border border-gray-800 rounded-lg mx-4 mb-4 mt-4">
             <div class="flex items-start mb-3">
-              <img src="https://i.pravatar.cc/300" alt="User" class="w-8 h-8 rounded-full" />
+              <img src="@/assets/images/user.jpg" alt="User" class="w-8 h-8 rounded-full" />
               <div class="ml-2">
                 <p class="text-sm font-medium">hola Jimenez</p>
                 <p class="text-xs text-gray-400">Hace un momento</p>
