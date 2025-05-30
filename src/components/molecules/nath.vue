@@ -25,19 +25,19 @@
             placeholder="Enter your password"
             class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
           />
-          <a href="#" class="text-indigo-400 text-sm block text-right mt-2">Forgot password?</a>
+          <a href="#" class="text-green-700 text-sm block text-right mt-2">Forgot password?</a>
         </div>
 
         <button
           @click="loginUser"
-          class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 rounded"
+          class="w-full bg-green-700 hover:bg-indigo-600 text-white font-bold py-2 rounded"
         >
           Sign in
         </button>
 
         <p class="text-center mt-4 text-gray-400">
           Not a member?
-          <router-link to="/signup" class="text-indigo-400 font-semibold">Start here</router-link>
+          <router-link to="/signup" class="text-green-700 font-semibold">Start here</router-link>
         </p>
       </div>
     </div>

@@ -1,61 +1,59 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-900">
     <div class="w-1/2 flex flex-col justify-center items-center bg-black text-white p-8">
-      <h2 class="text-2xl font-semibold mb-6">Create an Account</h2>
+      <h2 class="text-2xl font-semibold mb-6 text-green-500">Create an Account</h2>
       <form @submit.prevent="register" class="w-full max-w-sm space-y-4">
         <div class="flex gap-4">
           <CBInput id="firstName" v-model="form.firstName" placeholder="Enter your first name" label="First Name" />
           <CBInput id="lastName"  v-model="form.lastName"  placeholder="Enter your last name"  label="Last Name" />
         </div>
 
-        <!-- Select de rol -->
         <div class="mb-4 text-left">
-          <label for="rol" class="block font-semibold mb-1">Role</label>
+          <label for="rol" class="block font-semibold mb-1 text-white-700">Rol</label>
           <select
             id="rol"
             v-model="form.rol"
-            class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+            class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-800 text-white"
             required
           >
-            <option disabled value="">-- Select a role --</option>
+            <option disabled value="" class="text-gray-400">-- Select a role --</option>
             <option value="user">User</option>
             <option value="admin">Admin</option>
           </select>
         </div>
 
-        <!-- Multi-select Clubs -->
         <div ref="clubsContainer" class="mb-4 relative text-left">
-          <label class="block font-semibold mb-1">Clubs</label>
+          <label class="block font-semibold mb-1 text-white-500">Clubs</label>
           <div
             @click="toggleClubs"
-            class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white cursor-pointer"
+            class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-800 text-white cursor-pointer"
           >
             <span v-if="selectedClubs.length">{{ selectedClubs.join(', ') }}</span>
-            <span v-else class="text-gray-400">Select one or more clubs</span>
+            <span v-else class="text-gray-500">Select one or more clubs</span>
           </div>
           <ul
             v-show="showClubs"
-            class="absolute z-10 bg-white border border-gray-300 rounded w-full mt-1 max-h-40 overflow-auto text-black"
+            class="absolute z-10 bg-gray-800 border border-gray-700 rounded w-full mt-1 max-h-40 overflow-auto text-white"
           >
             <li
               v-for="club in clubOptions"
               :key="club"
-              class="px-3 py-2 hover:bg-gray-200 flex items-center"
+              class="px-3 py-2 hover:bg-gray-700 flex items-center"
             >
               <input
                 type="checkbox"
                 :value="club"
                 v-model="selectedClubs"
-                class="mr-2"
+                class="mr-2 accent-green-500"
               />
               <span class="capitalize">{{ club }}</span>
             </li>
           </ul>
         </div>
 
-        <CBInput id="phone"           v-model="form.phone"           placeholder="Your phone number"        label="Phone" />
-        <CBInput id="email" type="email"       v-model="form.email"           placeholder="Enter your Email"         label="Email" />
-        <CBInput id="password" type="password" v-model="form.password"        placeholder="Enter your Password"      label="Password" />
+        <CBInput id="phone"            v-model="form.phone"            placeholder="Your phone number"        label="Phone" />
+        <CBInput id="email" type="email"      v-model="form.email"            placeholder="Enter your Email"         label="Email" />
+        <CBInput id="password" type="password" v-model="form.password"         placeholder="Enter your Password"      label="Password" />
         <CBInput
           id="confirmPassword"
           type="password"
@@ -67,14 +65,13 @@
         <CBButton
           type="submit"
           label="Register"
-          class="w-full bg-blue-600 text-white py-2 rounded-lg"
+          class="w-full bg-green-700 text-white py-1 rounded-lg hover:bg-green-700 transition duration-300"
         />
 
-        <!-- Botón de iniciar sesión si ya tiene cuenta -->
         <div class="text-center mt-4 animate-fadeIn">
           <p class="text-gray-400">
             ¿Ya tienes una cuenta?
-            <RouterLink to="/signin" class="text-blue-600 hover:underline ml-1">
+            <RouterLink to="/signin" class="text-green-500 hover:underline ml-1">
               Inicia sesión
             </RouterLink>
           </p>
@@ -83,8 +80,8 @@
       </form>
     </div>
 
-    <div class="w-1/2 flex justify-center items-center bg-white">
-      <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3" />
+    <div class="w-1/2 flex justify-center items-center bg-gray-950">
+      <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3 opacity-70" />
     </div>
   </div>
 </template>
@@ -161,13 +158,13 @@ const register = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        firstName:    form.value.firstName,
-        lastName:     form.value.lastName,
-        rol:          form.value.rol,
-        phone:        form.value.phone,
-        email:        form.value.email,
-        password:     form.value.password,
-        clubs:        selectedClubs.value
+        firstName:      form.value.firstName,
+        lastName:       form.value.lastName,
+        rol:            form.value.rol,
+        phone:          form.value.phone,
+        email:          form.value.email,
+        password:       form.value.password,
+        clubs:          selectedClubs.value
       })
     })
 

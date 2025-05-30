@@ -1,59 +1,55 @@
 <template>
   <div class="min-h-screen overflow-y-auto bg-black text-white flex relative">
-    <!-- Modal para crear club -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
     <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center">
-      <div class="bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-md relative">
+      <div class="bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-md relative border border-green-700">
         <button
           @click="closeModal"
           class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold"
         >×</button>
-        <h3 class="text-xl mb-4 font-semibold">Crear nuevo club</h3>
+        <h3 class="text-xl mb-4 font-semibold text-green-500">Crear nuevo club</h3>
         <form @submit.prevent="submitClub">
           <div class="mb-3">
-            <label class="block text-sm mb-1">Nombre</label>
+            <label class="block text-sm mb-1 text-green-400">Nombre</label>
             <input
               v-model="newClub.name"
               type="text"
               required
-              class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+              class="w-full p-2 rounded bg-gray-800 text-white border border-gray-700 placeholder-gray-500"
             />
           </div>
           <div class="mb-3">
-            <label class="block text-sm mb-1">Descripción</label>
+            <label class="block text-sm mb-1 text-green-400">Descripción</label>
             <textarea
               v-model="newClub.description"
               required
-              class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+              class="w-full p-2 rounded bg-gray-800 text-white border border-gray-700 placeholder-gray-500"
             ></textarea>
           </div>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white transition duration-300">
             Crear Club
           </button>
         </form>
       </div>
     </div>
 
-    <!-- Sidebar Izquierdo -->
     <Sidebarizquierda class="w-1/5 bg-black flex flex-col border-r border-gray-800" />
 
-    <!-- Contenido principal -->
     <main class="w-3/5 bg-black flex flex-col p-4 overflow-y-auto border-r border-gray-800">
-      <h2 class="text-2xl font-bold mb-6">SELECT YOUR FAVORITES</h2>
+      <h2 class="text-2xl font-bold mb-6 text-green-500">SELECT YOUR FAVORITES</h2>
 
-      <!-- Sección Sports -->
       <section class="mb-8">
-        <h3 class="text-xl font-semibold mb-4">Sports</h3>
+        <h3 class="text-xl font-semibold mb-4 text-green-400">Sports</h3>
         <div class="space-y-4">
           <div
             v-for="item in sports"
             :key="item._id"
-            class="bg-gray-800 p-4 rounded flex justify-between items-center"
+            class="bg-gray-900 p-4 rounded flex justify-between items-center border border-gray-700"
           >
             <div>
               <router-link
                 :to="{ name: 'UserPosts', query: { club: item.name } }"
-                class="font-semibold text-white hover:underline"
+                class="font-semibold text-green-400 hover:underline"
               >{{ item.name }}</router-link>
               <p class="text-sm text-gray-400">{{ item.description }}</p>
             </div>
@@ -61,63 +57,59 @@
               <button
                 v-if="!hasJoined(item.name)"
                 @click="joinClub(item.name)"
-                class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+                class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 text-white transition duration-300"
               >Join</button>
               <button
                 v-else
                 @click="leaveClub(item.name)"
-                class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500"
+                class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 text-white transition duration-300"
               >Leave</button>
               <button
                 v-if="isAdmin"
                 @click="onDeleteClub(item._id)"
-                class="bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-sm text-white"
+                class="bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-sm text-white transition duration-300"
               >Eliminar</button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Sección Mis Clubs -->
       <section v-if="userClubs.length" class="mb-8">
-        <h3 class="text-xl font-semibold mb-4">Mis Clubs</h3>
+        <h3 class="text-xl font-semibold mb-4 text-green-400">Mis Clubs</h3>
         <div class="space-y-4">
           <div
             v-for="club in userClubs"
             :key="club"
-            class="bg-gray-800 p-4 rounded flex justify-between items-center"
+            class="bg-gray-900 p-4 rounded flex justify-between items-center border border-gray-700"
           >
             <router-link
               :to="{ name: 'UserPosts', query: { club } }"
-              class="text-lg font-semibold hover:underline"
+              class="text-lg font-semibold text-green-400 hover:underline"
             >{{ club }}</router-link>
             <button
               @click="leaveClub(club)"
-              class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500"
+              class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 text-white transition duration-300"
             >Leave</button>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- Sidebar Derecho -->
     <aside class="w-[295px] flex-shrink-0 bg-black border-l border-gray-900 p-0 relative">
       <News />
     </aside>
 
-    <!-- Botón Crear Club (sólo admin) -->
     <button
       v-if="isAdmin"
       @click="openModal"
-      class="absolute bottom-20 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-lg"
+      class="absolute bottom-20 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300"
     >
       Crear Club
     </button>
 
-    <!-- Botón Cerrar sesión -->
     <button
       @click="logout"
-      class="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg"
+      class="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300"
     >
       Cerrar sesión
     </button>
@@ -185,9 +177,9 @@ const isAdmin = computed(() => payload?.rol === 'admin')
 const userClubs = computed(() => loginStore.user?.clubs || [])
 
 function openModal() { showModal.value = true }
-function closeModal() { 
-  showModal.value = false 
-  newClub.value = { name: '', description: '' } 
+function closeModal() {
+  showModal.value = false
+  newClub.value = { name: '', description: '' }
 }
 
 async function submitClub() {

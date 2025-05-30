@@ -652,11 +652,11 @@ const canManageNews = (item: NewsItem): boolean => {
       <!-- Menú de navegación con hover purple y explore redirigiendo al search -->
       <nav class="flex-1 mt-4 md:mt-8 px-4">
         <div class="grid grid-cols-2 md:grid-cols-1 gap-2 md:space-y-3">
-          <router-link to="/home" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Home</router-link>
-          <router-link to="/clubs" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">clubs</router-link>
-          <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Notifications</router-link>
-          <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Profile</router-link>
-          <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Posts</router-link>
+          <router-link to="/home" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-green-700 transition-colors duration-200">Home</router-link>
+          <router-link to="/clubs" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-green-700 transition-colors duration-200">clubs</router-link>
+          <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-green-700 transition-colors duration-200">Notifications</router-link>
+          <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-green-700 transition-colors duration-200">Profile</router-link>
+          <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-green-700 transition-colors duration-200">Posts</router-link>
         </div>
       </nav>
       
@@ -704,8 +704,8 @@ const canManageNews = (item: NewsItem): boolean => {
       <!-- Navegación de contenido con router-link -->
       <div class="border-b border-gray-800 text-center mt-4">
         <div class="flex justify-center">
-          <router-link to="/Profile/posts" class="px-4 md:px-8 py-2 text-xs md:text-sm" :class="$route.path === '/Profile/posts' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'">Posts</router-link>
-          <router-link to="/Profile/notifications" class="px-4 md:px-8 py-2 text-xs md:text-sm" :class="$route.path === '/Profile/notifications' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'">Notifications</router-link>
+          <router-link to="/Profile/posts" class="px-4 md:px-8 py-2 text-xs md:text-sm" :class="$route.path === '/Profile/posts' ? 'border-b-2 border-green-500 text-green-500' : 'text-gray-400'">Posts</router-link>
+          <router-link to="/Profile/notifications" class="px-4 md:px-8 py-2 text-xs md:text-sm" :class="$route.path === '/Profile/notifications' ? 'border-b-2 border-green-500 text-green-500' : 'text-gray-400'">Notifications</router-link>
         </div>
       </div>
 
@@ -799,7 +799,7 @@ const canManageNews = (item: NewsItem): boolean => {
         <div class="flex justify-end">
           <button
             type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
+            class="bg-green-600 hover:bg-blue-700 text-white rounded-full px-4 py-1 text-sm"
             :disabled="isLoading || currentUser?.rol?.toLowerCase() !== 'admin'"
             @click="createNotification"
           >
@@ -833,7 +833,7 @@ const canManageNews = (item: NewsItem): boolean => {
         <div class="mb-3">
           <select
             v-model="editingNotification.type"
-            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+            class="w-full bg-gray-800 rounded px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-green-500"
             required
           >
             <option value="info">Información</option>
@@ -878,17 +878,17 @@ const canManageNews = (item: NewsItem): boolean => {
     <!-- Notificaciones existentes -->
     <div v-for="(notification, index) in notifications" :key="index" class="mx-4 mb-3 mt-4">
       <div class="p-3 rounded-lg" :class="{
-        'bg-blue-900 bg-opacity-20 border border-blue-800': notification.type === 'info',
+        'bg-green-900 bg-opacity-20 border border-green-800': notification.type === 'info',
         'bg-yellow-900 bg-opacity-20 border border-yellow-800': notification.type === 'warning',
-        'bg-red-900 bg-opacity-20 border border-red-800': notification.type === 'alert',
+        'bg-green-900 bg-opacity-20 border border-green-800': notification.type === 'alert',
         'bg-gray-800': !notification.type
       }">
         <div class="flex">
           <div class="mr-3">
             <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="{
-              'bg-blue-500': notification.type === 'info',
-              'bg-yellow-500': notification.type === 'warning',
-              'bg-red-500': notification.type === 'alert',
+              'bg-green-500': notification.type === 'info',
+              'bg-green-500': notification.type === 'warning',
+              'bg-green-500': notification.type === 'alert',
               'bg-gray-500': !notification.type
             }">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -952,7 +952,7 @@ const canManageNews = (item: NewsItem): boolean => {
 
 <!-- News creation form -->
 <div id="news-form" class="bg-gray-900 p-3 mb-4 rounded-lg border border-gray-700">
-  <h3 class="text-blue-500 font-medium text-sm mb-2">
+  <h3 class="text-green-500 font-medium text-sm mb-2">
     {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
   </h3>
   
@@ -999,7 +999,7 @@ const canManageNews = (item: NewsItem): boolean => {
     <button
       @click="publishNews"
       :disabled="isLoading || !newsUser || newsUser.rol !== 'admin'"
-      class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+      class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
     >
       <span v-if="isLoading">{{ isEditing ? 'Actualizando...' : 'Publicando...' }}</span>
       <span v-else>{{ isEditing ? 'Actualizar noticia' : 'Publicar noticia' }}</span>

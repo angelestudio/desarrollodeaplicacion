@@ -1,3 +1,71 @@
+<template>
+  <div v-if="newsUser" class="bg-gray-900 p-2 mb-4 rounded text-xs text-green-400 border border-green-700">
+    Conectado como: {{ newsUser.firstName }} {{ newsUser.lastName }} ({{ newsUser.rol }})
+  </div>
+
+  <div id="news-form" class="bg-black p-3 mb-4 rounded-lg border border-green-700">
+    <h3 class="text-green-500 font-medium text-sm mb-2">
+      {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
+    </h3>
+
+    <div v-if="!newsUser" class="bg-red-900 text-white p-2 mb-3 rounded text-xs border border-red-700">
+      Debes iniciar sesión
+    </div>
+    <div v-else-if="newsUser.rol !== 'admin'" class="bg-red-900 text-white p-2 mb-3 rounded text-xs border border-red-700">
+      Solo administradores
+    </div>
+
+    <div class="mb-3">
+      <label for="news-title" class="block text-xs text-green-400 mb-1">Título:</label>
+      <input id="news-title" v-model="title" :disabled="!newsUser||newsUser.rol!=='admin'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-green-500 disabled:opacity-50" placeholder="Título de la noticia" />
+    </div>
+
+    <div class="mb-3">
+      <label for="news-content" class="block text-xs text-green-400 mb-1">Contenido:</label>
+      <textarea id="news-content" v-model="content" :disabled="!newsUser||newsUser.rol!=='admin'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-green-500 h-24 disabled:opacity-50" placeholder="Contenido de la noticia"></textarea>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button v-if="isEditing" @click="resetForm" class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded transition duration-300">Cancelar</button>
+      <button @click="publishNews" :disabled="isLoading||!newsUser||newsUser.rol!=='admin'" class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded disabled:opacity-50 transition duration-300">
+        <span v-if="isLoading">{{ isEditing ? 'Actualizando...' : 'Publicando...' }}</span>
+        <span v-else>{{ isEditing ? 'Actualizar' : 'Publicar' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="news-items-container" class="overflow-y-auto max-h-96">
+    <div v-if="isLoading&&newsItems.length===0" class="text-center py-4 text-gray-400">Cargando...</div>
+    <div v-else-if="newsItems.length===0" class="text-center py-4 text-gray-400">No hay noticias.</div>
+
+    <div v-else v-for="item in newsItems" :key="item._id" class="bg-gray-800 p-3 mb-4 rounded border border-gray-700">
+      <div class="flex">
+        <div class="mr-3">
+          <div class="border border-green-500 p-1 w-12 h-12 flex flex-col items-center justify-center bg-black">
+            <span class="text-xs font-bold text-green-500">NEWS</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-green-400 font-medium text-sm">{{ item.title }}</h3>
+          <p class="text-xs text-gray-300 mt-1">{{ item.content }}</p>
+          <div class="flex justify-between items-center mt-2">
+            <p v-if="item.createdAt" class="text-xs text-gray-500">{{ formatDate(item.createdAt) }}</p>
+            <p v-if="item.author" class="text-xs text-gray-500">Por: {{ item.author }}</p>
+          </div>
+          <div class="flex justify-end mt-3 gap-2">
+            <button v-if="canManageNews(item)" @click="editNews(item)" class="text-xs text-green-500 hover:text-green-400 transition duration-300">Editar</button>
+            <button v-if="canManageNews(item)" @click="deleteNews(item._id)" class="text-xs text-red-500 hover:text-red-400 transition duration-300">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Teleport to="body">
+    <div v-if="showNotification" class="fixed bottom-4 right-4 p-3 rounded shadow-lg text-white text-sm z-50" :class="notificationType==='success'?'bg-green-600':'bg-red-600'">{{ notificationMessage }}</div>
+  </Teleport>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { getUserFromToken } from '@/composables/useAuth';
@@ -172,71 +240,3 @@ const formatDate = (dateString: string) => {
 
 const canManageNews = (item: NewsItem) => newsUser.value?.rol === 'admin';
 </script>
-
-<template>
-  <div v-if="newsUser" class="bg-gray-800 p-2 mb-4 rounded text-xs text-gray-300">
-    Conectado como: {{ newsUser.firstName }} {{ newsUser.lastName }} ({{ newsUser.rol }})
-  </div>
-
-  <div id="news-form" class="bg-gray-900 p-3 mb-4 rounded-lg border border-gray-700">
-    <h3 class="text-blue-500 font-medium text-sm mb-2">
-      {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
-    </h3>
-
-    <div v-if="!newsUser" class="bg-red-800 text-white p-2 mb-3 rounded text-xs">
-      Debes iniciar sesión
-    </div>
-    <div v-else-if="newsUser.rol !== 'admin'" class="bg-red-800 text-white p-2 mb-3 rounded text-xs">
-      Solo administradores
-    </div>
-
-    <div class="mb-3">
-      <label for="news-title" class="block text-xs text-gray-400 mb-1">Título:</label>
-      <input id="news-title" v-model="title" :disabled="!newsUser||newsUser.rol!=='admin'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50" placeholder="Título de la noticia" />
-    </div>
-
-    <div class="mb-3">
-      <label for="news-content" class="block text-xs text-gray-400 mb-1">Contenido:</label>
-      <textarea id="news-content" v-model="content" :disabled="!newsUser||newsUser.rol!=='admin'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 h-24 disabled:opacity-50" placeholder="Contenido de la noticia"></textarea>
-    </div>
-
-    <div class="flex justify-end gap-2">
-      <button v-if="isEditing" @click="resetForm" class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded">Cancelar</button>
-      <button @click="publishNews" :disabled="isLoading||!newsUser||newsUser.rol!=='admin'" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded disabled:opacity-50">
-        <span v-if="isLoading">{{ isEditing ? 'Actualizando...' : 'Publicando...' }}</span>
-        <span v-else>{{ isEditing ? 'Actualizar' : 'Publicar' }}</span>
-      </button>
-    </div>
-  </div>
-
-  <div id="news-items-container" class="overflow-y-auto max-h-96">
-    <div v-if="isLoading&&newsItems.length===0" class="text-center py-4 text-gray-400">Cargando...</div>
-    <div v-else-if="newsItems.length===0" class="text-center py-4 text-gray-400">No hay noticias.</div>
-
-    <div v-else v-for="item in newsItems" :key="item._id" class="bg-gray-200 p-3 mb-4 rounded">
-      <div class="flex">
-        <div class="mr-3">
-          <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
-            <span class="text-xs font-bold text-black">NEWS</span>
-          </div>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-black font-medium text-sm">{{ item.title }}</h3>
-          <p class="text-xs text-gray-600">{{ item.content }}</p>
-          <div class="flex justify-between items-center mt-1">
-            <p v-if="item.createdAt" class="text-xs text-gray-500">{{ formatDate(item.createdAt) }}</p>
-            <p v-if="item.author" class="text-xs text-gray-500">Por: {{ item.author }}</p>
-          </div>
-          <div class="flex justify-end mt-2 gap-2">
-            <button v-if="canManageNews(item)" @click="editNews(item)" class="text-xs text-blue-600 hover:text-blue-800">Editar</button>
-            <button v-if="canManageNews(item)" @click="deleteNews(item._id)" class="text-xs text-red-600 hover:text-red-800">Eliminar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <Teleport to="body">
-    <div v-if="showNotification" class="fixed bottom-4 right-4 p-3 rounded shadow-lg text-white text-sm z-50" :class="notificationType==='success'?'bg-green-600':'bg-red-600'">{{ notificationMessage }}</div>
-  </Teleport>
-</template>
