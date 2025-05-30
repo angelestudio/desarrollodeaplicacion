@@ -654,7 +654,6 @@ const canManageNews = (item: NewsItem): boolean => {
         <div class="grid grid-cols-2 md:grid-cols-1 gap-2 md:space-y-3">
           <router-link to="/home" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Home</router-link>
           <router-link to="/clubs" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">clubs</router-link>
-          <router-link to="/Profile/news" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">News</router-link>
           <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Notifications</router-link>
           <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Profile</router-link>
           <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full bg-gray-900 text-center text-white text-sm hover:bg-purple-700 transition-colors duration-200">Posts</router-link>

@@ -38,7 +38,7 @@ const router = createRouter({
     {
       path: '/natinfluencer',
       name: 'natinfluencer',
-      component: () => import('@/views/natiView.vue'),
+      component: () => import('@/views/InicioNathView.vue'),
       meta: { requiresAuth: false },
     },
     {
