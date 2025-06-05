@@ -432,7 +432,19 @@ const publishNews = async () => {
     displayNotification('Por favor, completa tanto el título como el contenido de la noticia.', 'error');
     return;
   }
+// Validar que no sean solo números
+const onlyNumbersRegex = /^\d+$/;
+if (onlyNumbersRegex.test(title.value.trim()) || onlyNumbersRegex.test(content.value.trim())) {
+  displayNotification('El título y el contenido no pueden ser solo números.', 'error');
+  return;
+}
+// Validar que el título o contenido no tengan menos de 3 letras
+const tooShortRegex = /^[a-zA-Z]{1,2}$/;
 
+if (tooShortRegex.test(title.value.trim()) || tooShortRegex.test(content.value.trim())) {
+  displayNotification('El título debe tener mas de dos letras y el contenido deben tener más de 10 letras.', 'error');
+  return;
+}
   try {
     isLoading.value = true;
     
@@ -1078,7 +1090,7 @@ const canManageNews = (item: NewsItem): boolean => {
                 <button
                   v-if="canManageNews(item)"
                   @click="editNews(item)"
-                  class="text-xs text-blue-600 hover:text-blue-800"
+                  class="text-xs text-green-600 hover:text-green-800"
                 >
                   Editar
                 </button>
