@@ -2,7 +2,8 @@
   <div class="flex h-screen">
     <div class="w-1/2 bg-black text-white flex flex-col justify-center items-center px-10">
       <div class="text-center w-3/4">
-        <img :src="logo" alt="Logo" class="w-12 mb-6 mx-auto" />
+      <!-- <img :src="logo" alt="Logo" class="w-12 mb-6 mx-auto" /> -->
+        <div class="w-12 h-12 bg-green-700 rounded mb-6 mx-auto"></div>
         <h2 class="text-2xl font-bold mb-6">Sign in to your account</h2>
 
         <div class="mb-4 text-left">
@@ -25,7 +26,9 @@
             placeholder="Enter your password"
             class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
           />
-          <a href="#" class="text-green-700 text-sm block text-right mt-2">Forgot password?</a>
+          <a href="#" class="text-green-700 text-sm block text-right mt-2" @click.prevent="showModal = true">
+            Forgot password?
+          </a>
         </div>
 
         <button
@@ -47,36 +50,66 @@
     </div>
   </div>
 
-  <transition name="slide-up">
-    <div
-      v-if="toastMessage"
-      :class="[
-        'fixed bottom-6 left-6 md:left-auto md:right-6 px-6 py-4 rounded-md shadow-xl text-white font-semibold z-50',
-        toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
-      ]"
-    >
-      <div class="flex items-center">
-        <span class="mr-2" v-if="toastType === 'success'">🎉</span>
-        <span class="mr-2" v-else>🚨</span>
-        {{ toastMessage }}
-      </div>
+  <!-- Modal para olvidar contraseña -->
+  <div
+    v-if="showModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+    @click.self="showModal = false"
+  >
+    <div class="bg-white rounded-lg p-6 w-80 relative">
+      <button
+        class="absolute top-2 right-3 text-gray-600 hover:text-gray-900 text-2xl font-bold"
+        @click="showModal = false"
+      >
+        &times;
+      </button>
+      <h3 class="text-xl font-semibold mb-4 text-black">Recuperar contraseña</h3>
+      <p class="mb-2 text-black">Ingresa tu correo electrónico:</p>
+      <input
+        type="email"
+        v-model="forgotEmail"
+        placeholder="Correo electrónico"
+        class="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black"
+      />
+      <button
+        @click="sendRecoveryEmail"
+        class="w-full bg-green-700 hover:bg-green-600 text-white py-2 rounded"
+      >
+        Enviar
+      </button>
     </div>
-  </transition>
+  </div>
+
+  <!-- Toast message -->
+  <div
+    v-if="toastMessage"
+    :class="[
+      'fixed bottom-6 right-6 px-6 py-4 rounded-md shadow-xl text-white font-semibold z-50',
+      toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
+    ]"
+  >
+    <div class="flex items-center">
+      <span class="mr-2" v-if="toastType === 'success'">✅</span>
+      <span class="mr-2" v-else>❌</span>
+      {{ toastMessage }}
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import jwt_decode from 'jwt-decode'
-import logo from '@/assets/logo.png'
 
 const email = ref('')
 const password = ref('')
 const toastMessage = ref('')
 const toastType = ref<'success' | 'error' | ''>('')
+const showModal = ref(false)
+const forgotEmail = ref('')
 
 const router = useRouter()
+
 const showToast = (text: string, type: 'success' | 'error') => {
   toastMessage.value = text
   toastType.value = type
@@ -86,44 +119,54 @@ const showToast = (text: string, type: 'success' | 'error') => {
   }, 3000)
 }
 
-interface JwtPayload { sub: string; email: string; rol: string }
-
 const loginUser = async () => {
+  console.log('Intentando login...') // Para debugging
+  
+  if (!email.value || !password.value) {
+    showToast('Por favor completa todos los campos', 'error')
+    return
+  }
+
   try {
-    const { data } = await axios.post('http://localhost:3000/auth/login', {
+    const response = await axios.post('http://localhost:3000/auth/login', {
       email: email.value,
       password: password.value
     })
 
-    const { token, rol } = data
-    // 1) Guardar token + rol
+    const { token, rol } = response.data
+    
+    // Guardar en localStorage
     localStorage.setItem('token', token)
     localStorage.setItem('rol', rol)
 
-    // 2) Configurar Axios para futuras peticiones
+    // Configurar axios
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-    // (opcional) Decodificar si necesitas más info
-    const decoded = jwt_decode<JwtPayload>(token)
-    console.log('Decoded JWT:', decoded)
-
     showToast('¡Inicio de sesión exitoso!', 'success')
-    setTimeout(() => { router.push('/home') }, 800)
-  } catch (error) {
+    
+    setTimeout(() => { 
+      router.push('/home') 
+    }, 1000)
+    
+  } catch (error: any) {
     console.error('Error al iniciar sesión:', error)
-    showToast('Credenciales incorrectas. Inténtalo de nuevo.', 'error')
+    const errorMessage = error.response?.data?.message || 'Error de conexión'
+    showToast(errorMessage, 'error')
   }
+}
+
+const sendRecoveryEmail = () => {
+  if (!forgotEmail.value) {
+    showToast('Por favor ingresa un correo válido.', 'error')
+    return
+  }
+  
+  showToast('Correo de recuperación enviado.', 'success')
+  showModal.value = false
+  forgotEmail.value = ''
 }
 </script>
 
 <style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.3s ease-out;
-}
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
+/* Estilos básicos sin transiciones complejas */
 </style>

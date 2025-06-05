@@ -152,6 +152,19 @@ const register = async () => {
     toast.error('Selecciona al menos un club')
     return
   }
+  // Validar correo real
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+if (!emailRegex.test(form.value.email)) {
+  toast.error('Ingresa un correo electrónico válido')
+  return
+}
+
+// Validar teléfono (solo números y 10 dígitos)
+const phoneRegex = /^\d{10}$/
+if (!phoneRegex.test(form.value.phone)) {
+  toast.error('El número de teléfono debe tener 10 dígitos')
+  return
+}
 
   try {
     const res = await fetch('http://localhost:3000/auth/signup', {

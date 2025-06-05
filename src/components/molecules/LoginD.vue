@@ -117,10 +117,46 @@ const formData = reactive({
 })
 
 const handleClick = () => {
-  if (formData.password !== formData.confirmPassword) {
-    alert('Passwords do not match!')
+  // Validar campos vacíos
+  if (
+    !formData.firstName.trim() ||
+    !formData.lastName.trim() ||
+    !formData.role ||
+    !formData.phone.trim() ||
+    !formData.email.trim() ||
+    !formData.password ||
+    !formData.confirmPassword
+  ) {
+    toast.error('Todos los campos son obligatorios')
     return
   }
+
+  // Validar correo válido (más realista)
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(formData.email)) {
+    toast.error('Por favor, ingresa un correo electrónico válido (ej: ejemplo@gmail.com)')
+    return
+  }
+
+  // Validar número de teléfono (solo números y exactamente 10 dígitos)
+  const phoneRegex = /^\d{10}$/
+  if (!phoneRegex.test(formData.phone)) {
+    toast.error('El número de celular debe tener exactamente 10 dígitos (solo números)')
+    return
+  }
+
+  // Validar que la contraseña tenga al menos 6 caracteres
+  if (formData.password.length < 6) {
+    toast.error('La contraseña debe tener al menos 6 caracteres')
+    return
+  }
+
+  // Validar que las contraseñas coincidan
+  if (formData.password !== formData.confirmPassword) {
+    toast.error('Las contraseñas no coinciden')
+    return
+  }
+
+  // Si todo está bien, continuar con el registro o login
   login.validateUser(formData.email, formData.password)
 }
-</script>
