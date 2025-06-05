@@ -9,6 +9,7 @@ import router from './router'
 import Vue3Toastify from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 import 'vue3-timepicker/dist/VueTimepicker.css'
+import { initializeTheme } from './composables/useTheme'
 
 // Establecer la URL base de todas las peticiones al backend
 axios.defaults.baseURL = 'http://localhost:3000'
@@ -22,6 +23,8 @@ app.use(Vue3Toastify, {
   position: 'top-right',  
   theme: 'dark'
 })
+
+initializeTheme() // Inicializar el tema
 
 app.mount('#app')
 
