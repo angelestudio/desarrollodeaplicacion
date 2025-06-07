@@ -1,44 +1,48 @@
 <template>
-  <div class="flex min-h-screen bg-gray-900">
-    <div class="w-1/2 flex flex-col justify-center items-center bg-black text-white p-8">
+  <div class="flex min-h-screen" :class="theme === 'light' ? 'bg-gray-100' : 'bg-gray-900'">
+    <div class="w-1/2 flex flex-col justify-center items-center p-8" :class="theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'">
       <h2 class="text-2xl font-semibold mb-6 text-green-500">Create an Account</h2>
       <form @submit.prevent="register" class="w-full max-w-sm space-y-4">
         <div class="flex gap-4">
-          <CBInput id="firstName" v-model="form.firstName" placeholder="Enter your first name" label="First Name" />
-          <CBInput id="lastName"  v-model="form.lastName"  placeholder="Enter your last name"  label="Last Name" />
+          <CBInput id="firstName" v-model="form.firstName" placeholder="Enter your first name" label="First Name" :theme="theme" />
+          <CBInput id="lastName"  v-model="form.lastName"  placeholder="Enter your last name"  label="Last Name" :theme="theme" />
         </div>
 
         <div class="mb-4 text-left">
-          <label for="rol" class="block font-semibold mb-1 text-white-700">Rol</label>
+          <label for="rol" class="block font-semibold mb-1" :class="theme === 'light' ? 'text-black' : 'text-white-700'">Rol</label>
           <select
             id="rol"
             v-model="form.rol"
-            class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-800 text-white"
+            class="w-full px-3 py-2 border rounded"
+            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-700 bg-gray-800 text-white'"
             required
           >
-            <option disabled value="" class="text-gray-400">-- Select a role --</option>
+            <option disabled value="" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">-- Select a role --</option>
             <option value="user">User</option>
             <option value="admin">Admin</option>
           </select>
         </div>
 
         <div ref="clubsContainer" class="mb-4 relative text-left">
-          <label class="block font-semibold mb-1 text-white-500">Clubs</label>
+          <label class="block font-semibold mb-1" :class="theme === 'light' ? 'text-black' : 'text-white-500'">Clubs</label>
           <div
             @click="toggleClubs"
-            class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-800 text-white cursor-pointer"
+            class="w-full px-3 py-2 border rounded cursor-pointer"
+            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-700 bg-gray-800 text-white'"
           >
             <span v-if="selectedClubs.length">{{ selectedClubs.join(', ') }}</span>
-            <span v-else class="text-gray-500">Select one or more clubs</span>
+            <span v-else :class="theme === 'light' ? 'text-gray-400' : 'text-gray-500'">Select one or more clubs</span>
           </div>
           <ul
             v-show="showClubs"
-            class="absolute z-10 bg-gray-800 border border-gray-700 rounded w-full mt-1 max-h-40 overflow-auto text-white"
+            class="absolute z-10 border rounded w-full mt-1 max-h-40 overflow-auto"
+            :class="theme === 'light' ? 'bg-white border-gray-300 text-black' : 'bg-gray-800 border-gray-700 text-white'"
           >
             <li
               v-for="club in clubOptions"
               :key="club"
-              class="px-3 py-2 hover:bg-gray-700 flex items-center"
+              class="px-3 py-2 flex items-center"
+              :class="theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-gray-700'"
             >
               <input
                 type="checkbox"
@@ -51,15 +55,16 @@
           </ul>
         </div>
 
-        <CBInput id="phone"            v-model="form.phone"            placeholder="Your phone number"        label="Phone" />
-        <CBInput id="email" type="email"      v-model="form.email"            placeholder="Enter your Email"         label="Email" />
-        <CBInput id="password" type="password" v-model="form.password"         placeholder="Enter your Password"      label="Password" />
+        <CBInput id="phone"            v-model="form.phone"            placeholder="Your phone number"        label="Phone" :theme="theme" />
+        <CBInput id="email" type="email"      v-model="form.email"            placeholder="Enter your Email"         label="Email" :theme="theme" />
+        <CBInput id="password" type="password" v-model="form.password"         placeholder="Enter your Password"      label="Password" :theme="theme" />
         <CBInput
           id="confirmPassword"
           type="password"
           v-model="form.confirmPassword"
           placeholder="Confirm your password"
           label="Confirm Password"
+          :theme="theme"
         />
 
         <CBButton
@@ -69,7 +74,7 @@
         />
 
         <div class="text-center mt-4 animate-fadeIn">
-          <p class="text-gray-400">
+          <p :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
             ¿Ya tienes una cuenta?
             <RouterLink to="/signin" class="text-green-500 hover:underline ml-1">
               Inicia sesión
@@ -80,7 +85,7 @@
       </form>
     </div>
 
-    <div class="w-1/2 flex justify-center items-center bg-gray-950">
+    <div class="w-1/2 flex justify-center items-center" :class="theme === 'light' ? 'bg-gray-50' : 'bg-gray-950'">
       <img src="@/assets/user.png.png" alt="Illustration" class="w-2/3 opacity-70" />
     </div>
   </div>
@@ -91,7 +96,12 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import CBInput from '../atoms/CBInput.vue'
 import CBButton from '../atoms/CBButton.vue'
 import { toast, type Content } from 'vue3-toastify'
+import { useThemeStore } from '@/stores/theme'
+import { storeToRefs } from 'pinia'
 import router from '@/router'
+
+const themeStore = useThemeStore()
+const { theme } = storeToRefs(themeStore)
 
 interface SignupForm {
   firstName: string

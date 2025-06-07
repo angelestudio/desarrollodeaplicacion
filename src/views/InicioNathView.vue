@@ -1,7 +1,7 @@
 <template>
-  <div class="relative min-h-screen flex flex-col bg-black text-white">
+  <div class="relative min-h-screen flex flex-col" :class="theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'">
     <!-- Fondo decorativo -->
-    <div class="absolute inset-0 bg-gradient-to-br from-black via-green-950 to-black opacity-30 z-0"></div>
+    <div class="absolute inset-0 opacity-30 z-0" :class="theme === 'light' ? 'bg-gradient-to-br from-white via-green-100 to-white' : 'bg-gradient-to-br from-black via-green-950 to-black'"></div>
 
     <!-- NAVBAR -->
     <nav class="flex justify-between items-center px-10 py-6 relative z-10">
@@ -14,12 +14,18 @@
         <button class="hover:text-[#39A900] focus:outline-none">
           Información
         </button>
-        <div class="absolute hidden group-hover:block bg-black border border-[#39A900] text-sm mt-2 p-4 rounded-lg shadow-lg z-20 w-64">
+        <div class="absolute hidden group-hover:block border border-[#39A900] text-sm mt-2 p-4 rounded-lg shadow-lg z-20 w-64" :class="theme === 'light' ? 'bg-white' : 'bg-black'">
           <p>Esta plataforma está diseñada para que aprendices, instructores y administrativos del SENA se conecten a través de clubes de interés.</p>
         </div>
       </div>
 
-      <div class="flex space-x-6">
+      <div class="flex space-x-6 items-center">
+        <button 
+          @click="themeStore.toggleTheme()"
+          class="hover:text-[#39A900] focus:outline-none"
+        >
+          {{ theme === 'light' ? '🌙' : '☀️' }}
+        </button>
         <RouterLink to="/signin" class="hover:text-[#39A900]">Sign In</RouterLink>
         <RouterLink
           to="/signup"
@@ -57,15 +63,16 @@
     </main>
 
     <!-- SECCIÓN CON BOTONES DESPLEGABLES -->
-    <section class="relative z-10 px-12 py-16 grid grid-cols-1 md:grid-cols-3 gap-10 bg-black">
+    <section class="relative z-10 px-12 py-16 grid grid-cols-1 md:grid-cols-3 gap-10" :class="theme === 'light' ? 'bg-white' : 'bg-black'">
       <!-- Deportes -->
       <div
         @click="toggleClub('deportes')"
-        class="cursor-pointer bg-green-900 bg-opacity-10 p-6 rounded-xl shadow-lg hover:scale-105 transition"
+        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
+        :class="theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10'"
       >
         <h3 class="text-xl font-bold text-[#39A900] mb-2">Deportes</h3>
         <p>Únete a clubes deportivos y mantente activo mientras haces nuevos amigos.</p>
-        <div v-if="activeClub === 'deportes'" class="mt-4 text-sm text-gray-300">
+        <div v-if="activeClub === 'deportes'" class="mt-4 text-sm" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
           <ul class="list-disc list-inside text-left">
             <li>Club de fútbol y torneos intersena.</li>
             <li>Entrenamiento funcional y bienestar físico.</li>
@@ -77,11 +84,12 @@
       <!-- Tecnología -->
       <div
         @click="toggleClub('tecnologia')"
-        class="cursor-pointer bg-green-900 bg-opacity-10 p-6 rounded-xl shadow-lg hover:scale-105 transition"
+        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
+        :class="theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10'"
       >
         <h3 class="text-xl font-bold text-[#39A900] mb-2">Tecnología</h3>
         <p>Explora clubes de robótica, programación, IA y mucho más.</p>
-        <div v-if="activeClub === 'tecnologia'" class="mt-4 text-sm text-gray-300">
+        <div v-if="activeClub === 'tecnologia'" class="mt-4 text-sm" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
           <ul class="list-disc list-inside text-left">
             <li>Club de programación en JavaScript y Python.</li>
             <li>Laboratorio de IA y aprendizaje automático.</li>
@@ -93,11 +101,12 @@
       <!-- Finanzas -->
       <div
         @click="toggleClub('finanzas')"
-        class="cursor-pointer bg-green-900 bg-opacity-10 p-6 rounded-xl shadow-lg hover:scale-105 transition"
+        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
+        :class="theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10'"
       >
         <h3 class="text-xl font-bold text-[#39A900] mb-2">Finanzas</h3>
         <p>Aprende sobre ahorro, inversión y emprendimiento con otros aprendices.</p>
-        <div v-if="activeClub === 'finanzas'" class="mt-4 text-sm text-gray-300">
+        <div v-if="activeClub === 'finanzas'" class="mt-4 text-sm" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
           <ul class="list-disc list-inside text-left">
             <li>Talleres de presupuesto personal y ahorro.</li>
             <li>Club de emprendimiento y modelos de negocio.</li>
@@ -108,18 +117,23 @@
     </section>
 
     <!-- FOOTER -->
-    <footer class="relative z-10 bg-black p-12 text-center text-sm text-gray-500">
+    <footer class="relative z-10 p-12 text-center text-sm" :class="[theme === 'light' ? 'bg-white text-gray-600' : 'bg-black text-gray-500']">
       © 2025 SenaClub - Todos los derechos reservados.
     </footer>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
+import { useThemeStore } from '@/stores/theme'
+import { storeToRefs } from 'pinia'
 
-const activeClub = ref(null)
+const themeStore = useThemeStore()
+const { theme } = storeToRefs(themeStore)
 
-function toggleClub(club) {
+const activeClub = ref<string | null>(null)
+
+function toggleClub(club: string) {
   activeClub.value = activeClub.value === club ? null : club
 }
 </script>

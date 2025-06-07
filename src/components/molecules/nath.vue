@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-screen">
-    <div class="w-1/2 bg-black text-white flex flex-col justify-center items-center px-10">
+    <div class="w-1/2 flex flex-col justify-center items-center px-10" :class="theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'">
       <div class="text-center w-3/4">
       <!-- <img :src="logo" alt="Logo" class="w-12 mb-6 mx-auto" /> -->
         <div class="w-12 h-12 bg-green-700 rounded mb-6 mx-auto"></div>
@@ -13,7 +13,8 @@
             id="email"
             v-model="email"
             placeholder="Enter your email"
-            class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+            class="w-full px-3 py-2 border rounded"
+            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
           />
         </div>
 
@@ -24,7 +25,8 @@
             id="password"
             v-model="password"
             placeholder="Enter your password"
-            class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+            class="w-full px-3 py-2 border rounded"
+            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
           />
           <a href="#" class="text-green-700 text-sm block text-right mt-2" @click.prevent="showModal = true">
             Forgot password?
@@ -38,15 +40,15 @@
           Sign in
         </button>
 
-        <p class="text-center mt-4 text-gray-400">
+        <p class="text-center mt-4" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
           Not a member?
           <router-link to="/signup" class="text-green-700 font-semibold">Start here</router-link>
         </p>
       </div>
     </div>
 
-    <div class="w-1/2 flex justify-center items-center bg-gray-100">
-      <div class="w-3/4 h-3/4 bg-gray-300"></div>
+    <div class="w-1/2 flex justify-center items-center" :class="theme === 'light' ? 'bg-gray-50' : 'bg-gray-100'">
+      <div class="w-3/4 h-3/4" :class="theme === 'light' ? 'bg-gray-200' : 'bg-gray-300'"></div>
     </div>
   </div>
 
@@ -56,20 +58,22 @@
     class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
     @click.self="showModal = false"
   >
-    <div class="bg-white rounded-lg p-6 w-80 relative">
+    <div class="rounded-lg p-6 w-80 relative" :class="theme === 'light' ? 'bg-white' : 'bg-gray-800'">
       <button
-        class="absolute top-2 right-3 text-gray-600 hover:text-gray-900 text-2xl font-bold"
+        class="absolute top-2 right-3 hover:text-gray-900 text-2xl font-bold"
+        :class="theme === 'light' ? 'text-gray-600' : 'text-gray-300'"
         @click="showModal = false"
       >
         &times;
       </button>
-      <h3 class="text-xl font-semibold mb-4 text-black">Recuperar contraseña</h3>
-      <p class="mb-2 text-black">Ingresa tu correo electrónico:</p>
+      <h3 class="text-xl font-semibold mb-4" :class="theme === 'light' ? 'text-black' : 'text-white'">Recuperar contraseña</h3>
+      <p class="mb-2" :class="theme === 'light' ? 'text-black' : 'text-white'">Ingresa tu correo electrónico:</p>
       <input
         type="email"
         v-model="forgotEmail"
         placeholder="Correo electrónico"
-        class="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black"
+        class="w-full border rounded px-3 py-2 mb-4"
+        :class="theme === 'light' ? 'border-gray-300 text-black bg-white' : 'border-gray-600 text-white bg-gray-700'"
       />
       <button
         @click="sendRecoveryEmail"
@@ -99,7 +103,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useThemeStore } from '@/stores/theme'
+import { storeToRefs } from 'pinia'
 import axios from 'axios'
+
+const themeStore = useThemeStore()
+const { theme } = storeToRefs(themeStore)
 
 const email = ref('')
 const password = ref('')
