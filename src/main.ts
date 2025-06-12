@@ -14,6 +14,7 @@ import { initializeTheme } from './composables/useTheme'
 // Establecer la URL base de todas las peticiones al backend
 axios.defaults.baseURL = 'http://localhost:3000'
 
+const pinia=createPinia()
 const app = createApp(App)
 
 app.use(createPinia())
@@ -26,5 +27,6 @@ app.use(Vue3Toastify, {
 
 initializeTheme() // Inicializar el tema
 
+app.use(pinia)
 app.mount('#app')
 

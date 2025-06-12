@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted,watch } from 'vue';
+import { ref, onMounted,watch, computed } from 'vue';
 import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
 import { getUserFromToken } from '@/composables/useAuth';
@@ -7,19 +7,20 @@ import type { JwtPayload } from 'jwt-decode';
 import jwtDecode from 'jwt-decode';
 import {useTheme} from '@/composables/useTheme';
 import ThemeToggle from './ThemeToggle.vue';
+import { useThemeStore } from '@/stores/theme'
 const currentUser = ref(null);
 
-
-
 // Oscuro a blanco
+const themeStore = useThemeStore()
+const isDarkMode = computed(() => themeStore.theme === 'dark')
+
+
 // Theme state
-const isDarkMode = ref(true)
+
 
 // Toggle theme function
 const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value
-  // Save preference to localStorage
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+  themeStore.toggleTheme()
 }
 
 // Load theme preference on mount
@@ -29,7 +30,6 @@ onMounted(() => {
     isDarkMode.value = savedTheme === 'dark'
   }
 })
-
 
 onMounted(() => {
   const token = localStorage.getItem('token');
@@ -64,12 +64,6 @@ const redirectToSearch = () => {
   }
 };
 
-
-
-
-// Asegúrate de que ya tengas importados ref y onMounted
-// import { ref, onMounted } from 'vue';
-
 // Definición de interfaces
 interface Notification {
   _id?: string;
@@ -86,14 +80,19 @@ interface Notification {
 const isLoading = ref(false);
 
 const editingNotification = ref<Notification | null>(null);
-const notifications = ref<Notification[]>([]);
+const notifications = ref<Notification[]>([]); // ← INICIA VACÍO, NO HAY 3 POR DEFECTO
 const statusMessage = ref<{ text: string, success: boolean } | null>(null);
 const newNotification = ref<Notification>({
   title: '',
   content: '',
   type: 'info'
 });
-// Ajusta "any" si tienes tipado de tu token
+
+const validNotifications = computed(() =>
+  notifications.value.filter(
+    n => n && (n.title?.trim() || n.content?.trim())
+  )
+);
 
 // Funciones auxiliares
 const getUserFromToken = () => {
@@ -226,6 +225,7 @@ const createNotification = async () => {
 };
 
 // Funciones para edición
+const isEditing = ref(false);
 const startEdit = (notification: Notification) => {
   editingNotification.value = JSON.parse(JSON.stringify(notification));
   isEditing.value = true;
@@ -347,11 +347,7 @@ onMounted(() => {
   }
 });
 
-
-
-
-
-//news
+// NEWS -- sin cambios respecto a tu código original
 
 interface NewsItem {
   _id?: string
@@ -359,7 +355,6 @@ interface NewsItem {
   content: string
   createdAt?: string
   author?: string 
-  // Para mostrar quién creó la noticia
 }
 
 // Reactive state
@@ -371,9 +366,7 @@ const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
 const newsUser = ref<JwtPayload | null>(getUserFromToken()); // Cambiado de currentUser a newsUser
 
-
 // Variables para la edición
-const isEditing = ref(false);
 const editingNewsId = ref<string | null>(null);
 
 // API base URL
@@ -558,9 +551,6 @@ const updateNews = async () => {
   }
 };
 
-// Function to cancel editing
-
-
 // Function to reset form and editing state
 const resetForm = () => {
   title.value = '';
@@ -665,7 +655,6 @@ const canManageNews = (item: NewsItem): boolean => {
   // Solo admin puede editar/eliminar noticias
   return newsUser.value.rol === 'admin';
 };
-
 
 </script>
 
@@ -925,12 +914,14 @@ const canManageNews = (item: NewsItem): boolean => {
             </div>
             
             <!-- Lista de notificaciones -->
-            <div v-if="notifications.length === 0 && !isLoading" class="text-center py-6 mt-4" :class="isDarkMode ? 'text-gray-500' : 'text-gray-600'">
-              No hay notificaciones disponibles
-            </div>
+            <div v-if="validNotifications.length === 0 && !isLoading" 
+           class="text-center py-6 mt-4 rounded-lg mx-4"
+           :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'">
+        No hay notificaciones disponibles
+      </div>
             
             <!-- Notificaciones existentes -->
-            <div v-for="(notification, index) in notifications" :key="index" class="mx-4 mb-3 mt-4">
+            <div v-for="(notification, index) in validNotifications" :key="notification._id || index" class="mx-4 mb-3 mt-4">
               <div class="p-3 rounded-lg" :class="{
                 [isDarkMode ? 'bg-green-900 bg-opacity-20 border border-green-800' : 'bg-green-50 border border-green-200']: notification.type === 'info',
                 [isDarkMode ? 'bg-yellow-900 bg-opacity-20 border border-yellow-800' : 'bg-yellow-50 border border-yellow-200']: notification.type === 'warning',
