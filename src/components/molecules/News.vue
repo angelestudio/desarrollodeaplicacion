@@ -88,19 +88,25 @@ const publishNews = async () => {
     displayNotification('Por favor, completa tanto el título como el contenido de la noticia.', 'error');
     return;
   }
-// Validar que no sean solo números
-const onlyNumbersRegex = /^\d+$/;
-if (onlyNumbersRegex.test(title.value.trim()) || onlyNumbersRegex.test(content.value.trim())) {
-  displayNotification('El título y el contenido no pueden ser solo números.', 'error');
-  return;
-}
-// Validar que el título o contenido no tengan menos de 3 letras
-const tooShortRegex = /^[a-zA-Z]{1,2}$/;
 
-if (tooShortRegex.test(title.value.trim()) || tooShortRegex.test(content.value.trim())) {
-  displayNotification('El título debe tener mas de dos letras y el contenido deben tener más de 10 letras.', 'error');
-  return;
-}
+  // Validar que no sean solo números
+  const onlyNumbersRegex = /^\d+$/;
+  if (onlyNumbersRegex.test(title.value.trim()) || onlyNumbersRegex.test(content.value.trim())) {
+    displayNotification('El título y el contenido no pueden ser solo números.', 'error');
+    return;
+  }
+
+  // Validar que el título tenga más de 2 caracteres y el contenido más de 10
+  if (title.value.trim().length < 3) {
+    displayNotification('El título debe tener más de 2 caracteres.', 'error');
+    return;
+  }
+
+  if (content.value.trim().length < 10) {
+    displayNotification('El contenido debe tener más de 10 caracteres.', 'error');
+    return;
+  }
+
   try {
     isLoading.value = true;
     
@@ -173,6 +179,12 @@ const editNews = (item: NewsItem) => {
   
   // Scroll to the form
   scrollToForm();
+};
+
+// Function to cancel editing
+const cancelEdit = () => {
+  resetForm();
+  displayNotification('Edición cancelada', 'success');
 };
 
 // Function to update an existing news item
@@ -328,6 +340,15 @@ const canManageNews = (item: NewsItem): boolean => {
         Conectado como: {{ newsUser.firstName }} {{ newsUser.lastName }} ({{ newsUser.rol }})
       </div>
 
+      <!-- Notification -->
+      <div 
+        v-if="showNotification" 
+        class="fixed top-4 right-4 p-3 rounded-lg shadow-lg z-50 transition-all duration-300"
+        :class="notificationType === 'success' ? (isDarkMode ? 'bg-green-800 text-white' : 'bg-green-100 text-green-800') : (isDarkMode ? 'bg-red-800 text-white' : 'bg-red-100 text-red-800')"
+      >
+        {{ notificationMessage }}
+      </div>
+
       <!-- News creation form -->
       <div id="news-form" class="p-3 mb-4 rounded-lg border" :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300'">
         <h3 class="text-green-500 font-medium text-sm mb-2">
@@ -371,7 +392,8 @@ const canManageNews = (item: NewsItem): boolean => {
           <button
             v-if="isEditing"
             @click="cancelEdit"
-            class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200"
+            :disabled="isLoading"
+            class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -445,4 +467,3 @@ const canManageNews = (item: NewsItem): boolean => {
   opacity: 0;
 }
 </style>
-
