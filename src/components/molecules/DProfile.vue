@@ -353,59 +353,10 @@ onMounted(() => {
 <template>
   <div class="flex flex-col md:flex-row h-screen overflow-hidden" :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'">
     <!-- Sidebar izquierda - Fondo negro sólido (ahora más pequeña) -->
-    <div class="w-full md:w-1/5 lg:w-1/5 flex flex-col relative border-b md:border-b-0 md:border-r" :class="isDarkMode ? 'bg-black border-gray-800' : 'bg-gray-100 border-gray-300'">
-      <div class="p-4 flex items-center justify-between">
-        <div class="flex items-center">
-          <div class="w-8 h-8 bg-transparent rounded-full flex items-center justify-center border-2" :class="isDarkMode ? 'border-white' : 'border-black'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="isDarkMode ? 'text-white' : 'text-black'" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
-            </svg>
-          </div>
-          <span class="ml-2 font-semibold" :class="isDarkMode ? 'text-white' : 'text-black'">SENACLUB</span>
-        </div>
-        
-        <!-- Theme Toggle Button -->
-        <button
-          @click="toggleTheme"
-          class="p-2 rounded-full transition-colors duration-200"
-          :class="isDarkMode ? 'hover:bg-gray-800 text-yellow-400' : 'hover:bg-gray-200 text-gray-700'"
-        >
-          <svg v-if="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Menú de navegación con hover purple y explore redirigiendo al search -->
-      <nav class="flex-1 mt-4 md:mt-8 px-4">
-        <div class="grid grid-cols-2 md:grid-cols-1 gap-2 md:space-y-3">
-          <router-link to="/home" class="block py-2 px-4 md:px-6 rounded-full text-center text-sm hover:bg-green-700 transition-colors duration-200" 
-            :class="isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-200 text-black hover:bg-green-100'">Home</router-link>
-          <router-link to="/clubs" class="block py-2 px-4 md:px-6 rounded-full text-center text-sm hover:bg-green-700 transition-colors duration-200" 
-            :class="isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-200 text-black hover:bg-green-100'">clubs</router-link>
-          <router-link to="/Profile/notifications" class="block py-2 px-4 md:px-6 rounded-full text-center text-sm hover:bg-green-700 transition-colors duration-200" 
-            :class="isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-200 text-black hover:bg-green-100'">Notifications</router-link>
-          <router-link to="/Profile" class="block py-2 px-4 md:px-6 rounded-full text-center text-sm hover:bg-green-700 transition-colors duration-200" 
-            :class="isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-200 text-black hover:bg-green-100'">Profile</router-link>
-          <router-link to="/Profile/posts" class="block py-2 px-4 md:px-6 rounded-full text-center text-sm hover:bg-green-700 transition-colors duration-200" 
-            :class="isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-200 text-black hover:bg-green-100'">Posts</router-link>
-        </div>
-      </nav>
-      
-      <!-- Perfil del usuario en sidebar - Visible solo en pantallas medianas o mayores -->
-      <div class="hidden md:flex p-4 items-center mt-auto">
-        <img src="@/assets/images/user.jpg" alt="User" class="w-8 h-8 rounded-full" />
-        <span class="ml-2 text-sm">
-          {{ currentUser?.firstName }} {{ currentUser?.lastName }}
-        </span>
-      </div>
-    </div>
+    <Sidebarizquierda lass="w-full md:w-2/6 lg:w-2/6"/>
 
     <!-- Contenido principal (ahora un poco más amplio) -->
-    <div class="w-full md:w-3/5 lg:w-3/5 flex flex-col relative overflow-y-auto" :class="isDarkMode ? 'bg-black' : 'bg-white'">
+    <div class="w-full md:w-4/6 lg:w-4/6 flex flex-col relative overflow-y-auto" :class="isDarkMode ? 'bg-black' : 'bg-white'">
       <!-- Imagen de fondo en la parte superior - patrón de líneas -->
       <div class="absolute top-0 left-0 right-0 h-36 md:h-52 z-0 overflow-hidden" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-300'">
         <img src="@/assets/bg_buildings_old.png" alt="Background Pattern" class="w-full h-full object-cover" style="filter: brightness(0.5) grayscale(0.5);" />

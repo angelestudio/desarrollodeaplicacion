@@ -9,6 +9,7 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
 <template>
   <aside
     :class="[
+      'md:w-72', // <-- Agrega esta clase para más ancho (prueba también md:w-80)
       'md:mt-[4px] flex flex-col justify-between h-screen border-r',
       isDarkMode
         ? 'bg-black text-white border-gray-800'

@@ -23,6 +23,19 @@
           </select>
         </div>
 
+        <!-- CAMPO DE CÓDIGO DE ADMINISTRADOR SOLO SI rol == 'admin' -->
+        <div v-if="form.rol === 'admin'" class="mb-4">
+          <CBInput
+            id="adminCode"
+            v-model="form.adminCode"
+            type="password"
+            placeholder="Código de administrador"
+            label="Código de administrador"
+            :theme="theme"
+          />
+        </div>
+        <!-- FIN CAMPO ADMIN -->
+
         <div ref="clubsContainer" class="mb-4 relative text-left">
           <label class="block font-semibold mb-1" :class="theme === 'light' ? 'text-black' : 'text-white-500'">Clubs</label>
           <div
@@ -111,6 +124,7 @@ interface SignupForm {
   email: string
   password: string
   confirmPassword: string
+  adminCode?: string // <-- Añade este campo opcional
 }
 
 const form = ref<SignupForm>({
@@ -120,7 +134,8 @@ const form = ref<SignupForm>({
   phone: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  adminCode: '' // <-- Inicializa
 })
 
 // Clubs dropdown
@@ -163,18 +178,31 @@ const register = async () => {
     return
   }
   // Validar correo real
-const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-if (!emailRegex.test(form.value.email)) {
-  toast.error('Ingresa un correo electrónico válido')
-  return
-}
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(form.value.email)) {
+    toast.error('Ingresa un correo electrónico válido')
+    return
+  }
 
-// Validar teléfono (solo números y 10 dígitos)
-const phoneRegex = /^\d{10}$/
-if (!phoneRegex.test(form.value.phone)) {
-  toast.error('El número de teléfono debe tener 10 dígitos')
-  return
-}
+  // Validar teléfono (solo números y 10 dígitos)
+  const phoneRegex = /^\d{10}$/
+  if (!phoneRegex.test(form.value.phone)) {
+    toast.error('El número de teléfono debe tener 10 dígitos')
+    return
+  }
+
+  // Validar código de administrador si es admin
+  if (form.value.rol === 'admin') {
+    if (!form.value.adminCode || form.value.adminCode.trim() === '') {
+      toast.error('Debes ingresar el código de administrador')
+      return
+    }
+    // Puedes comparar aquí el código (ejemplo: '12345'), o hacerlo en el backend
+    // if (form.value.adminCode !== 'TU_CODIGO_ADMIN') {
+    //   toast.error('Código de administrador incorrecto')
+    //   return
+    // }
+  }
 
   try {
     const res = await fetch('http://localhost:3000/auth/signup', {
@@ -187,7 +215,8 @@ if (!phoneRegex.test(form.value.phone)) {
         phone:          form.value.phone,
         email:          form.value.email,
         password:       form.value.password,
-        clubs:          selectedClubs.value
+        clubs:          selectedClubs.value,
+        adminCode:      form.value.rol === 'admin' ? form.value.adminCode : undefined // <-- Solo si es admin
       })
     })
 

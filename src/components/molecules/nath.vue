@@ -2,10 +2,8 @@
   <div class="flex h-screen">
     <div class="w-1/2 flex flex-col justify-center items-center px-10" :class="theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'">
       <div class="text-center w-3/4">
-      <!-- <img :src="logo" alt="Logo" class="w-12 mb-6 mx-auto" /> -->
         <div class="w-12 h-12 bg-green-700 rounded mb-6 mx-auto"></div>
         <h2 class="text-2xl font-bold mb-6">Sign in to your account</h2>
-
         <div class="mb-4 text-left">
           <label for="email" class="block font-semibold mb-1">Email address</label>
           <input
@@ -17,7 +15,6 @@
             :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
           />
         </div>
-
         <div class="mb-6 text-left">
           <label for="password" class="block font-semibold mb-1">Password</label>
           <input
@@ -32,26 +29,34 @@
             Forgot password?
           </a>
         </div>
-
+        <!-- Campo para código de admin -->
+        <div v-if="showAdminCodeField" class="mb-4 text-left">
+          <label for="adminCode" class="block font-semibold mb-1">Código de administrador</label>
+          <input
+            type="password"
+            id="adminCode"
+            v-model="adminCode"
+            placeholder="Ingresa el código de administrador"
+            class="w-full px-3 py-2 border rounded"
+            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
+          />
+        </div>
         <button
           @click="loginUser"
           class="w-full bg-green-700 hover:bg-indigo-600 text-white font-bold py-2 rounded"
         >
           Sign in
         </button>
-
         <p class="text-center mt-4" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
           Not a member?
           <router-link to="/signup" class="text-green-700 font-semibold">Start here</router-link>
         </p>
       </div>
     </div>
-
     <div class="w-1/2 flex justify-center items-center" :class="theme === 'light' ? 'bg-gray-50' : 'bg-gray-100'">
       <div class="w-3/4 h-3/4" :class="theme === 'light' ? 'bg-gray-200' : 'bg-gray-300'"></div>
     </div>
   </div>
-
   <!-- Modal para olvidar contraseña -->
   <div
     v-if="showModal"
@@ -101,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
@@ -112,6 +117,8 @@ const { theme } = storeToRefs(themeStore)
 
 const email = ref('')
 const password = ref('')
+const adminCode = ref('')
+const showAdminCodeField = ref(false)
 const toastMessage = ref('')
 const toastType = ref<'success' | 'error' | ''>('')
 const showModal = ref(false)
@@ -128,35 +135,42 @@ const showToast = (text: string, type: 'success' | 'error') => {
   }, 3000)
 }
 
+// El campo de código de admin solo se muestra si el backend lo pide
 const loginUser = async () => {
-  console.log('Intentando login...') // Para debugging
-  
   if (!email.value || !password.value) {
     showToast('Por favor completa todos los campos', 'error')
     return
   }
-
   try {
-    const response = await axios.post('http://localhost:3000/auth/login', {
+    const payload: any = {
       email: email.value,
-      password: password.value
-    })
+      password: password.value,
+    }
+    // Si el campo es visible y hay código, lo incluimos
+    if (showAdminCodeField.value && adminCode.value) {
+      payload.adminCode = adminCode.value
+    }
 
-    const { token, rol } = response.data
-    
-    // Guardar en localStorage
+    const response = await axios.post('http://localhost:3000/auth/login', payload)
+    const { token, rol, requireAdminCode, message } = response.data
+
+    // Si el backend pide el código de admin
+    if (requireAdminCode) {
+      showAdminCodeField.value = true
+      showToast(message || 'Debes ingresar el código de administrador', 'error')
+      return
+    }
+
+    // Éxito
     localStorage.setItem('token', token)
     localStorage.setItem('rol', rol)
-
-    // Configurar axios
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
     showToast('¡Inicio de sesión exitoso!', 'success')
-    
     setTimeout(() => { 
       router.push('/home') 
     }, 1000)
-    
+
   } catch (error: any) {
     console.error('Error al iniciar sesión:', error)
     const errorMessage = error.response?.data?.message || 'Error de conexión'
@@ -169,13 +183,11 @@ const sendRecoveryEmail = () => {
     showToast('Por favor ingresa un correo válido.', 'error')
     return
   }
-  
   showToast('Correo de recuperación enviado.', 'success')
   showModal.value = false
   forgotEmail.value = ''
 }
 </script>
-
 <style scoped>
 /* Estilos básicos sin transiciones complejas */
 </style>
