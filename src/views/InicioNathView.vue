@@ -62,57 +62,45 @@
       </div>
     </main>
 
-    <!-- SECCIÓN CON BOTONES DESPLEGABLES -->
+    <!-- SECCIÓN NOTIFICACIONES -->
     <section class="relative z-10 px-12 py-16 grid grid-cols-1 md:grid-cols-3 gap-10" :class="theme === 'light' ? 'bg-white' : 'bg-black'">
-      <!-- Deportes -->
       <div
-        @click="toggleClub('deportes')"
+        v-for="(notification, idx) in notifications"
+        :key="notification._id || idx"
         class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
-        :class="theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10'"
+        :class="[
+          theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10',
+          notification.type === 'info' && 'border border-green-400',
+          notification.type === 'warning' && 'border border-yellow-400',
+          notification.type === 'alert' && 'border border-red-400'
+        ]"
       >
-        <h3 class="text-xl font-bold text-[#39A900] mb-2">Deportes</h3>
-        <p>Únete a clubes deportivos y mantente activo mientras haces nuevos amigos.</p>
-        <div v-if="activeClub === 'deportes'" class="mt-4 text-sm" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
-          <ul class="list-disc list-inside text-left">
-            <li>Club de fútbol y torneos intersena.</li>
-            <li>Entrenamiento funcional y bienestar físico.</li>
-            <li>Actividades de senderismo y ciclismo.</li>
-          </ul>
-        </div>
+        <h3 class="text-xl font-bold mb-2"
+            :class="notification.type === 'info'
+              ? 'text-green-700'
+              : notification.type === 'warning'
+                ? 'text-yellow-700'
+                : notification.type === 'alert'
+                  ? 'text-red-700'
+                  : 'text-[#39A900]'">
+          {{ notification.title }}
+        </h3>
+        <p class="mb-2">{{ notification.content }}</p>
+        <p class="text-xs text-gray-500 mb-1">
+          {{ notification.timestamp }}
+          <template v-if="notification.userName">
+            &mdash; por {{ notification.userName }}
+          </template>
+        </p>
+        <span v-if="notification.type==='alert'" class="inline-block px-2 py-1 text-xs rounded bg-red-200 text-red-800">Alerta</span>
+        <span v-else-if="notification.type==='warning'" class="inline-block px-2 py-1 text-xs rounded bg-yellow-200 text-yellow-800">Advertencia</span>
+        <span v-else-if="notification.type==='info'" class="inline-block px-2 py-1 text-xs rounded bg-green-200 text-green-800">Información</span>
       </div>
-
-      <!-- Tecnología -->
       <div
-        @click="toggleClub('tecnologia')"
-        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
-        :class="theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10'"
+        v-if="notifications.length === 0"
+        class="col-span-3 text-center text-gray-500"
       >
-        <h3 class="text-xl font-bold text-[#39A900] mb-2">Tecnología</h3>
-        <p>Explora clubes de robótica, programación, IA y mucho más.</p>
-        <div v-if="activeClub === 'tecnologia'" class="mt-4 text-sm" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
-          <ul class="list-disc list-inside text-left">
-            <li>Club de programación en JavaScript y Python.</li>
-            <li>Laboratorio de IA y aprendizaje automático.</li>
-            <li>Hackathones y eventos tecnológicos.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Finanzas -->
-      <div
-        @click="toggleClub('finanzas')"
-        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
-        :class="theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10'"
-      >
-        <h3 class="text-xl font-bold text-[#39A900] mb-2">Finanzas</h3>
-        <p>Aprende sobre ahorro, inversión y emprendimiento con otros aprendices.</p>
-        <div v-if="activeClub === 'finanzas'" class="mt-4 text-sm" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
-          <ul class="list-disc list-inside text-left">
-            <li>Talleres de presupuesto personal y ahorro.</li>
-            <li>Club de emprendimiento y modelos de negocio.</li>
-            <li>Charlas con expertos en inversión y economía.</li>
-          </ul>
-        </div>
+        No hay notificaciones disponibles en este momento.
       </div>
     </section>
 
@@ -124,18 +112,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
 
 const themeStore = useThemeStore()
 const { theme } = storeToRefs(themeStore)
 
-const activeClub = ref<string | null>(null)
+const notifications = ref<any[]>([])
 
-function toggleClub(club: string) {
-  activeClub.value = activeClub.value === club ? null : club
-}
+onMounted(() => {
+  // Intenta cargar notificaciones de localStorage (persistentes)
+  const raw = localStorage.getItem('persistent_notifications')
+  let persisted: any[] = []
+  try {
+    persisted = raw ? JSON.parse(raw) : []
+  } catch { persisted = [] }
+
+  // Carga también las globales si existen (ejemplo, puedes incluir fetch de backend aquí si lo necesitas)
+  // Aquí solo usamos las persistidas para la demo
+  notifications.value = persisted
+})
 </script>
 
 <style scoped>
