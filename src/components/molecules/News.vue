@@ -531,31 +531,3 @@ const getAuthorName = (author: string): string => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-
-/* Scrollbar personalizf
-ado */
-#news-items-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-#news-items-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-#news-items-container::-webkit-scrollbar-thumb {
-  background: rgba(34, 197, 94, 0.5);
-  border-radius: 3px;
-}
-
-#news-items-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 197, 94, 0.5);
-}
-</style>
