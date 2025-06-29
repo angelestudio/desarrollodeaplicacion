@@ -12,6 +12,11 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+  path: '/reportes',
+  name: 'Reportes',
+  component: () => import('@/views/repotes.vue')
+},
+    {
       path: '/acceder',
       name: 'acceder',
       component: () => import('@/views/AccederDView.vue'),

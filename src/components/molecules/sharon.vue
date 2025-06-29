@@ -18,8 +18,8 @@
             required
           >
             <option disabled value="" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">-- Select a role --</option>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
+            <option value="user">Aprendiz</option>
+            <option value="admin">Administrador</option>
           </select>
         </div>
 
