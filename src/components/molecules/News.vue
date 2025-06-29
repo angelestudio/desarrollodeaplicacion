@@ -540,7 +540,8 @@ const getAuthorName = (author: string): string => {
   opacity: 0;
 }
 
-/* Scrollbar personalizado */
+/* Scrollbar personalizf
+ado */
 #news-items-container::-webkit-scrollbar {
   width: 6px;
 }
