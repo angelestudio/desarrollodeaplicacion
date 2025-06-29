@@ -555,6 +555,6 @@ const getAuthorName = (author: string): string => {
 }
 
 #news-items-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(50, 34, 197, 0.8);
+  background: rgba(34, 197, 94, 0.5);
 }
 </style>
