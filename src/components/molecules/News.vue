@@ -7,39 +7,32 @@ import { useThemeStore } from '@/stores/theme';
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.theme === 'dark');
 
-// NEWS 
 interface NewsItem {
-  _id?: string
-  title: string
-  content: string
-  createdAt?: string
-  author?: string 
-  updatedAt?: string
+  _id?: string;
+  title: string;
+  content: string;
+  author?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Reactive state
 const title = ref('');
 const content = ref('');
 const newsItems = ref<NewsItem[]>([]);
 const notificationMessage = ref('');
 const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
-const newsUser = ref<JwtPayload | null>(getUserFromToken());
+const newsUser = ref<UserJwtPayload | null>(getUserFromToken());
 const isLoading = ref(false);
 const isEditing = ref(false);
-
-// Variables para la edición
 const editingNewsId = ref<string | null>(null);
 
-// API base URL
 const API_URL = 'http://localhost:3000/news';
 
-// Fetch existing news when component mounts
 onMounted(async () => {
   await fetchNews();
 });
 
-// Function to get authorization headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -48,16 +41,11 @@ const getAuthHeaders = () => {
   };
 };
 
-// Function to fetch all news from the API
 const fetchNews = async () => {
   try {
     isLoading.value = true;
     const response = await fetch(API_URL);
-    
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-    
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
     const data = await response.json();
     newsItems.value = data;
   } catch (error) {
@@ -68,34 +56,28 @@ const fetchNews = async () => {
   }
 };
 
-// Function to publish a new news item
 const publishNews = async () => {
-  // Verificar si el usuario está autenticado
   if (!newsUser.value) {
     displayNotification('Debes iniciar sesión para publicar noticias', 'error');
     return;
   }
 
-  // Verificar si el usuario tiene rol de admin
   if (newsUser.value.rol !== 'admin') {
     displayNotification('Solo los administradores pueden publicar noticias', 'error');
     return;
   }
 
-  // Validate inputs
   if (!title.value.trim() || !content.value.trim()) {
     displayNotification('Por favor, completa tanto el título como el contenido de la noticia.', 'error');
     return;
   }
 
-  // Validar que no sean solo números
   const onlyNumbersRegex = /^\d+$/;
   if (onlyNumbersRegex.test(title.value.trim()) || onlyNumbersRegex.test(content.value.trim())) {
     displayNotification('El título y el contenido no pueden ser solo números.', 'error');
     return;
   }
 
-  // Validar que el título tenga más de 2 caracteres y el contenido más de 10
   if (title.value.trim().length < 3) {
     displayNotification('El título debe tener más de 2 caracteres.', 'error');
     return;
@@ -108,51 +90,40 @@ const publishNews = async () => {
 
   try {
     isLoading.value = true;
-    
-    // Si estamos editando, enviamos una petición PUT, de lo contrario POST
+
     if (isEditing.value && editingNewsId.value) {
       await updateNews();
     } else {
-      // Create news item object
       const newNewsItem: NewsItem = {
         title: title.value.trim(),
         content: content.value.trim(),
         author: `${newsUser.value.firstName} ${newsUser.value.lastName}`
       };
-      
-      // Send to API with auth token
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newNewsItem),
       });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
         }
         throw new Error(`Error: ${response.status}`);
       }
-      
-      // Get the response which contains message and newsId
+
       const result = await response.json();
-      
-      // Show success message
       displayNotification('Noticia publicada con éxito!', 'success');
     }
-    
-    // Refetch the news to get the latest data including the new item
+
     await fetchNews();
-    
-    // Clear form and reset editing state
     resetForm();
-    
+
   } catch (error) {
     console.error('Error publishing/updating news:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al publicar la noticia. Inténtalo de nuevo.';
     displayNotification(errorMessage, 'error');
-    
-    // Si la sesión expiró, refrescamos el usuario
     if (errorMessage.includes('Sesión expirada')) {
       newsUser.value = getUserFromToken();
     }
@@ -161,137 +132,84 @@ const publishNews = async () => {
   }
 };
 
-// Function to start editing a news item
 const editNews = (item: NewsItem) => {
   if (!item._id) {
     displayNotification('ID de noticia no válido', 'error');
     return;
   }
-  
-  // Set editing state
   isEditing.value = true;
   editingNewsId.value = item._id;
-  
-  // Fill form with news data
   title.value = item.title;
   content.value = item.content;
-  
-  // Scroll to the form
   scrollToForm();
 };
 
-// Function to cancel editing
 const cancelEdit = () => {
   resetForm();
   displayNotification('Edición cancelada', 'success');
 };
 
-// Function to update an existing news item
 const updateNews = async () => {
   if (!editingNewsId.value) return;
-  
   try {
-    // Create updated news item object
     const updatedNewsItem: NewsItem = {
       title: title.value.trim(),
       content: content.value.trim(),
     };
-    
-    // Send PUT request to API
+
     const response = await fetch(`${API_URL}/${editingNewsId.value}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updatedNewsItem),
     });
-    
+
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-      }
+      if (response.status === 401) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       throw new Error(`Error: ${response.status}`);
     }
-    
-    // Show success message
+
     displayNotification('Noticia actualizada con éxito!', 'success');
   } catch (error) {
     console.error('Error updating news:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la noticia. Inténtalo de nuevo.';
     displayNotification(errorMessage, 'error');
-    
-    // Si la sesión expiró, refrescamos el usuario
     if (errorMessage.includes('Sesión expirada')) {
       newsUser.value = getUserFromToken();
     }
   }
 };
 
-// Function to reset form and editing state
-const resetForm = () => {
-  title.value = '';
-  content.value = '';
-  isEditing.value = false;
-  editingNewsId.value = null;
-};
-
-// Helper function to scroll to form
-const scrollToForm = () => {
-  const formElement = document.getElementById('news-form');
-  if (formElement) {
-    formElement.scrollIntoView({ behavior: 'smooth' });
-  }
-};
-
-// Function to delete a news item
 const deleteNews = async (id?: string) => {
-  // Verificar si el usuario está autenticado
   if (!newsUser.value) {
     displayNotification('Debes iniciar sesión para eliminar noticias', 'error');
     return;
   }
-
-  // Verificar si el usuario tiene rol de admin
   if (newsUser.value.rol !== 'admin') {
     displayNotification('Solo los administradores pueden eliminar noticias', 'error');
     return;
   }
-
   if (!id) {
     displayNotification('ID de noticia no válido', 'error');
     return;
   }
-
-  if (!confirm('¿Estás seguro de que quieres eliminar esta noticia?')) {
-    return;
-  }
-
+  if (!confirm('¿Estás seguro de que quieres eliminar esta noticia?')) return;
   try {
     isLoading.value = true;
-    
-    // Send delete request con el ID correcto y el token de autorización
     const response = await fetch(`${API_URL}/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
-    
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-      } else if (response.status === 403) {
-        throw new Error('No tienes permisos para eliminar esta noticia.');
-      }
+      if (response.status === 401) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      else if (response.status === 403) throw new Error('No tienes permisos para eliminar esta noticia.');
       throw new Error(`Error: ${response.status}`);
     }
-    
-    // Si fue exitoso, actualizamos la lista de noticias
     await fetchNews();
-    
     displayNotification('Noticia eliminada correctamente', 'success');
   } catch (error) {
     console.error('Error deleting news:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al eliminar la noticia';
     displayNotification(errorMessage, 'error');
-    
-    // Si la sesión expiró, refrescamos el usuario
     if (errorMessage.includes('Sesión expirada')) {
       newsUser.value = getUserFromToken();
     }
@@ -300,19 +218,15 @@ const deleteNews = async (id?: string) => {
   }
 };
 
-// Function to display notification
 const displayNotification = (message: string, type: 'success' | 'error' = 'success') => {
   notificationMessage.value = message;
   notificationType.value = type;
   showNotification.value = true;
-  
-  // Hide notification after 3 seconds
   setTimeout(() => {
     showNotification.value = false;
   }, 3000);
 };
 
-// Format date for display
 const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString);
@@ -328,35 +242,37 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-// Comprobar si el usuario puede editar/eliminar una noticia (solo admin)
 const canManageNews = (item: NewsItem): boolean => {
   if (!newsUser.value) return false;
-  
-  // Solo admin puede editar/eliminar noticias
   return newsUser.value.rol === 'admin';
 };
 
-// Función para obtener las iniciales del autor
 const getAuthorInitials = (author: string): string => {
-  if (!author || author === 'undefined' || author === 'null') {
-    return newsUser.value ? `${newsUser.value.firstName[0]}${newsUser.value.lastName[0]}` : 'AD';
-  }
-  const names = author.split(' ');
-  if (names.length >= 2) {
-    return (names[0][0] + names[1][0]).toUpperCase();
-  }
-  return author.substring(0, 2).toUpperCase();
+  if (!author || author === 'undefined' || author === 'null') return '??';
+  const names = author.trim().split(' ');
+  return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : author.substring(0, 2).toUpperCase();
 };
 
-// Función para obtener el nombre del autor
 const getAuthorName = (author: string): string => {
-  if (!author || author === 'undefined' || author === 'null') {
-    return newsUser.value ? `${newsUser.value.firstName} ${newsUser.value.lastName}` : 'Administrador';
-  }
+  if (!author || author === 'undefined' || author === 'null') return 'Autor desconocido';
   return author;
 };
 
+const resetForm = () => {
+  title.value = '';
+  content.value = '';
+  isEditing.value = false;
+  editingNewsId.value = null;
+};
+
+const scrollToForm = () => {
+  const formElement = document.getElementById('news-form');
+  if (formElement) {
+    formElement.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 </script>
+
 
 <template>
   <div class="max-w-4xl mx-auto p-4">
