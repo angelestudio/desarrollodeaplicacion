@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import jwt_decode from 'jwt-decode'
-import axios from 'axios'
 import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
 import News from '@/components/molecules/News.vue'
 import { useClubsStore } from '@/stores/clubsStore'
@@ -22,30 +21,26 @@ interface JwtPayload {
 const themeStore = useThemeStore()
 const isDarkMode = computed(() => themeStore.theme === 'dark')
 
-// Configuración de axios
-const token = localStorage.getItem('token') || ''
-if (token) {
-  axios.defaults.baseURL = import.meta.env.VITE_API_URL
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-}
-
-// Cargas de store
+// Pinia stores
 const clubsStore = useClubsStore()
 const loginStore = useLoginStore()
 
-// Modal y modelo de nuevo club
+// Modal state
 const showModal = ref(false)
 const newClub = ref({ name: '', description: '' })
 
-// JWT payload
+// Decode JWT on load
 let payload: JwtPayload | null = null
-try {
-  if (token) payload = jwt_decode<JwtPayload>(token)
-} catch {
-  console.warn('Token inválido o expirado')
+const token = localStorage.getItem('token')
+if (token) {
+  try {
+    payload = jwt_decode<JwtPayload>(token)
+  } catch {
+    console.warn('Token inválido o expirado')
+  }
 }
 
-// On mounted: fetch y setUser
+// On mount: fetch clubs and hydrate loginStore.user
 onMounted(async () => {
   await clubsStore.fetchClubs()
   if (payload) {
@@ -59,10 +54,9 @@ onMounted(async () => {
   }
 })
 
-// Computeds
-const isAdmin = computed(() => payload?.rol === 'admin')
+// Computed props
+const isAdmin = computed(() => loginStore.user?.role === 'admin')
 const userClubs = computed(() => loginStore.user?.clubs || [])
-// Ahora Sports salen del store
 const sports = computed(() =>
   clubsStore.clubs.map(c => ({
     _id: c._id,
@@ -71,14 +65,16 @@ const sports = computed(() =>
   }))
 )
 
-// Funciones modal
-function openModal() { showModal.value = true }
+// Modal controls
+function openModal() {
+  showModal.value = true
+}
 function closeModal() {
   showModal.value = false
   newClub.value = { name: '', description: '' }
 }
 
-// Crear club
+// Create club
 async function submitClub() {
   if (!newClub.value.name || !newClub.value.description) return
   await clubsStore.createClub({
@@ -88,36 +84,38 @@ async function submitClub() {
   closeModal()
 }
 
-// Eliminar club (admin)
-const onDeleteClub = async (id: string) => {
+// Delete club
+async function onDeleteClub(id: string) {
   if (confirm('¿Estás seguro de eliminar este club?')) {
     await clubsStore.deleteClub(id)
   }
 }
 
-// Unirse / Salir
-async function joinClub(clubName: string) {
+// Join / Leave
+async function joinClub(clubId: string) {
   try {
-    await loginStore.joinClub(clubName)
+    await loginStore.joinClub(clubId)
   } catch {
     alert('Error al unirte al club')
   }
 }
-async function leaveClub(clubName: string) {
+async function leaveClub(clubId: string) {
   try {
-    await loginStore.leaveClub(clubName)
+    await loginStore.leaveClub(clubId)
   } catch {
     alert('Error al salir del club')
   }
 }
-function hasJoined(clubName: string): boolean {
-  return loginStore.user?.clubs.includes(clubName) ?? false
+function hasJoined(clubId: string): boolean {
+  return loginStore.user?.clubs.includes(clubId) ?? false
 }
 
-// Ajustes UI
+// Prevent body scroll when modal open
 watch(showModal, open => {
   document.body.classList.toggle('modal-open', open)
 })
+
+// Logout
 function logout() {
   loginStore.logout()
   window.location.href = '/login'
@@ -136,9 +134,7 @@ function logout() {
         class="p-6 rounded-xl shadow-lg w-full max-w-md relative border"
         :class="isDarkMode ? 'bg-gray-900 border-green-700' : 'bg-white border-green-400'"
       >
-        <button @click="closeModal" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">
-          ×
-        </button>
+        <button @click="closeModal" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">×</button>
         <h3 class="text-xl mb-4 font-semibold text-green-500">Crear nuevo club</h3>
         <form @submit.prevent="submitClub">
           <div class="mb-3">
@@ -160,7 +156,10 @@ function logout() {
               :class="isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-gray-100 text-black border-gray-300'"
             ></textarea>
           </div>
-          <button type="submit" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white transition duration-300">
+          <button
+            type="submit"
+            class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white transition duration-300"
+          >
             Crear Club
           </button>
         </form>
@@ -180,7 +179,7 @@ function logout() {
     >
       <h2 class="text-2xl font-bold mb-6 text-green-500">SELECT YOUR FAVORITES</h2>
 
-      <!-- Sección Sports dinámica -->
+      <!-- Sección Clubs -->
       <section class="mb-8">
         <h3 class="text-xl font-semibold mb-4 text-green-400">Clubs</h3>
         <div class="space-y-4">
@@ -192,7 +191,7 @@ function logout() {
           >
             <div>
               <router-link
-                :to="{ name: 'UserPosts', query: { club: item.name } }"
+                :to="{ name: 'UserPosts', query: { club: item._id } }"
                 class="font-semibold text-green-400 hover:underline"
               >
                 {{ item.name }}
@@ -203,15 +202,15 @@ function logout() {
             </div>
             <div class="flex items-center space-x-2">
               <button
-                v-if="!hasJoined(item.name)"
-                @click="joinClub(item.name)"
+                v-if="!hasJoined(item._id)"
+                @click="joinClub(item._id)"
                 class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 text-white transition duration-300"
               >
                 Join
               </button>
               <button
                 v-else
-                @click="leaveClub(item.name)"
+                @click="leaveClub(item._id)"
                 class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 text-white transition duration-300"
               >
                 Leave
@@ -233,19 +232,19 @@ function logout() {
         <h3 class="text-xl font-semibold mb-4 text-green-400">Mis Clubs</h3>
         <div class="space-y-4">
           <div
-            v-for="club in userClubs"
-            :key="club"
+            v-for="clubId in userClubs"
+            :key="clubId"
             class="p-4 rounded flex justify-between items-center border"
             :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
           >
             <router-link
-              :to="{ name: 'UserPosts', query: { club } }"
+              :to="{ name: 'UserPosts', query: { club: clubId } }"
               class="text-lg font-semibold text-green-400 hover:underline"
             >
-              {{ club }}
+              {{ clubsStore.clubs.find(c => c._id === clubId)?.name || clubId }}
             </router-link>
             <button
-              @click="leaveClub(club)"
+              @click="leaveClub(clubId)"
               class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 text-white transition duration-300"
             >
               Leave
@@ -263,7 +262,7 @@ function logout() {
       <News />
     </aside>
 
-    <!-- Botón para admins -->
+    <!-- Botones flotantes -->
     <button
       v-if="isAdmin"
       @click="openModal"
@@ -271,8 +270,6 @@ function logout() {
     >
       Crear Club
     </button>
-
-    <!-- Botón cerrar sesión -->
     <button
       @click="logout"
       class="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300"

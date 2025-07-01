@@ -1,36 +1,73 @@
-import axios from 'axios';
+import axios from 'axios'
+import jwt_decode from 'jwt-decode'
 
-const API_URL = import.meta.env.VITE_API_URL.replace(/\/$/, '');
+const API_URL = import.meta.env.VITE_API_URL.replace(/\/$/, '')
 
-export const registerUser = async (userData: any) => {
-  const response = await axios.post(`${API_URL}/usuarios`, userData);
-  return response.data;
-};
+// Creamos un cliente dedicado para todas las llamadas
+export const apiClient = axios.create({
+  baseURL: API_URL,
+})
 
-export const loginUser = async (loginData: any) => {
-  const response = await axios.post(`${API_URL}/auth/login`, loginData);
-  return response.data;
-};
+// Interceptor que inyecta siempre el token en minúsculas
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers = config.headers ?? {}
+    config.headers['authorization'] = `Bearer ${token}`
+  }
+  return config
+})
 
-export const updatePassword = async (data: { userId: string; password: string }) => {
-  const response = await axios.put(
-    `${API_URL}/usuarios/${data.userId}/password`,
-    { password: data.password }
-  );
-  return response.data;
-};
+interface JwtPayload {
+  sub: string
+  iat: number
+  exp: number
+}
 
-export const joinClubApi = async (userId: string, club: string) => {
-  const response = await axios.patch(
-    `${API_URL}/auth/${userId}/clubs`,
-    { club }
-  );
-  return response.data; // { token, clubs }
-};
+// Helper para extraer el userId del JWT
+function getUserIdFromToken(): string {
+  const token = localStorage.getItem('token')
+  if (!token) throw new Error('No hay token en localStorage')
+  const { sub } = jwt_decode<JwtPayload>(token)
+  return sub
+}
 
-export const leaveClubApi = async (userId: string, club: string) => {
-  const response = await axios.delete(
-    `${API_URL}/auth/${userId}/clubs/${encodeURIComponent(club)}`
-  );
-  return response.data; // { token, clubs }
-};
+// 1) Registro de usuario
+export async function registerUser(userData: any) {
+  const res = await apiClient.post('/usuarios', userData)
+  return res.data
+}
+
+// 2) Login
+export async function loginUser(loginData: any) {
+  const res = await apiClient.post('/auth/login', loginData)
+  return res.data
+}
+
+// 3) Actualizar contraseña
+export async function updatePassword(params: { userId: string; password: string }) {
+  const res = await apiClient.put(`/usuarios/${params.userId}/password`, {
+    password: params.password,
+  })
+  return res.data
+}
+
+// 4) Unirse a un club
+export async function joinClubApi(clubId: string) {
+  const userId = getUserIdFromToken()
+  const res = await apiClient.patch(
+    `/auth/${userId}/clubs`,
+    { club: clubId } // el backend espera “club” en el body
+  )
+  return res.data as { token: string; clubs: string[] }
+}
+
+// 5) Salir de un club
+export async function leaveClubApi(clubId: string) {
+  const userId = getUserIdFromToken()
+  const res = await apiClient.delete(
+    `/auth/${userId}/clubs`,
+    { data: { club: clubId } } // DELETE con body { club }
+  )
+  return res.data as { token: string; clubs: string[] }
+}

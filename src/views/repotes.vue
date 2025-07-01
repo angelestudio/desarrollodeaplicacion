@@ -10,7 +10,21 @@
       </router-link>
     </div>
 
-    <h1 class="text-3xl font-bold mb-6 text-green-900">Reporte del Sistema</h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold mb-6 text-green-900">Reporte del Sistema</h1>
+      <button
+        @click="exportarAPDF"
+        class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow mb-6"
+      >
+        📄 Exportar a PDF
+      </button>
+    </div>
+
+    <!-- Gráfico de barras -->
+    <section class="mb-10 bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-semibold text-green-800 mb-4">Posts por Club</h2>
+      <canvas id="graficoPostsPorClub"></canvas>
+    </section>
 
     <!-- Usuarios -->
     <section class="mb-10">
@@ -62,8 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import axios from 'axios'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import Chart from 'chart.js/auto'
 
 // --- Tipos para los datos del reporte ---
 interface Usuario {
@@ -99,21 +116,119 @@ interface Reporte {
   posts: Post[]
 }
 
-// --- Variable reactiva con el tipo correcto ---
-const reporte = ref<Reporte>({
-  usuarios: [],
-  posts: [],
-})
+const reporte = ref<Reporte>({ usuarios: [], posts: [] })
 
-// --- Cargar los datos al montar la vista ---
+// Genera el gráfico de barras: Posts por Club
+function generarGrafico() {
+  const conteo: Record<string, number> = {}
+  reporte.value.posts.forEach(p => {
+    conteo[p.club] = (conteo[p.club] || 0) + 1
+  })
+  const labels = Object.keys(conteo)
+  const data = Object.values(conteo)
+
+  const ctx = document.getElementById('graficoPostsPorClub') as HTMLCanvasElement
+  if (!ctx) return
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Cantidad de Posts',
+        data,
+        backgroundColor: 'rgba(34,197,94,0.6)',
+        borderColor: 'rgba(22,163,74,1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } }
+    }
+  })
+}
+
 onMounted(async () => {
   try {
     const res = await axios.get<Reporte>('http://localhost:3000/report')
     reporte.value = res.data
+    await nextTick()
+    generarGrafico()
   } catch (err) {
     console.error('Error al cargar el reporte:', err)
   }
 })
+
+function exportarAPDF() {
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' })
+  const pw = doc.internal.pageSize.getWidth()
+  let y = 40
+
+  // Título
+  doc.setFontSize(18)
+  doc.text('Reporte del Sistema', pw / 2, y, { align: 'center' })
+  y += 30
+
+  // Usuarios
+  doc.setFontSize(14)
+  doc.text('Usuarios', 40, y)
+  y += 10
+  autoTable(doc, {
+    startY: y,
+    head: [['Nombre','Correo','Rol','Clubs']],
+    body: reporte.value.usuarios.map(u => [
+      `${u.firstName} ${u.lastName}`, u.email, u.role, u.clubs.join(', ') || '-'
+    ]),
+    theme: 'striped',
+    headStyles: { fillColor: [34,197,94] },
+    margin: { left: 40, right: 40 },
+    styles: { fontSize: 10 },
+    didDrawPage: (data: any) => { y = data.cursor.y + 20 }
+  })
+
+  // Posts
+  doc.setFontSize(14)
+  doc.text('Posts', 40, y)
+  y += 10
+  for (const post of reporte.value.posts) {
+    if (y > doc.internal.pageSize.getHeight() - 100) {
+      doc.addPage()
+      y = 40
+    }
+    doc.setFontSize(12)
+    doc.text(`• ${post.title}`, 50, y); y += 16
+    doc.setFontSize(10)
+    const split = doc.splitTextToSize(post.content, pw - 100)
+    doc.text(split, 60, y); y += split.length * 12 + 4
+    doc.text(`Club: ${post.club} | Likes: ${post.likesCount}`, 60, y); y += 16
+
+    if (post.comentarios.length) {
+      doc.setFont('helvetica','italic')
+      doc.text('Comentarios:', 60, y)
+      doc.setFont('helvetica','normal')
+      y += 14
+      for (const c of post.comentarios) {
+        if (y > doc.internal.pageSize.getHeight() - 60) {
+          doc.addPage(); y = 40
+        }
+        const line = `${c.username}: ${c.content}`
+        const sl = doc.splitTextToSize(line, pw - 120)
+        doc.text(sl, 70, y)
+        y += sl.length * 12 + 4
+      }
+    } else {
+      doc.setFontSize(10)
+      doc.setTextColor(120)
+      doc.text('Sin comentarios', 60, y)
+      doc.setTextColor(0)
+      y += 16
+    }
+    y += 10
+  }
+
+  doc.save('reporte-del-sistema.pdf')
+}
 </script>
 
 <style scoped>
