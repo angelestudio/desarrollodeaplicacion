@@ -10,7 +10,7 @@ const isDarkMode = computed(() => themeStore.theme === 'dark');
 const currentUser = ref<any>(null);
 
 // Estado para Posts
-const posts = ref<Array<{ content: string, userId?: string, saved?: boolean }>>([]);
+const posts = ref<Array<{ _id?: string; title?: string; content: string; user?: string; club?: string; likesCount?: number; commentsCount?: number; saved?: boolean }>>([]);
 
 // Estado para número de posts y guardados
 const userPostsCount = ref(0);
@@ -98,6 +98,13 @@ function clearPersistentNotifications() {
   localStorage.removeItem(LS_NOTIFICATIONS_KEY);
 }
 
+// Cambia el filtro aquí: usamos "user" como campo, no "userId"
+const ownPosts = computed(() => {
+  if (!currentUser.value) return [];
+  // El campo correcto es "user"
+  return posts.value.filter(post => post.user === currentUser.value.sub);
+});
+
 async function fetchUserData() {
   try {
     const token = localStorage.getItem('token');
@@ -108,9 +115,13 @@ async function fetchUserData() {
     });
     if (postsRes.ok) {
       const postsData = await postsRes.json();
-      posts.value = Array.isArray(postsData?.data) ? postsData.data : [];
-      userPostsCount.value = posts.value.length;
+      posts.value = Array.isArray(postsData?.data) ? postsData.data : Array.isArray(postsData) ? postsData : [];
+      userPostsCount.value = ownPosts.value.length;
       userSavedCount.value = posts.value.filter(p => p.saved).length;
+      // Logs para depurar
+      console.log("posts.value:", posts.value);
+      console.log("currentUser.value:", currentUser.value);
+      console.log("ownPosts.value:", ownPosts.value);
     } else {
       posts.value = [];
       userPostsCount.value = 0;
@@ -118,16 +129,14 @@ async function fetchUserData() {
     }
     // Obtener perfil/about
     const userRes = await fetch(`http://localhost:3000/usuarios/${currentUser.value.sub}`, {
-  headers: { Authorization: `Bearer ${token}` }
-});
-if (userRes.ok) {
-  const userData = await userRes.json();
-  // Verifica la estructura aquí:
-  console.log(userData); // <-- ¿Ves el campo "about"?
-  userAbout.value = userData.about || '';
-  aboutMeDraft.value = userAbout.value;
-}
-     else {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      userAbout.value = userData.about || '';
+      aboutMeDraft.value = userAbout.value;
+    }
+    else {
       userAbout.value = '';
       aboutMeDraft.value = '';
     }
@@ -423,18 +432,30 @@ onMounted(async () => {
       <router-view>
         <!-- Posts -->
         <template v-if="$route.path === '/Profile/posts'">
-          <div v-if="posts.length === 0" class="text-center py-6 mt-4" :class="isDarkMode ? 'text-gray-500' : 'text-gray-600'">No hay posts disponibles</div>
-          <div v-for="(post, index) in posts" :key="index" class="p-4 border rounded-lg mx-4 mb-4 mt-4" :class="isDarkMode ? 'border-gray-800' : 'border-gray-300'">
-            <div class="flex items-start mb-3">
-              <img src="@/assets/images/user.jpg" alt="User" class="w-8 h-8 rounded-full" />
-              <div class="ml-2">
-                <p class="text-sm font-medium">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
-                <p class="text-xs" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Hace un momento</p>
-              </div>
+          <div v-if="ownPosts.length === 0" class="text-center py-6 mt-4" :class="isDarkMode ? 'text-gray-500' : 'text-gray-600'">
+            No hay posts disponibles
+          </div>
+          <div
+            v-for="post in ownPosts"
+            :key="post._id"
+            class="bg-gray-900 border border-gray-700 rounded-lg p-5 mb-5 mx-4"
+            style="color: #fff"
+          >
+            <h2 class="text-2xl font-bold mb-2" style="color: #39FF14">{{ post.title }}</h2>
+            <p class="mb-2">{{ post.content }}</p>
+            <div class="mb-2">
+              <span>Club: {{ post.club || 'Sin club' }}</span>
+              <span class="ml-4">👍 {{ post.likesCount || 0 }}</span>
+              <span class="ml-4">📝 {{ post.commentsCount || 0 }} Comentarios</span>
             </div>
-            <p class="text-sm" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ post.content }}</p>
+            <div class="flex gap-2">
+              <button class="bg-blue-700 px-3 py-1 rounded text-white text-xs">Like</button>
+              <button class="bg-purple-700 px-3 py-1 rounded text-white text-xs">Comentarios</button>
+              <button class="bg-red-700 px-3 py-1 rounded text-white text-xs ml-auto">Delete</button>
+            </div>
           </div>
         </template>
+        <!-- Notificaciones -->
         <!-- Notificaciones -->
         <template v-if="$route.path === '/Profile/notifications'">
           <div v-if="!currentUser" class="mx-4 my-4 p-4 border rounded-lg text-center" :class="isDarkMode ? 'border-red-700 bg-red-900 text-white' : 'border-red-400 bg-red-100 text-red-800'">
