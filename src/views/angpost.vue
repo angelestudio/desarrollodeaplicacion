@@ -124,9 +124,9 @@ function logout() {
 
 <template>
   <div
-    class="min-h-screen overflow-y-auto flex relative"
+    class="h-screen w-screen overflow-hidden flex"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
-  >
+  > 
     <!-- Modal Crear Club -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
     <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center">
@@ -166,15 +166,15 @@ function logout() {
       </div>
     </div>
 
-    <!-- Sidebar izquierda -->
+    <!-- Sidebar izquierda - Ancho fijo similar a la imagen -->
     <Sidebarizquierda
-      class="w-1/5 flex flex-col border-r"
+      class="w-56 flex-shrink-0 flex flex-col border-r h-full"
       :class="isDarkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200'"
     />
 
-    <!-- Contenido principal -->
+    <!-- Contenido principal - Ocupa el espacio central -->
     <main
-      class="w-3/5 flex flex-col p-4 overflow-y-auto border-r"
+      class="flex-1 flex flex-col p-4 overflow-y-auto border-r h-full"
       :class="isDarkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200'"
     >
       <h2 class="text-2xl font-bold mb-6 text-green-500">SELECT YOUR FAVORITES</h2>
@@ -189,36 +189,36 @@ function logout() {
             class="p-4 rounded flex justify-between items-center border"
             :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
           >
-            <div>
+            <div class="flex-1 min-w-0">
               <router-link
                 :to="{ name: 'UserPosts', query: { club: item._id } }"
-                class="font-semibold text-green-400 hover:underline"
+                class="font-semibold text-green-400 hover:underline block truncate"
               >
                 {{ item.name }}
               </router-link>
-              <p :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" class="text-sm">
+              <p :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" class="text-sm line-clamp-2">
                 {{ item.description }}
               </p>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 flex-shrink-0 ml-4">
               <button
                 v-if="!hasJoined(item._id)"
                 @click="joinClub(item._id)"
-                class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 text-white transition duration-300"
+                class="bg-green-600 px-3 py-1.5 rounded hover:bg-green-700 text-white transition duration-300 text-sm"
               >
                 Join
               </button>
               <button
                 v-else
                 @click="leaveClub(item._id)"
-                class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 text-white transition duration-300"
+                class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm"
               >
                 Leave
               </button>
               <button
                 v-if="isAdmin"
                 @click="onDeleteClub(item._id)"
-                class="bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-sm text-white transition duration-300"
+                class="bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-xs text-white transition duration-300"
               >
                 Eliminar
               </button>
@@ -239,13 +239,13 @@ function logout() {
           >
             <router-link
               :to="{ name: 'UserPosts', query: { club: clubId } }"
-              class="text-lg font-semibold text-green-400 hover:underline"
+              class="text-lg font-semibold text-green-400 hover:underline flex-1 min-w-0 truncate"
             >
               {{ clubsStore.clubs.find(c => c._id === clubId)?.name || clubId }}
             </router-link>
             <button
               @click="leaveClub(clubId)"
-              class="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 text-white transition duration-300"
+              class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm flex-shrink-0 ml-4"
             >
               Leave
             </button>
@@ -254,9 +254,9 @@ function logout() {
       </section>
     </main>
 
-    <!-- Sidebar derecha -->
+    <!-- Sidebar derecha - Ancho fijo similar a la imagen -->
     <aside
-      class="w-[295px] flex-shrink-0 border-l p-0 relative"
+      class="w-80 flex-shrink-0 border-l p-0 relative h-full overflow-hidden"
       :class="isDarkMode ? 'bg-black border-gray-900' : 'bg-white border-gray-200'"
     >
       <News />
@@ -266,13 +266,13 @@ function logout() {
     <button
       v-if="isAdmin"
       @click="openModal"
-      class="absolute bottom-20 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300"
+      class="fixed bottom-20 right-6 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300 z-30"
     >
       Crear Club
     </button>
     <button
       @click="logout"
-      class="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300"
+      class="fixed bottom-6 right-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300 z-30"
     >
       Cerrar sesión
     </button>
@@ -280,5 +280,14 @@ function logout() {
 </template>
 
 <style scoped>
-.modal-open { overflow: hidden; }
+.modal-open { 
+  overflow: hidden; 
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>

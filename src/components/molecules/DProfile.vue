@@ -505,6 +505,7 @@ onMounted(async () => {
                     required
                   />
                 </div>
+                
                 <div class="mb-3">
                   <textarea
                     v-model="editingNotification.content"

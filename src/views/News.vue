@@ -4,43 +4,35 @@ import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload as UserJwtPayload } from '@/composables/useAuth';
 import { useThemeStore } from '@/stores/theme';
 
-
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.theme === 'dark');
 
-// NEWS 
-
 interface NewsItem {
-  _id?: string
-  title: string
-  content: string
-  createdAt?: string
-  author?: string 
+  _id?: string;
+  title: string;
+  content: string;
+  author?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Reactive state
 const title = ref('');
 const content = ref('');
 const newsItems = ref<NewsItem[]>([]);
 const notificationMessage = ref('');
 const notificationType = ref<'success' | 'error'>('success');
 const showNotification = ref(false);
-const newsUser = ref<JwtPayload | null>(getUserFromToken()); // Cambiado de currentUser a newsUser
+const newsUser = ref<UserJwtPayload | null>(getUserFromToken());
 const isLoading = ref(false);
 const isEditing = ref(false);
-
-// Variables para la edición
 const editingNewsId = ref<string | null>(null);
 
-// API base URL
 const API_URL = 'http://localhost:3000/news';
 
-// Fetch existing news when component mounts
 onMounted(async () => {
   await fetchNews();
 });
 
-// Function to get authorization headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -49,16 +41,11 @@ const getAuthHeaders = () => {
   };
 };
 
-// Function to fetch all news from the API
 const fetchNews = async () => {
   try {
     isLoading.value = true;
     const response = await fetch(API_URL);
-    
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-    
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
     const data = await response.json();
     newsItems.value = data;
   } catch (error) {
@@ -69,34 +56,28 @@ const fetchNews = async () => {
   }
 };
 
-// Function to publish a new news item
 const publishNews = async () => {
-  // Verificar si el usuario está autenticado
   if (!newsUser.value) {
     displayNotification('Debes iniciar sesión para publicar noticias', 'error');
     return;
   }
 
-  // Verificar si el usuario tiene rol de admin
   if (newsUser.value.rol !== 'admin') {
     displayNotification('Solo los administradores pueden publicar noticias', 'error');
     return;
   }
 
-  // Validate inputs
   if (!title.value.trim() || !content.value.trim()) {
     displayNotification('Por favor, completa tanto el título como el contenido de la noticia.', 'error');
     return;
   }
 
-  // Validar que no sean solo números
   const onlyNumbersRegex = /^\d+$/;
   if (onlyNumbersRegex.test(title.value.trim()) || onlyNumbersRegex.test(content.value.trim())) {
     displayNotification('El título y el contenido no pueden ser solo números.', 'error');
     return;
   }
 
-  // Validar que el título tenga más de 2 caracteres y el contenido más de 10
   if (title.value.trim().length < 3) {
     displayNotification('El título debe tener más de 2 caracteres.', 'error');
     return;
@@ -109,124 +90,174 @@ const publishNews = async () => {
 
   try {
     isLoading.value = true;
-    
-    // Si estamos editando, enviamos una petición PUT, de lo contrario POST
+
     if (isEditing.value && editingNewsId.value) {
       await updateNews();
     } else {
-      // Create news item object
       const newNewsItem: NewsItem = {
         title: title.value.trim(),
         content: content.value.trim(),
-        author: `${newsUser.value.firstName} ${newsUser.value.lastName}` // Cambiado a newsUser
+        author: `${newsUser.value.firstName} ${newsUser.value.lastName}`
       };
-      
-      // Send to API with auth token
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newNewsItem),
       });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
         }
         throw new Error(`Error: ${response.status}`);
       }
-      
-      // Get the response which contains message and newsId
+
       const result = await response.json();
-      
-      // Show success message
       displayNotification('Noticia publicada con éxito!', 'success');
     }
-    
-    // Refetch the news to get the latest data including the new item
+
     await fetchNews();
-    
-    // Clear form and reset editing state
     resetForm();
-    
+
   } catch (error) {
     console.error('Error publishing/updating news:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al publicar la noticia. Inténtalo de nuevo.';
     displayNotification(errorMessage, 'error');
-    
-    // Si la sesión expiró, refrescamos el usuario
     if (errorMessage.includes('Sesión expirada')) {
-      newsUser.value = getUserFromToken(); // Cambiado a newsUser
+      newsUser.value = getUserFromToken();
     }
   } finally {
     isLoading.value = false;
   }
 };
 
-// Function to start editing a news item
 const editNews = (item: NewsItem) => {
   if (!item._id) {
     displayNotification('ID de noticia no válido', 'error');
     return;
   }
-  
-  // Set editing state
   isEditing.value = true;
   editingNewsId.value = item._id;
-  
-  // Fill form with news data
   title.value = item.title;
   content.value = item.content;
-  
-  // Scroll to the form
   scrollToForm();
 };
 
-// Function to cancel editing
 const cancelEdit = () => {
   resetForm();
   displayNotification('Edición cancelada', 'success');
 };
 
-// Function to update an existing news item
 const updateNews = async () => {
   if (!editingNewsId.value) return;
-  
   try {
-    // Create updated news item object
     const updatedNewsItem: NewsItem = {
       title: title.value.trim(),
       content: content.value.trim(),
     };
-    
-    // Send PUT request to API
+
     const response = await fetch(`${API_URL}/${editingNewsId.value}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updatedNewsItem),
     });
-    
+
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-      }
+      if (response.status === 401) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       throw new Error(`Error: ${response.status}`);
     }
-    
-    // Show success message
+
     displayNotification('Noticia actualizada con éxito!', 'success');
   } catch (error) {
     console.error('Error updating news:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la noticia. Inténtalo de nuevo.';
     displayNotification(errorMessage, 'error');
-    
-    // Si la sesión expiró, refrescamos el usuario
     if (errorMessage.includes('Sesión expirada')) {
       newsUser.value = getUserFromToken();
     }
   }
 };
 
-// Function to reset form and editing state
+const deleteNews = async (id?: string) => {
+  if (!newsUser.value) {
+    displayNotification('Debes iniciar sesión para eliminar noticias', 'error');
+    return;
+  }
+  if (newsUser.value.rol !== 'admin') {
+    displayNotification('Solo los administradores pueden eliminar noticias', 'error');
+    return;
+  }
+  if (!id) {
+    displayNotification('ID de noticia no válido', 'error');
+    return;
+  }
+  if (!confirm('¿Estás seguro de que quieres eliminar esta noticia?')) return;
+  try {
+    isLoading.value = true;
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      if (response.status === 401) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      else if (response.status === 403) throw new Error('No tienes permisos para eliminar esta noticia.');
+      throw new Error(`Error: ${response.status}`);
+    }
+    await fetchNews();
+    displayNotification('Noticia eliminada correctamente', 'success');
+  } catch (error) {
+    console.error('Error deleting news:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error al eliminar la noticia';
+    displayNotification(errorMessage, 'error');
+    if (errorMessage.includes('Sesión expirada')) {
+      newsUser.value = getUserFromToken();
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const displayNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  notificationMessage.value = message;
+  notificationType.value = type;
+  showNotification.value = true;
+  setTimeout(() => {
+    showNotification.value = false;
+  }, 3000);
+};
+
+const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    return dateString;
+  }
+};
+
+const canManageNews = (item: NewsItem): boolean => {
+  if (!newsUser.value) return false;
+  return newsUser.value.rol === 'admin';
+};
+
+const getAuthorInitials = (author: string): string => {
+  if (!author || author === 'undefined' || author === 'null') return '??';
+  const names = author.trim().split(' ');
+  return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : author.substring(0, 2).toUpperCase();
+};
+
+const getAuthorName = (author: string): string => {
+  if (!author || author === 'undefined' || author === 'null') return 'Autor desconocido';
+  return author;
+};
+
 const resetForm = () => {
   title.value = '';
   content.value = '';
@@ -234,238 +265,185 @@ const resetForm = () => {
   editingNewsId.value = null;
 };
 
-// Helper function to scroll to form
 const scrollToForm = () => {
   const formElement = document.getElementById('news-form');
   if (formElement) {
     formElement.scrollIntoView({ behavior: 'smooth' });
   }
 };
-
-// Function to delete a news item
-const deleteNews = async (id?: string) => {
-  // Verificar si el usuario está autenticado
-  if (!newsUser.value) {
-    displayNotification('Debes iniciar sesión para eliminar noticias', 'error');
-    return;
-  }
-
-  // Verificar si el usuario tiene rol de admin
-  if (newsUser.value.rol !== 'admin') {
-    displayNotification('Solo los administradores pueden eliminar noticias', 'error');
-    return;
-  }
-
-  if (!id) {
-    displayNotification('ID de noticia no válido', 'error');
-    return;
-  }
-
-  if (!confirm('¿Estás seguro de que quieres eliminar esta noticia?')) {
-    return;
-  }
-
-  try {
-    isLoading.value = true;
-    
-    // Send delete request con el ID correcto y el token de autorización
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders()
-    });
-    
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-      } else if (response.status === 403) {
-        throw new Error('No tienes permisos para eliminar esta noticia.');
-      }
-      throw new Error(`Error: ${response.status}`);
-    }
-    
-    // Si fue exitoso, actualizamos la lista de noticias
-    await fetchNews();
-    
-    displayNotification('Noticia eliminada correctamente', 'success');
-  } catch (error) {
-    console.error('Error deleting news:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Error al eliminar la noticia';
-    displayNotification(errorMessage, 'error');
-    
-    // Si la sesión expiró, refrescamos el usuario
-    if (errorMessage.includes('Sesión expirada')) {
-      newsUser.value = getUserFromToken(); // Cambiado a newsUser
-    }
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Function to display notification
-const displayNotification = (message: string, type: 'success' | 'error' = 'success') => {
-  notificationMessage.value = message;
-  notificationType.value = type;
-  showNotification.value = true;
-  
-  // Hide notification after 3 seconds
-  setTimeout(() => {
-    showNotification.value = false;
-  }, 3000);
-};
-
-// Format date for display
-const formatDate = (dateString: string): string => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-  } catch (e) {
-    return dateString;
-  }
-};
-
-// Comprobar si el usuario puede editar/eliminar una noticia (solo admin)
-const canManageNews = (item: NewsItem): boolean => {
-  if (!newsUser.value) return false;
-  
-  // Solo admin puede editar/eliminar noticias
-  return newsUser.value.rol === 'admin';
-};
-
 </script>
 
+
 <template>
-
-      <!-- Estado de autenticación -->
-      <div v-if="newsUser" class="p-2 mb-4 rounded text-xs" :class="isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'">
-        Conectado como: {{ newsUser.firstName }} {{ newsUser.lastName }} ({{ newsUser.rol }})
-      </div>
-
-      <!-- Notification -->
-      <div 
-        v-if="showNotification" 
-        class="fixed top-4 right-4 p-3 rounded-lg shadow-lg z-50 transition-all duration-300"
-        :class="notificationType === 'success' ? (isDarkMode ? 'bg-green-800 text-white' : 'bg-green-100 text-green-800') : (isDarkMode ? 'bg-red-800 text-white' : 'bg-red-100 text-red-800')"
-      >
-        {{ notificationMessage }}
-      </div>
-
-      <!-- News creation form -->
-      <div id="news-form" class="p-3 mb-4 rounded-lg border" :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300'">
-        <h3 class="text-green-500 font-medium text-sm mb-2">
-          {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
-        </h3>
-        
-        <div v-if="!newsUser" class="p-2 mb-3 rounded text-xs" :class="isDarkMode ? 'bg-red-800 text-white' : 'bg-red-100 text-red-800'">
-          Debes iniciar sesión para publicar noticias
+  <div class="max-w-4xl mx-auto p-4">
+    <!-- Estado de autenticación -->
+    <div v-if="newsUser" class="mb-6 p-3 rounded-lg shadow-sm" :class="isDarkMode ? 'bg-gray-900 text-white border border-gray-700' : 'bg-green-50 text-green-900 border border-green-200'">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+          {{ newsUser.firstName[0] }}{{ newsUser.lastName[0] }}
         </div>
-        
-        <div v-else-if="newsUser.rol !== 'admin'" class="p-2 mb-3 rounded text-xs" :class="isDarkMode ? 'bg-red-800 text-white' : 'bg-red-100 text-red-800'">
-          Solo los administradores pueden publicar noticias
+        <div>
+          <p class="font-medium text-sm">{{ newsUser.firstName }} {{ newsUser.lastName }}</p>
+          <p class="text-xs opacity-75">{{ newsUser.rol }}</p>
         </div>
-        
-        <div class="mb-3">
-          <label for="news-title" class="block text-xs mb-1" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Título:</label>
+      </div>
+    </div>
+
+    <!-- Notification -->
+    <div 
+      v-if="showNotification" 
+      class="fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 max-w-sm"
+      :class="notificationType === 'success' ? 'bg-green-600 text-white' : 'bg-black text-white'"
+    >
+      <div class="flex items-center space-x-2">
+        <span v-if="notificationType === 'success'">✓</span>
+        <span v-else>⚠</span>
+        <span class="text-sm">{{ notificationMessage }}</span>
+      </div>
+    </div>
+
+    <!-- News creation form -->
+    <div id="news-form" class="mb-8 p-6 rounded-xl shadow-lg" :class="isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'">
+      <h3 class="text-green-600 font-semibold text-lg mb-4 flex items-center">
+        <span class="mr-2">📝</span>
+        {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
+      </h3>
+      
+      <div v-if="!newsUser" class="p-3 mb-4 rounded-lg bg-black text-white text-sm">
+        <span class="font-medium">⚠️ Debes iniciar sesión para publicar noticias</span>
+      </div>
+      
+      <div v-else-if="newsUser.rol !== 'admin'" class="p-3 mb-4 rounded-lg bg-gray-800 text-white text-sm">
+        <span class="font-medium">🔒 Solo los administradores pueden publicar noticias</span>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label for="news-title" class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+            Título de la noticia
+          </label>
           <input
             type="text"
             id="news-title"
             v-model="title"
             :disabled="!newsUser || newsUser.rol !== 'admin'"
-            class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:opacity-50"
-            :class="isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-white border-gray-300 text-gray-900'"
-            placeholder="Título de la noticia"
+            class="w-full border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'"
+            placeholder="Escribe un título llamativo para tu noticia..."
           >
         </div>
         
-        <div class="mb-3">
-          <label for="news-content" class="block text-xs mb-1" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Contenido:</label>
+        <div>
+          <label for="news-content" class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+            Contenido de la noticia
+          </label>
           <textarea
             id="news-content"
             v-model="content"
             :disabled="!newsUser || newsUser.rol !== 'admin'"
-            class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 h-24 disabled:opacity-50"
-            :class="isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-white border-gray-300 text-gray-900'"
-            placeholder="Contenido de la noticia"
+            class="w-full border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 h-32 resize-none transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'"
+            placeholder="Escribe el contenido completo de tu noticia aquí..."
           ></textarea>
         </div>
-        
-        <div class="flex justify-end gap-2">
-          <button
-            v-if="isEditing"
-            @click="cancelEdit"
-            :disabled="isLoading"
-            class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
-          >
-            Cancelar
-          </button>
-          
-          <button
-            @click="publishNews"
-            :disabled="isLoading || !newsUser || newsUser.rol !== 'admin'"
-            class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
-          >
-            <span v-if="isLoading">{{ isEditing ? 'Actualizando...' : 'Publicando...' }}</span>
-            <span v-else>{{ isEditing ? 'Actualizar noticia' : 'Publicar noticia' }}</span>
-          </button>
-        </div>
       </div>
+      
+      <div class="flex justify-end gap-3 mt-6">
+        <button
+          v-if="isEditing"
+          @click="cancelEdit"
+          :disabled="isLoading"
+          class="px-6 py-2 text-sm font-medium rounded-lg transition duration-200 disabled:opacity-50"
+          :class="isDarkMode ? 'text-white bg-gray-700 hover:bg-gray-600' : 'text-black bg-gray-200 hover:bg-gray-300'"
+        >
+          Cancelar
+        </button>
+        
+        <button
+          @click="publishNews"
+          :disabled="isLoading || !newsUser || newsUser.rol !== 'admin'"
+          class="px-6 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 disabled:opacity-50 flex items-center space-x-2"
+        >
+          <span v-if="isLoading" class="animate-spin">⏳</span>
+          <span v-else>{{ isEditing ? '💾' : '📢' }}</span>
+          <span>{{ isLoading ? (isEditing ? 'Actualizando...' : 'Publicando...') : (isEditing ? 'Actualizar noticia' : 'Publicar noticia') }}</span>
+        </button>
+      </div>
+    </div>
 
-      <!-- News items display -->
-      <div id="news-items-container" class="overflow-y-auto max-h-96">
-        <div v-if="isLoading && newsItems.length === 0" class="text-center py-4" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
-          Cargando noticias...
-        </div>
-        
-        <div v-else-if="newsItems.length === 0" class="text-center py-4" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
-          No hay noticias disponibles.
-        </div>
-        
-        <div v-else v-for="item in newsItems" :key="item._id" class="p-3 mb-4 rounded" :class="isDarkMode ? 'bg-gray-200' : 'bg-gray-100'">
-          <div class="flex">
-            <div class="mr-3">
-              <div class="border border-black p-1 w-12 h-12 flex flex-col items-center justify-center">
-                <span class="text-xs font-bold text-black">NEWS</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
+    <!-- News items display -->
+    <div id="news-items-container" class="space-y-4">
+      <div v-if="isLoading && newsItems.length === 0" class="text-center py-12">
+        <div class="animate-spin text-4xl mb-4">⏳</div>
+        <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Cargando noticias...</p>
+      </div>
+      
+      <div v-else-if="newsItems.length === 0" class="text-center py-12">
+        <div class="text-6xl mb-4">📰</div>
+        <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">No hay noticias disponibles.</p>
+        <p class="text-sm mt-2" :class="isDarkMode ? 'text-gray-500' : 'text-gray-500'">¡Sé el primero en publicar una noticia!</p>
+      </div>
+      
+      <div v-else v-for="item in newsItems" :key="item._id" class="rounded-xl shadow-lg overflow-hidden transition-transform duration-200 hover:scale-[1.02]" :class="isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'">
+        <div class="p-6">
+          <!-- Header con autor -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                {{ getAuthorInitials(item.author || '') }}
+              </div>
+              <div>
+                <h4 class="font-semibold text-sm" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+                  {{ getAuthorName(item.author || '') }}
+                </h4>
+                <div class="flex items-center space-x-2">
+                  <span class="text-xs px-2 py-1 rounded-full bg-green-600 text-white font-medium">
+                    Administrador
+                  </span>
+                  <span v-if="item.createdAt" class="text-xs" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
+                    {{ formatDate(item.createdAt) }}
+                  </span>
+                </div>
               </div>
             </div>
-            <div class="flex-1">
-              <h3 class="text-black font-medium text-sm">{{ item.title }}</h3>
-              <p class="text-xs text-gray-600">{{ item.content }}</p>
-              <div class="flex justify-between items-center mt-1">
-                <p v-if="item.createdAt" class="text-xs text-gray-500">{{ formatDate(item.createdAt) }}</p>
-                <p v-if="item.author" class="text-xs text-gray-500">Por: {{ item.author }}</p>
-              </div>
-           <div class="flex justify-end mt-2 gap-2">
-          <button
-            v-if="canManageNews(item)"
-            @click="editNews(item)"
-            class="text-xs text-blue-600 hover:text-blue-800"
-          >
-            Editar
-          </button>
-          <button
-            v-if="canManageNews(item)"
-            @click="deleteNews(item._id)"
-            class="text-xs text-red-600 hover:text-red-800"
-          >
-            Eliminar
-          </button>
-        </div>
-            </div>
+          </div>
+          
+          <!-- Título de la noticia -->
+          <h3 class="text-xl font-bold mb-3 leading-tight" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+            {{ item.title }}
+          </h3>
+          
+          <!-- Contenido de la noticia -->
+          <p class="text-sm leading-relaxed mb-4" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
+            {{ item.content }}
+          </p>
+          
+          <!-- Mostrar si fue actualizada -->
+          <div v-if="item.updatedAt && item.updatedAt !== item.createdAt" class="text-xs mb-4 p-2 rounded-lg" :class="isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'">
+            ✏️ Actualizado el {{ formatDate(item.updatedAt) }}
+          </div>
+          
+          <!-- Botones de acción -->
+          <div v-if="canManageNews(item)" class="flex justify-end gap-3 pt-4 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+            <button
+              @click="editNews(item)"
+              class="flex items-center space-x-2 text-xs px-4 py-2 rounded-lg font-medium transition duration-200"
+              :class="isDarkMode ? 'bg-green-800 hover:bg-green-700 text-white' : 'bg-green-50 hover:bg-green-100 text-green-700'"
+            >
+              <span>✏️</span>
+              <span>Editar</span>
+            </button>
+            <button
+              @click="deleteNews(item._id)"
+              class="flex items-center space-x-2 text-xs px-4 py-2 rounded-lg font-medium transition duration-200"
+              :class="isDarkMode ? 'bg-gray-800 hover:bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'"
+            >
+              <span>🗑️</span>
+              <span>Eliminar</span>
+            </button>
           </div>
         </div>
       </div>
-
+    </div>
+  </div>
 </template>
-
-<style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-</style>
-
-

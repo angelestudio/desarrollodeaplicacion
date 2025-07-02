@@ -16,38 +16,31 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
         : 'bg-white text-green-700 border-gray-200'
     ]"
   >
-    <!-- Logo -->
-    <div class="px-4 pt-3 pb-6 flex items-center space-x-2">
-      <div
-        :class="[
-          'flex items-center justify-center border-2 rounded-full w-8 h-8',
-          isDarkMode ? 'border-green-500' : 'border-green-500'
-        ]"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
-          :class="isDarkMode ? 'text-green-500' : 'text-green-500'"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
-        </svg>
-      </div>
-      <span :class="isDarkMode ? 'text-green-400' : 'text-green-600 font-semibold text-base'">
-        SENACLUB
-      </span>
-    </div>
+   
+    
+<div class="px-4 pt-3 pb-6 flex items-center space-x-3">
+  <img
+    src="@/assets/logo-del-sena-01.png"
+    alt="Logo SENA"
+    class="w-10 h-10 object-contain"
+  />
+  <span
+    :class="isDarkMode ? 'text-green-400 text-lg' : 'text-green-600 font-semibold text-lg'"
+  >
+    SENACLUB
+  </span>
+</div>
 
-    <!-- Menú -->
+
+    <!-- Menú de navegación -->
     <nav class="flex-1 mt-[10px] md:mt-[24px] px-4">
       <div class="flex flex-col gap-6 md:gap-5">
         <router-link
           to="/home"
           class="block py-2 px-4 md:px-16 rounded-full text-center text-sm font-semibold border transition-colors duration-200"
           :class="isDarkMode
-            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'
-            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'"
+            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white'
+            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white'"
           active-class="!bg-[#21c25a] !text-white"
           exact
         >
@@ -58,8 +51,8 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
           to="/clubs"
           class="block py-2 px-4 md:px-6 rounded-full text-center text-sm font-semibold border transition-colors duration-200"
           :class="isDarkMode
-            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'
-            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'"
+            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white'
+            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white'"
           active-class="!bg-[#21c25a] !text-white"
         >
           Clubs
@@ -69,8 +62,8 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
           to="/Profile/notifications"
           class="block py-2 px-4 md:px-6 rounded-full text-center text-sm font-semibold border transition-colors duration-200"
           :class="isDarkMode
-            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'
-            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'"
+            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white'
+            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white'"
           active-class="!bg-[#21c25a] !text-white"
         >
           Notifications
@@ -80,8 +73,8 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
           to="/Profile"
           class="block py-2 px-4 md:px-6 rounded-full text-center text-sm font-semibold border transition-colors duration-200"
           :class="isDarkMode
-            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'
-            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'"
+            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white'
+            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white'"
           active-class="!bg-[#21c25a] !text-white"
         >
           Profile
@@ -91,20 +84,19 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
           to="/Profile/posts"
           class="block py-2 px-4 md:px-6 rounded-full text-center text-sm font-semibold border transition-colors duration-200"
           :class="isDarkMode
-            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'
-            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'"
+            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white'
+            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white'"
           active-class="!bg-[#21c25a] !text-white"
         >
           Posts
         </router-link>
 
-        <!-- ✅ NUEVO BOTÓN REPORTES -->
         <router-link
           to="/reportes"
           class="block py-2 px-4 md:px-6 rounded-full text-center text-sm font-semibold border transition-colors duration-200"
           :class="isDarkMode
-            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'
-            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white focus:bg-[#21c25a] focus:text-white'"
+            ? 'bg-black border-green-400 text-green-400 hover:bg-[#21c25a] hover:text-white'
+            : 'bg-white border-green-400 text-green-500 hover:bg-[#21c25a] hover:text-white'"
           active-class="!bg-[#21c25a] !text-white"
         >
           Reportes
@@ -112,7 +104,7 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
       </div>
     </nav>
 
-    <!-- Perfil abajo -->
+    <!-- Usuario abajo -->
     <div class="hidden md:flex p-6 items-center mt-auto">
       <img
         src="@/assets/images/user.jpg"
@@ -120,7 +112,9 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
         class="w-8 h-8 rounded-full border-2"
         :class="isDarkMode ? 'border-gray-700' : 'border-gray-300'"
       />
-      <span :class="isDarkMode ? 'ml-2 text-sm text-gray-200' : 'ml-2 text-sm text-gray-600'">
+      <span
+        :class="isDarkMode ? 'ml-2 text-sm text-gray-200' : 'ml-2 text-sm text-gray-600'"
+      >
         Usuario
       </span>
     </div>

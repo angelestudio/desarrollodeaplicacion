@@ -4,7 +4,7 @@
       <miImageAtom
         alt="Logo SENACLUB"
         class="w-8 h-8"
-        src="/src/assets/logo.png" 
+        src="/src/assets/logo-del-sena-01.png" 
       />
       <span class="font-bold text-white text-lg">SENACLUB</span>
     </div>
