@@ -1,9 +1,50 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/theme'
+import { getUserFromToken } from '@/composables/useAuth'
+import type { JwtPayload as UserJwtPayload } from '@/composables/useAuth'
 
 const themeStore = useThemeStore()
 const isDarkMode = computed(() => themeStore.theme === 'dark')
+const currentUser = ref<UserJwtPayload | null>(null)
+
+onMounted(() => {
+  currentUser.value = getUserFromToken()
+})
+
+const getUserDisplayName = (): string => {
+  if (!currentUser.value) return 'Usuario'
+  
+  const firstName = currentUser.value.firstName || ''
+  const lastName = currentUser.value.lastName || ''
+  
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`
+  } else if (firstName) {
+    return firstName
+  } else if (lastName) {
+    return lastName
+  }
+  
+  return 'Usuario'
+}
+
+const getUserInitials = (): string => {
+  if (!currentUser.value) return 'U'
+  
+  const firstName = currentUser.value.firstName || ''
+  const lastName = currentUser.value.lastName || ''
+  
+  if (firstName && lastName) {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase()
+  } else if (firstName) {
+    return firstName.substring(0, 2).toUpperCase()
+  } else if (lastName) {
+    return lastName.substring(0, 2).toUpperCase()
+  }
+  
+  return 'U'
+}
 </script>
 
 <template>
@@ -104,19 +145,33 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
       </div>
     </nav>
 
-    <!-- Usuario abajo -->
+    <!-- Usuario abajo con información del JWT -->
     <div class="hidden md:flex p-6 items-center mt-auto">
+      <!-- Avatar con iniciales si no hay imagen -->
+      <div v-if="currentUser" class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-semibold bg-green-600 text-white"
+           :class="isDarkMode ? 'border-gray-700' : 'border-gray-300'">
+        {{ getUserInitials() }}
+      </div>
       <img
+        v-else
         src="@/assets/images/user.jpg"
         alt="Avatar"
         class="w-8 h-8 rounded-full border-2"
         :class="isDarkMode ? 'border-gray-700' : 'border-gray-300'"
       />
-      <span
-        :class="isDarkMode ? 'ml-2 text-sm text-gray-200' : 'ml-2 text-sm text-gray-600'"
-      >
-        Usuario
-      </span>
+      
+      <div class="ml-2 flex flex-col">
+        <span
+          :class="isDarkMode ? 'text-sm text-gray-200 font-medium' : 'text-sm text-gray-600 font-medium'"
+        >
+          {{ getUserDisplayName() }}
+        </span>
+        <span v-if="currentUser && currentUser.rol"
+          :class="isDarkMode ? 'text-xs text-gray-400' : 'text-xs text-gray-500'"
+        >
+          {{ currentUser.rol }}
+        </span>
+      </div>
     </div>
   </aside>
 </template>
