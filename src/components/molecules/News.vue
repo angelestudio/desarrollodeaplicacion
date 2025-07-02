@@ -371,8 +371,8 @@ const scrollToForm = () => {
       </div>
     </div>
 
-    <!-- News items display -->
-    <div id="news-items-container" class="space-y-4">
+    <!-- News items display with scroll -->
+    <div id="news-items-container" class="max-h-96 overflow-y-auto space-y-4 pr-2" :class="isDarkMode ? 'scrollbar-dark' : 'scrollbar-light'">
       <div v-if="isLoading && newsItems.length === 0" class="text-center py-12">
         <div class="animate-spin text-4xl mb-4">⏳</div>
         <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Cargando noticias...</p>
@@ -447,3 +447,53 @@ const scrollToForm = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Estilos personalizados para la barra de scroll */
+.scrollbar-light::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-light::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.scrollbar-light::-webkit-scrollbar-thumb {
+  background: #16a34a;
+  border-radius: 10px;
+}
+
+.scrollbar-light::-webkit-scrollbar-thumb:hover {
+  background: #15803d;
+}
+
+.scrollbar-dark::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-track {
+  background: #374151;
+  border-radius: 10px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb {
+  background: #16a34a;
+  border-radius: 10px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: #15803d;
+}
+
+/* Para Firefox */
+.scrollbar-light {
+  scrollbar-width: thin;
+  scrollbar-color: #16a34a #f1f1f1;
+}
+
+.scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: #16a34a #374151;
+}
+</style>

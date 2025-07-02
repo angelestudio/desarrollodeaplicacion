@@ -371,8 +371,8 @@ const scrollToForm = () => {
       </div>
     </div>
 
-    <!-- News items display -->
-    <div id="news-items-container" class="space-y-4">
+    <!-- News items display con SCROLL -->
+    <div id="news-items-container" class="space-y-4 max-h-96 overflow-y-auto pr-2">
       <div v-if="isLoading && newsItems.length === 0" class="text-center py-12">
         <div class="animate-spin text-4xl mb-4">⏳</div>
         <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Cargando noticias...</p>
@@ -447,3 +447,30 @@ const scrollToForm = () => {
     </div>
   </div>
 </template>
+
+<style>
+/* Scrollbar personalizada para el contenedor de noticias */
+#news-items-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#news-items-container::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+#news-items-container::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+#news-items-container::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Para Firefox */
+#news-items-container {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+</style>
