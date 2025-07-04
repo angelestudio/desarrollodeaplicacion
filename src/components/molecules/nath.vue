@@ -1,106 +1,133 @@
 <template>
-  <div class="flex h-screen">
-    <div class="w-1/2 flex flex-col justify-center items-center px-10" :class="theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'">
-      <div class="text-center w-3/4">
-        <div class="w-12 h-12 bg-green-700 rounded mb-6 mx-auto"></div>
-        <h2 class="text-2xl font-bold mb-6">Sign in to your account</h2>
-        <div class="mb-4 text-left">
-          <label for="email" class="block font-semibold mb-1">Email address</label>
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            placeholder="Enter your email"
-            class="w-full px-3 py-2 border rounded"
-            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
-          />
+  <div class="min-h-screen flex items-center justify-center p-4" :class="theme === 'light' ? 'bg-gradient-to-br from-gray-50 to-gray-100' : 'bg-gradient-to-br from-gray-900 to-black'">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10 animate-slideDown">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-green-600 mb-4 shadow-lg">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
         </div>
-        <div class="mb-6 text-left">
-          <label for="password" class="block font-semibold mb-1">Password</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            placeholder="Enter your password"
-            class="w-full px-3 py-2 border rounded"
-            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
-          />
-          <a href="#" class="text-green-700 text-sm block text-right mt-2" @click.prevent="showModal = true">
-            Forgot password?
-          </a>
-        </div>
-        <!-- Campo para código de admin -->
-        <div v-if="showAdminCodeField" class="mb-4 text-left">
-          <label for="adminCode" class="block font-semibold mb-1">Código de administrador</label>
-          <input
-            type="password"
-            id="adminCode"
-            v-model="adminCode"
-            placeholder="Ingresa el código de administrador"
-            class="w-full px-3 py-2 border rounded"
-            :class="theme === 'light' ? 'border-gray-300 bg-white text-black' : 'border-gray-600 bg-gray-800 text-white'"
-          />
-        </div>
-        <button
-          @click="loginUser"
-          class="w-full bg-green-700 hover:bg-indigo-600 text-white font-bold py-2 rounded"
-        >
-          Sign in
-        </button>
-        <p class="text-center mt-4" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
-          Not a member?
-          <router-link to="/signup" class="text-green-700 font-semibold">Start here</router-link>
+        <h2 class="text-3xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">
+          Iniciar Sesión
+        </h2>
+        <p :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'" class="mt-2">
+          Accede a tu cuenta
         </p>
       </div>
-    </div>
-    <div class="w-1/2 flex justify-center items-center" :class="theme === 'light' ? 'bg-gray-50' : 'bg-gray-100'">
-      <div class="w-3/4 h-3/4" :class="theme === 'light' ? 'bg-gray-200' : 'bg-gray-300'"></div>
-    </div>
-  </div>
-  <!-- Modal para olvidar contraseña -->
-  <div
-    v-if="showModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-    @click.self="showModal = false"
-  >
-    <div class="rounded-lg p-6 w-80 relative" :class="theme === 'light' ? 'bg-white' : 'bg-gray-800'">
-      <button
-        class="absolute top-2 right-3 hover:text-gray-900 text-2xl font-bold"
-        :class="theme === 'light' ? 'text-gray-600' : 'text-gray-300'"
-        @click="showModal = false"
-      >
-        &times;
-      </button>
-      <h3 class="text-xl font-semibold mb-4" :class="theme === 'light' ? 'text-black' : 'text-white'">Recuperar contraseña</h3>
-      <p class="mb-2" :class="theme === 'light' ? 'text-black' : 'text-white'">Ingresa tu correo electrónico:</p>
-      <input
-        type="email"
-        v-model="forgotEmail"
-        placeholder="Correo electrónico"
-        class="w-full border rounded px-3 py-2 mb-4"
-        :class="theme === 'light' ? 'border-gray-300 text-black bg-white' : 'border-gray-600 text-white bg-gray-700'"
-      />
-      <button
-        @click="sendRecoveryEmail"
-        class="w-full bg-green-700 hover:bg-green-600 text-white py-2 rounded"
-      >
-        Enviar
-      </button>
-    </div>
-  </div>
 
-  <!-- Toast message -->
-  <div
-    v-if="toastMessage"
-    :class="[
-      'fixed bottom-6 right-6 px-6 py-4 rounded-md shadow-xl text-white font-semibold z-50',
-      toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
-    ]"
-  >
-    <div class="flex items-center">
-      <span class="mr-2" v-if="toastType === 'success'">✅</span>
-      <span class="mr-2" v-else>❌</span>
-      {{ toastMessage }}
+      <div class="backdrop-blur-sm rounded-2xl shadow-2xl p-8 border animate-slideUp"
+           :class="theme === 'light' ? 'bg-white/95 border-gray-200' : 'bg-black/95 border-gray-700'">
+        <form @submit.prevent="loginUser" class="space-y-6">
+          <div class="mb-4 text-left">
+            <label for="email" class="block font-semibold mb-2" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              id="email"
+              v-model="email"
+              placeholder="Tu correo electrónico"
+              class="w-full px-4 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              :class="theme === 'light' ? 'border-gray-300 bg-white text-black hover:border-gray-400' : 'border-gray-600 bg-gray-800 text-white hover:border-gray-500'"
+            />
+          </div>
+          <div class="mb-6 text-left">
+            <label for="password" class="block font-semibold mb-2" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              id="password"
+              v-model="password"
+              placeholder="Tu contraseña"
+              class="w-full px-4 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              :class="theme === 'light' ? 'border-gray-300 bg-white text-black hover:border-gray-400' : 'border-gray-600 bg-gray-800 text-white hover:border-gray-500'"
+            />
+            
+          </div>
+
+          <div v-if="showAdminCodeField" class="mb-6 text-left animate-slideDown">
+            <label for="adminCode" class="block font-semibold mb-2" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
+              Código de Administrador
+            </label>
+            <input
+              type="password"
+              id="adminCode"
+              v-model="adminCode"
+              placeholder="Ingresa el código secreto"
+              class="w-full px-4 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              :class="theme === 'light' ? 'border-gray-300 bg-white text-black hover:border-gray-400' : 'border-gray-600 bg-gray-800 text-white hover:border-gray-500'"
+            />
+          </div>
+
+          <div class="pt-4">
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              <span class="flex items-center justify-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Iniciar Sesión
+              </span>
+            </button>
+          </div>
+
+          <p class="text-center mt-4 animate-fadeIn" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
+            ¿No eres miembro?
+            <router-link to="/signup" class="text-green-500 hover:text-green-600 font-semibold hover:underline ml-1 transition-colors duration-200">
+              Regístrate aquí
+            </router-link>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50"
+      @click.self="showModal = false"
+    >
+      <div class="relative rounded-2xl shadow-2xl w-full max-w-sm p-8 animate-scaleIn"
+           :class="theme === 'light' ? 'bg-white' : 'bg-gray-900'">
+        <button
+          class="absolute top-3 right-4 hover:text-gray-900 text-3xl font-bold transition-colors duration-200"
+          :class="theme === 'light' ? 'text-gray-600' : 'text-gray-300'"
+          @click="showModal = false"
+        >
+          &times;
+        </button>
+        <h3 class="text-2xl font-bold mb-4" :class="theme === 'light' ? 'text-gray-900' : 'text-white'">Recuperar Contraseña</h3>
+        <p class="mb-4" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">Ingresa tu correo electrónico para recibir un enlace de recuperación:</p>
+        <input
+          type="email"
+          v-model="forgotEmail"
+          placeholder="tu@email.com"
+          class="w-full border-2 rounded-xl px-4 py-3 mb-6 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          :class="theme === 'light' ? 'border-gray-300 text-black bg-white hover:border-gray-400' : 'border-gray-600 text-white bg-gray-700 hover:border-gray-500'"
+        />
+        <button
+          @click="sendRecoveryEmail"
+          class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+        >
+          Enviar Enlace
+        </button>
+      </div>
+    </div>
+
+    <div
+      v-if="toastMessage"
+      :class="[
+        'fixed bottom-6 right-6 px-6 py-4 rounded-md shadow-xl text-white font-semibold z-50',
+        toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
+      ]"
+    >
+      <div class="flex items-center">
+        <span class="mr-2" v-if="toastType === 'success'">✅</span>
+        <span class="mr-2" v-else>❌</span>
+        {{ toastMessage }}
+      </div>
     </div>
   </div>
 </template>
@@ -167,8 +194,8 @@ const loginUser = async () => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
     showToast('¡Inicio de sesión exitoso!', 'success')
-    setTimeout(() => { 
-      router.push('/home') 
+    setTimeout(() => {
+      router.push('/home')
     }, 1000)
 
   } catch (error: any) {
@@ -183,11 +210,79 @@ const sendRecoveryEmail = () => {
     showToast('Por favor ingresa un correo válido.', 'error')
     return
   }
-  showToast('Correo de recuperación enviado.', 'success')
+  // Aquí iría la lógica real para enviar el correo de recuperación
+  showToast('Correo de recuperación enviado. Revisa tu bandeja de entrada.', 'success')
   showModal.value = false
   forgotEmail.value = ''
 }
 </script>
+
 <style scoped>
-/* Estilos básicos sin transiciones complejas */
+/* Animaciones para una entrada más suave */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Estilos para hover y focus de inputs */
+input:hover {
+  @apply border-gray-400 dark:border-gray-500;
+}
+
+input:focus {
+  @apply ring-2 ring-green-500 border-green-500;
+}
 </style>
