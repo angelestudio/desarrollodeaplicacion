@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'h-screen w-screen overflow-hidden flex relative',
+      'min-h-screen overflow-y-auto flex relative',
       isDarkMode
         ? 'bg-black text-white'
         : 'bg-white text-green-700'
@@ -69,21 +69,15 @@
       </div>
     </div>
 
-    <!-- Sidebar izquierda - Ancho fijo -->
+    <!-- Sidebar -->
     <Sidebarizquierda
-      :class="[
-        'w-56 flex-shrink-0 border-r h-full',
-        isDarkMode
-          ? 'bg-black border-gray-800'
-          : 'bg-white border-gray-200'
-      ]"
+      :class="isDarkMode
+        ? 'w-full md:w-1/5 bg-black border-b md:border-b-0 md:border-r border-gray-800'
+        : 'w-full md:w-1/5 bg-white border-b md:border-b-0 md:border-r border-gray-200'"
     />
 
-    <!-- Contenido principal - Flex para ocupar espacio disponible -->
-    <main :class="[
-      'flex-1 p-4 overflow-y-auto h-full',
-      isDarkMode ? 'bg-black' : 'bg-white'
-    ]">
+    <!-- Contenido principal -->
+    <main :class="isDarkMode ? 'flex-1 bg-black p-4' : 'flex-1 bg-white p-4'">
       <div class="flex justify-between items-center mb-4">
         <h2 :class="isDarkMode ? 'text-2xl font-bold text-green-500' : 'text-2xl font-bold text-green-600'">Posts</h2>
         <button @click="onAddPost"
@@ -111,7 +105,7 @@
       </div>
 
       <!-- Listado de posts -->
-      <div v-if="filteredPosts.length" class="space-y-4">
+      <div v-if="filteredPosts.length">
         <div v-for="post in filteredPosts" :key="post._id"
              :class="isDarkMode
                ? 'bg-gray-900 p-4 rounded mb-4 border border-gray-700 relative'
@@ -199,22 +193,19 @@
       <p v-else :class="isDarkMode ? 'text-center text-gray-400' : 'text-center text-green-500'">No hay posts disponibles.</p>
     </main>
 
-    <!-- Sidebar derecha - Ancho fijo -->
+    <!-- Aside de noticias -->
     <aside
-      :class="[
-        'w-80 flex-shrink-0 border-l p-0 h-full overflow-hidden',
-        isDarkMode
-          ? 'bg-black border-gray-900'
-          : 'bg-white border-green-200'
-      ]">
+      :class="isDarkMode
+        ? 'w-[297px] bg-black border-l border-gray-900 p-4'
+        : 'w-[297px] bg-white border-l border-green-200 p-4'">
       <News />
     </aside>
 
-    <!-- Botón logout flotante -->
+    <!-- Logout -->
     <button @click="logout"
             :class="isDarkMode
-              ? 'fixed bottom-6 right-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300 z-30'
-              : 'fixed bottom-6 right-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300 z-30'">
+              ? 'absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full'
+              : 'absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full'">
       Cerrar sesión
     </button>
   </div>
@@ -231,14 +222,14 @@ import { useClubsStore } from '@/stores/clubsStore'
 import { usePostsStore } from '@/stores/postsStore'
 import { useThemeStore } from '@/stores/theme'
 
-// Tema
+
 const themeStore = useThemeStore()
 const isDarkMode = computed(() => themeStore.theme === 'dark')
 
-// Router
+
 const router = useRouter()
 
-// --- Usuario ---
+
 const payload = getUserFromToken()
 if (!payload) {
   router.replace({ name: 'SignUp' })
