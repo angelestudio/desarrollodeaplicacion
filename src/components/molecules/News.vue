@@ -99,7 +99,10 @@ const publishNews = async () => {
         content: content.value.trim(),
         author: `${newsUser.value.firstName} ${newsUser.value.lastName}`
       };
+     
+      localStorage.setItem('persistent_news', JSON.stringify(newsItems.value))
 
+      
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: getAuthHeaders(),

@@ -68,7 +68,7 @@
         v-for="(notification, idx) in notifications"
         :key="notification._id || idx"
         class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
-        :class="[
+        :class="[ 
           theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-10',
           notification.type === 'info' && 'border border-green-400',
           notification.type === 'warning' && 'border border-yellow-400',
@@ -104,6 +104,89 @@
       </div>
     </section>
 
+    <!-- SECCIÓN NOTICIAS -->
+    <section class="relative z-10 px-12 py-16" :class="theme === 'light' ? 'bg-white' : 'bg-black'">
+      <!-- Header con botón de actualización -->
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold text-green-700 dark:text-green-400">
+          Últimas Noticias
+          <span v-if="newsItems.length > 0" class="text-sm font-normal text-gray-500 ml-2">
+            ({{ newsItems.length }} {{ newsItems.length === 1 ? 'noticia' : 'noticias' }})
+          </span>
+        </h2>
+        
+        <button 
+          @click="fetchNews"
+          :disabled="isLoadingNews"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors"
+          :class="[
+            theme === 'light' 
+              ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200' 
+              : 'bg-green-900 border-green-700 text-green-300 hover:bg-green-800',
+            isLoadingNews ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+          ]"
+        >
+          <svg 
+            class="w-4 h-4 transition-transform"
+            :class="{ 'animate-spin': isLoadingNews }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              stroke-width="2" 
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          {{ isLoadingNews ? 'Actualizando...' : 'Actualizar' }}
+        </button>
+      </div>
+
+      <!-- Loading spinner -->
+      <div v-if="isLoadingNews && newsItems.length === 0" class="flex justify-center items-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+        <span class="ml-3 text-green-600 dark:text-green-400">Cargando noticias...</span>
+      </div>
+
+      <!-- Grid de noticias -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div
+          v-for="(news, idx) in newsItems"
+          :key="news._id || idx"
+          class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition relative"
+          :class="theme === 'light' ? 'bg-green-50 bg-opacity-50 border border-green-200' : 'bg-green-900 bg-opacity-10 border border-green-700'"
+        >
+          <!-- Indicador de noticia nueva -->
+          <div 
+            v-if="isRecentNews(news.createdAt)"
+            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg animate-pulse"
+          >
+            ¡NUEVO!
+          </div>
+          
+          <h3 class="text-xl font-bold mb-2 text-green-700 dark:text-green-400">
+            {{ news.title }}
+          </h3>
+          <p class="mb-2 line-clamp-3">{{ news.content }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+            {{ formatDate(news.createdAt) || 'Fecha desconocida' }}
+            <template v-if="news.author">
+              &mdash; por {{ news.author }}
+            </template>
+          </p>
+        </div>
+        
+        <div
+          v-if="newsItems.length === 0"
+          class="col-span-3 text-center text-gray-500"
+        >
+          No hay noticias disponibles en este momento.
+        </div>
+      </div>
+    </section>
+
     <!-- FOOTER -->
     <footer class="relative z-10 p-12 text-center text-sm" :class="[theme === 'light' ? 'bg-white text-gray-600' : 'bg-black text-gray-500']">
       © 2025 SenaClub - Todos los derechos reservados.
@@ -112,7 +195,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
 
@@ -120,19 +203,131 @@ const themeStore = useThemeStore()
 const { theme } = storeToRefs(themeStore)
 
 const notifications = ref<any[]>([])
+const newsItems = ref<any[]>([])
+const isLoadingNews = ref(false)
+const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
-onMounted(() => {
-  // Intenta cargar notificaciones de localStorage (persistentes)
-  const raw = localStorage.getItem('persistent_notifications')
-  let persisted: any[] = []
+const API_URL = 'http://localhost:3000/news'
+
+onMounted(async () => {
+  // ------------------ NOTIFICACIONES ------------------
+  const rawNotifications = localStorage.getItem('persistent_notifications')
+  let persistedNotifications: any[] = []
   try {
-    persisted = raw ? JSON.parse(raw) : []
-  } catch { persisted = [] }
+    persistedNotifications = rawNotifications ? JSON.parse(rawNotifications) : []
+  } catch {
+    persistedNotifications = []
+  }
+  notifications.value = persistedNotifications
 
-  // Carga también las globales si existen (ejemplo, puedes incluir fetch de backend aquí si lo necesitas)
-  // Aquí solo usamos las persistidas para la demo
-  notifications.value = persisted
+  // ------------------ NOTICIAS desde API ------------------
+  await fetchNews()
+  
+  // Iniciar auto-refresh cada 60 segundos (1 minuto)
+  startAutoRefresh()
 })
+
+onUnmounted(() => {
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value)
+  }
+})
+
+const fetchNews = async () => {
+  try {
+    isLoadingNews.value = true
+    
+    // Hacer llamada a la API con timestamp para evitar caché
+    const response = await fetch(`${API_URL}?timestamp=${Date.now()}`, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Ordenar las noticias por fecha de creación (más recientes primero)
+    const sortedData = data.sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt || 0).getTime()
+      const dateB = new Date(b.createdAt || 0).getTime()
+      return dateB - dateA // Orden descendente (más recientes primero)
+    })
+    
+    newsItems.value = sortedData
+    
+    // También guardar en localStorage como respaldo
+    localStorage.setItem('persistent_news', JSON.stringify(sortedData))
+    
+    console.log('Noticias cargadas desde API (ordenadas por fecha):', sortedData)
+    
+  } catch (error) {
+    console.error('Error al obtener noticias desde API:', error)
+    
+    // Como fallback, intentar cargar desde localStorage
+    const rawNews = localStorage.getItem('persistent_news')
+    try {
+      const persistedNews = rawNews ? JSON.parse(rawNews) : []
+      // También ordenar las noticias del localStorage por si acaso
+      const sortedPersistedNews = persistedNews.sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || 0).getTime()
+        const dateB = new Date(b.createdAt || 0).getTime()
+        return dateB - dateA
+      })
+      newsItems.value = sortedPersistedNews
+      console.log('Cargadas noticias desde localStorage como fallback (ordenadas)')
+    } catch {
+      newsItems.value = []
+      console.log('No se pudieron cargar noticias')
+    }
+  } finally {
+    isLoadingNews.value = false
+  }
+}
+
+const startAutoRefresh = () => {
+  // Auto-refresh cada 60 segundos
+  refreshInterval.value = setInterval(() => {
+    fetchNews()
+  }, 60000)
+}
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return 'Fecha desconocida'
+  
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    return 'Fecha desconocida'
+  }
+}
+
+const isRecentNews = (dateString: string): boolean => {
+  if (!dateString) return false
+  
+  try {
+    const newsDate = new Date(dateString)
+    const now = new Date()
+    const diffHours = (now.getTime() - newsDate.getTime()) / (1000 * 60 * 60)
+    
+    // Considerar como "nuevo" si tiene menos de 24 horas
+    return diffHours < 24
+  } catch (error) {
+    return false
+  }
+}
 </script>
 
 <style scoped>

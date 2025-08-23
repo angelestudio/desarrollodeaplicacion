@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { getUserFromToken } from '@/composables/useAuth';
 import type { JwtPayload as UserJwtPayload } from '@/composables/useAuth';
 import { useThemeStore } from '@/stores/theme';
@@ -26,34 +26,75 @@ const newsUser = ref<UserJwtPayload | null>(getUserFromToken());
 const isLoading = ref(false);
 const isEditing = ref(false);
 const editingNewsId = ref<string | null>(null);
+const refreshInterval = ref<NodeJS.Timeout | null>(null);
 
 const API_URL = 'http://localhost:3000/news';
 
 onMounted(async () => {
   await fetchNews();
+  startAutoRefresh();
 });
+
+onUnmounted(() => {
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value);
+  }
+});
+
+const startAutoRefresh = () => {
+  // Auto-refresh cada 30 segundos
+  refreshInterval.value = setInterval(() => {
+    fetchNews();
+  }, 30000);
+};
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : ''
+    'Authorization': token ? `Bearer ${token}` : '',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
   };
 };
 
 const fetchNews = async () => {
   try {
     isLoading.value = true;
-    const response = await fetch(API_URL);
+    const response = await fetch(`${API_URL}?timestamp=${Date.now()}`, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+    
     if (!response.ok) throw new Error(`Error: ${response.status}`);
     const data = await response.json();
-    newsItems.value = data;
+    
+    // Ordenar las noticias por fecha de creación (más recientes primero)
+    const sortedData = data.sort((a: NewsItem, b: NewsItem) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA; // Orden descendente (más recientes primero)
+    });
+    
+    newsItems.value = sortedData;
+    
+    // Guardar en localStorage para el componente de inicio
+    localStorage.setItem('persistent_news', JSON.stringify(sortedData));
+    
   } catch (error) {
     console.error('Failed to fetch news:', error);
     displayNotification('Error al cargar noticias', 'error');
   } finally {
     isLoading.value = false;
   }
+};
+
+const manualRefresh = async () => {
+  await fetchNews();
+  displayNotification('Noticias actualizadas', 'success');
 };
 
 const publishNews = async () => {
@@ -273,7 +314,6 @@ const scrollToForm = () => {
 };
 </script>
 
-
 <template>
   <div class="max-w-4xl mx-auto p-4">
     <!-- Estado de autenticación -->
@@ -287,6 +327,37 @@ const scrollToForm = () => {
           <p class="text-xs opacity-75">{{ newsUser.rol }}</p>
         </div>
       </div>
+    </div>
+
+    <!-- Botón de actualización manual -->
+    <div class="mb-4 flex justify-end">
+      <button 
+        @click="manualRefresh"
+        :disabled="isLoading"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors"
+        :class="[
+          isDarkMode 
+            ? 'bg-green-900 border-green-700 text-green-300 hover:bg-green-800' 
+            : 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200',
+          isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+        ]"
+      >
+        <svg 
+          class="w-4 h-4 transition-transform"
+          :class="{ 'animate-spin': isLoading }"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
+        </svg>
+        {{ isLoading ? 'Actualizando...' : 'Actualizar noticias' }}
+      </button>
     </div>
 
     <!-- Notification -->

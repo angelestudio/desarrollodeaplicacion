@@ -92,6 +92,100 @@
         </div>
       </div>
     </section>
+
+    <!-- SECCIÓN DE ÚLTIMAS NOTICIAS -->
+    <section class="py-20 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-12 relative z-10">
+        <div class="text-center mb-16">
+          <h2 class="text-5xl font-black text-gray-800 mb-6 animate-fade-in-up">
+            Últimas <span class="text-[#3B9D30]">Noticias</span>
+          </h2>
+          <div class="w-24 h-1 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] mx-auto mb-6"></div>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Mantente al día con las últimas novedades de nuestra comunidad
+          </p>
+        </div>
+
+        <!-- Loading state -->
+        <div v-if="isLoadingNews" class="text-center py-12">
+          <div class="animate-spin text-4xl mb-4">⏳</div>
+          <p class="text-lg text-gray-600">Cargando noticias...</p>
+        </div>
+
+        <!-- No news state -->
+        <div v-else-if="newsItems.length === 0" class="text-center py-12">
+          <div class="text-6xl mb-4">📰</div>
+          <p class="text-lg text-gray-600">No hay noticias disponibles en este momento.</p>
+          <p class="text-sm mt-2 text-gray-500">¡Vuelve pronto para más actualizaciones!</p>
+        </div>
+
+        <!-- News grid -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <article 
+            v-for="news in newsItems.slice(0, 6)" 
+            :key="news._id"
+            class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 hover:border-[#3B9D30]/30 overflow-hidden"
+          >
+            <!-- News header with author info -->
+            <div class="p-6 pb-4">
+              <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#3B9D30] to-[#2E7D2E] flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                  {{ getAuthorInitials(news.author || '') }}
+                </div>
+                <div>
+                  <p class="font-semibold text-sm text-gray-800">
+                    {{ getAuthorName(news.author || '') }}
+                  </p>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-xs px-2 py-1 rounded-full bg-[#3B9D30]/10 text-[#3B9D30] font-medium">
+                      Administrador
+                    </span>
+                    <span v-if="news.createdAt" class="text-xs text-gray-500">
+                      {{ formatDate(news.createdAt) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- News title -->
+              <h3 class="text-xl font-bold mb-3 text-gray-800 group-hover:text-[#3B9D30] transition-colors leading-tight line-clamp-2">
+                {{ news.title }}
+              </h3>
+
+              <!-- News content -->
+              <p class="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                {{ news.content }}
+              </p>
+            </div>
+
+            <!-- News footer -->
+            <div class="px-6 pb-6">
+              <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                <button class="text-[#3B9D30] font-semibold text-sm hover:underline transition-colors">
+                  Leer más →
+                </button>
+                <div v-if="news.updatedAt && news.updatedAt !== news.createdAt" class="text-xs text-gray-400">
+                  ✏️ Actualizado
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Ver más noticias button -->
+        <div v-if="newsItems.length > 6" class="text-center mt-12">
+          <RouterLink 
+            to="/news"
+            class="inline-flex items-center gap-3 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] text-white px-8 py-4 rounded-xl text-lg font-bold shadow-xl transition-all duration-300 transform hover:scale-105 hover:shadow-green-500/25 group"
+          >
+            <span>Ver todas las noticias</span>
+            <svg class="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </RouterLink>
+        </div>
+      </div>
+    </section>
     
     <!-- SECCIÓN CLUBES CON ANIMACIONES AVANZADAS -->     
     <section class="px-12 py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
@@ -211,8 +305,81 @@
   </div> 
 </template>  
 
-<script setup> 
-// No logic necesario aún 
+<script setup>
+import { ref, onMounted } from 'vue';
+
+// News data
+const newsItems = ref([]);
+const isLoadingNews = ref(false);
+
+const API_URL = 'http://localhost:3000/news';
+
+onMounted(async () => {
+  await loadNews();
+});
+
+const loadNews = async () => {
+  try {
+    isLoadingNews.value = true;
+    
+    // Primero intentar cargar desde localStorage
+    const persistentNews = localStorage.getItem('persistent_news');
+    if (persistentNews) {
+      try {
+        const parsedNews = JSON.parse(persistentNews);
+        if (Array.isArray(parsedNews)) {
+          newsItems.value = parsedNews;
+        }
+      } catch (error) {
+        console.error('Error parsing localStorage news:', error);
+      }
+    }
+
+    // Luego intentar cargar desde API
+    try {
+      const response = await fetch(API_URL);
+      if (response.ok) {
+        const data = await response.json();
+        newsItems.value = data;
+        // Actualizar localStorage con los datos más recientes
+        localStorage.setItem('persistent_news', JSON.stringify(data));
+      }
+    } catch (apiError) {
+      console.warn('API not available, using localStorage data:', apiError);
+    }
+    
+  } catch (error) {
+    console.error('Error loading news:', error);
+  } finally {
+    isLoadingNews.value = false;
+  }
+};
+
+const formatDate = (dateString) => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    return dateString;
+  }
+};
+
+const getAuthorInitials = (author) => {
+  if (!author || author === 'undefined' || author === 'null') return '??';
+  const names = author.trim().split(' ');
+  return names.length >= 2 ? (names[0][0] + names[1][0]).toUpperCase() : author.substring(0, 2).toUpperCase();
+};
+
+const getAuthorName = (author) => {
+  if (!author || author === 'undefined' || author === 'null') return 'Autor desconocido';
+  return author;
+};
 </script>  
 
 <style scoped> 
@@ -318,5 +485,19 @@
 
 .shadow-3xl {
   box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 </style>
