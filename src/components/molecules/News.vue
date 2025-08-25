@@ -280,17 +280,30 @@ const scrollToForm = () => {
 <template>
   <div class="max-w-4xl mx-auto p-4">
     <!-- Estado de autenticación -->
-    <div v-if="newsUser" class="mb-6 p-3 rounded-lg shadow-sm" :class="isDarkMode ? 'bg-gray-900 text-white border border-gray-700' : 'bg-green-50 text-green-900 border border-green-200'">
-      <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-          {{ newsUser.firstName[0] }}{{ newsUser.lastName[0] }}
-        </div>
-        <div>
-          <p class="font-medium text-sm">{{ newsUser.firstName }} {{ newsUser.lastName }}</p>
-          <p class="text-xs opacity-75">{{ newsUser.rol }}</p>
-        </div>
-      </div>
-    </div>
+    <!-- Estado de autenticación -->
+<div v-if="newsUser" 
+     class="mb-6 p-4 rounded-2xl flex items-center space-x-3 shadow-md"
+     :class="isDarkMode ? 'bg-gray-800' : 'bg-gray-100'">
+  <!-- Avatar -->
+  <div class="w-12 h-12 flex items-center justify-center rounded-full font-bold text-white"
+       :class="isDarkMode ? 'bg-green-600' : 'bg-green-500'">
+    {{ newsUser.firstName[0] }}{{ newsUser.lastName[0] }}
+  </div>
+  <!-- Info usuario -->
+  <div>
+    <p class="font-semibold"
+       :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+      {{ newsUser.firstName }} {{ newsUser.lastName }}
+    </p>
+    <span class="text-xs px-2 py-0.5 rounded-full"
+          :class="isDarkMode 
+            ? 'bg-green-700 text-green-200' 
+            : 'bg-green-100 text-green-800'">
+      {{ newsUser.rol }}
+    </span>
+  </div>
+</div>
+
 
     <!-- Notification -->
     <div 
