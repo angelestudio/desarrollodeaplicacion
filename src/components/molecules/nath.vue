@@ -67,7 +67,7 @@
             >
               <span class="flex items-center justify-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
                 </svg>
                 Iniciar Sesión
               </span>
@@ -84,6 +84,7 @@
       </div>
     </div>
 
+    <!-- Modal de Recuperación de Contraseña -->
     <div
       v-if="showModal"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50"
@@ -116,6 +117,66 @@
       </div>
     </div>
 
+    <!-- Modal de Bienvenida -->
+    <div
+      v-if="showWelcomeModal"
+      class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50"
+    >
+      <div class="relative rounded-3xl shadow-2xl w-full max-w-lg p-10 mx-4 animate-bounceIn"
+           :class="theme === 'light' ? 'bg-white' : 'bg-gray-900'">
+        <!-- Icono del usuario según el rol -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 shadow-lg animate-pulse"
+               :class="userRole === 'admin' ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-green-500 to-green-600'">
+            <!-- Icono de Admin -->
+            <svg v-if="userRole === 'admin'" class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <!-- Icono de Aprendiz -->
+            <svg v-else class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          
+          <!-- Mensaje de bienvenida personalizado -->
+          <h2 class="text-4xl font-bold mb-3" :class="theme === 'light' ? 'text-gray-900' : 'text-white'">
+            ¡Bienvenido {{ userRole === 'admin' ? 'Administrador' : 'Aprendiz' }}!
+          </h2>
+          
+          <p class="text-lg mb-6" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
+            {{ userRole === 'admin' ? 'Tienes acceso para crear noticias, notificaciones, posts y clubs. ¡Disfrútalo!' : 'Puedes crear posts y expresar tus ideas en cada club. ¡Comparte tu conocimiento!' }}
+          </p>
+
+          <!-- Badges decorativos -->
+          <div class="flex justify-center mb-8">
+            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold"
+                  :class="userRole === 'admin' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                    : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'">
+              <span class="w-2 h-2 rounded-full mr-2"
+                    :class="userRole === 'admin' ? 'bg-green-500' : 'bg-green-500'"></span>
+              {{ userRole === 'admin' ? 'Privilegios de Administrador' : 'Modo Aprendizaje' }}
+            </span>
+          </div>
+
+          <!-- Botón para continuar -->
+          <button
+            @click="closeWelcomeModal"
+            class="inline-flex items-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2"
+            :class="userRole === 'admin' 
+              ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white focus:ring-green-500' 
+              : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white focus:ring-green-500'"
+          >
+            <span class="mr-2">Continuar</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast de notificaciones -->
     <div
       v-if="toastMessage"
       :class="[
@@ -150,6 +211,8 @@ const toastMessage = ref('')
 const toastType = ref<'success' | 'error' | ''>('')
 const showModal = ref(false)
 const forgotEmail = ref('')
+const showWelcomeModal = ref(false)
+const userRole = ref('')
 
 const router = useRouter()
 
@@ -160,6 +223,14 @@ const showToast = (text: string, type: 'success' | 'error') => {
     toastMessage.value = ''
     toastType.value = ''
   }, 3000)
+}
+
+// Función para cerrar el modal de bienvenida y redirigir
+const closeWelcomeModal = () => {
+  showWelcomeModal.value = false
+  setTimeout(() => {
+    router.push('/home')
+  }, 300)
 }
 
 // El campo de código de admin solo se muestra si el backend lo pide
@@ -193,9 +264,14 @@ const loginUser = async () => {
     localStorage.setItem('rol', rol)
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
+    // Guardar el rol para el modal de bienvenida
+    userRole.value = rol
+
     showToast('¡Inicio de sesión exitoso!', 'success')
+    
+    // Mostrar modal de bienvenida después de un breve delay
     setTimeout(() => {
-      router.push('/home')
+      showWelcomeModal.value = true
     }, 1000)
 
   } catch (error: any) {
@@ -261,6 +337,24 @@ const sendRecoveryEmail = () => {
   }
 }
 
+@keyframes bounceIn {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .animate-slideDown {
   animation: slideDown 0.3s ease-out;
 }
@@ -275,6 +369,10 @@ const sendRecoveryEmail = () => {
 
 .animate-scaleIn {
   animation: scaleIn 0.3s ease-out;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Estilos para hover y focus de inputs */
