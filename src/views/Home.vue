@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="[
+    :class="[ 
       'min-h-screen overflow-y-auto flex relative',
       isDarkMode
         ? 'bg-black text-white'
@@ -115,6 +115,12 @@
               @click="toggleExpand(post._id)">
             {{ post.title }}
           </h3>
+
+          <!-- Nombre del autor -->
+          <p :class="isDarkMode ? 'text-sm text-green-300 mb-1' : 'text-sm text-green-700 mb-1'">
+            Publicado por: <strong>{{ getAuthorName(post) }}</strong>
+          </p>
+
           <p :class="isDarkMode ? 'text-gray-300 mb-2' : 'text-green-900 mb-2'">{{ post.content }}</p>
 
           <!-- Contador de likes y club -->
@@ -220,15 +226,13 @@ import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
 import News from '@/components/molecules/News.vue'
 import { useClubsStore } from '@/stores/clubsStore'
 import { usePostsStore } from '@/stores/postsStore'
+import type { PostItem } from '@/stores/postsStore'
 import { useThemeStore } from '@/stores/theme'
-
 
 const themeStore = useThemeStore()
 const isDarkMode = computed(() => themeStore.theme === 'dark')
 
-
 const router = useRouter()
-
 
 const payload = getUserFromToken()
 if (!payload) {
@@ -237,7 +241,6 @@ if (!payload) {
 const username = payload ? `${payload.firstName} ${payload.lastName}`.trim() : ''
 const userRole = payload ? payload.rol : ''
 const userClubs = payload?.clubs ?? []
-// Asegura header Authorization ya configurado en main.ts; si no, vuelve a asignar:
 axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
 
 // --- Stores ---
@@ -287,11 +290,44 @@ function closeModal() {
   selectedFormClub.value = ''
 }
 
+// Devuelve el nombre del autor manejando varios formatos que puede devolver el backend
+function getAuthorName(post: PostItem): string {
+  // 1) Si backend añadió top-level username en el post
+  if (post.username && typeof post.username === 'string' && post.username.trim()) {
+    return post.username.trim();
+  }
+
+  // 2) Si user vino poblado (objeto)
+  const userField: any = post.user;
+  if (userField && typeof userField === 'object') {
+    // varios posibles nombres de campo: username, name, firstName+lastName
+    if (userField.username && typeof userField.username === 'string' && userField.username.trim()) {
+      return userField.username.trim();
+    }
+    if (userField.name && typeof userField.name === 'string' && userField.name.trim()) {
+      return userField.name.trim();
+    }
+    const fn = (userField.firstName || userField.first_name || userField.first) ?? '';
+    const ln = (userField.lastName || userField.last_name || userField.last) ?? '';
+    const full = `${fn} ${ln}`.trim();
+    if (full) return full;
+  }
+
+  // 3) Si solo tenemos el id en user (string) — opcional: intentar buscar en cache local (no implementado)
+  if (typeof userField === 'string' && userField.trim()) {
+    // no podemos obtener el nombre real solo con el id aquí — fallback razonable:
+    return 'usuario'; // o puedes devolver userField para ver el id: return userField;
+  }
+
+  // 4) fallback final
+  return 'anonimo';
+}
+
 // CRUD Posts
 async function submitPost() {
   const clubToSend = selectedClub.value || selectedFormClub.value
   if (!clubToSend) return alert('Debes seleccionar un club.')
-  // Llamada corregida: enviar solo title, content, club
+  // Llamada al store para crear post
   await postsStore.addPost({ title: newPost.title, content: newPost.content, club: clubToSend })
   closeModal()
 }
@@ -331,9 +367,7 @@ async function onToggleLike(postId: string) {
 async function onSubmitComment(postId: string) {
   const text = newCommentMap[postId]?.trim()
   if (!text) return
-  // Llamada corregida: solo postId y content
   await postsStore.addComment(postId, text.slice(0, 100))
-  // Recargar comentarios
   const comments = await postsStore.fetchComments(postId)
   commentsMap[postId] = comments.map(c => ({
     _id: c._id,
