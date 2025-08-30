@@ -125,54 +125,40 @@ function logout() {
 <template>
   <div
     class="h-screen w-screen overflow-hidden flex"
-    :class="isDarkMode ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'"
+    :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
   > 
-    <!-- Modal Crear Club - Estilo más limpio -->
+    <!-- Modal Crear Club -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
-    <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center p-4">
+    <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center">
       <div
-        class="p-6 rounded-2xl shadow-xl w-full max-w-md relative border"
-        :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
+        class="p-6 rounded-xl shadow-lg w-full max-w-md relative border"
+        :class="isDarkMode ? 'bg-gray-900 border-green-700' : 'bg-white border-green-400'"
       >
-        <button 
-          @click="closeModal" 
-          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold transition-colors duration-200"
-        >
-          ×
-        </button>
-        <h3 class="text-xl mb-4 font-semibold text-emerald-500">
-          Crear nuevo club
-        </h3>
-        <form @submit.prevent="submitClub" class="space-y-4">
-          <div class="space-y-2">
-            <label class="block text-sm font-medium" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
-              Nombre
-            </label>
+        <button @click="closeModal" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">×</button>
+        <h3 class="text-xl mb-4 font-semibold text-green-500">Crear nuevo club</h3>
+        <form @submit.prevent="submitClub">
+          <div class="mb-3">
+            <label class="block text-sm mb-1 text-green-400">Nombre</label>
             <input
               v-model="newClub.name"
               type="text"
               required
-              class="w-full p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-              :class="isDarkMode ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' : 'bg-gray-50 text-gray-900 border-gray-300 placeholder-gray-500'"
-              placeholder="Nombre del club"
+              class="w-full p-2 rounded border placeholder-gray-500"
+              :class="isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-gray-100 text-black border-gray-300'"
             />
           </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
-              Descripción
-            </label>
+          <div class="mb-3">
+            <label class="block text-sm mb-1 text-green-400">Descripción</label>
             <textarea
               v-model="newClub.description"
               required
-              rows="3"
-              class="w-full p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none outline-none"
-              :class="isDarkMode ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' : 'bg-gray-50 text-gray-900 border-gray-300 placeholder-gray-500'"
-              placeholder="Descripción del club"
+              class="w-full p-2 rounded border placeholder-gray-500"
+              :class="isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-gray-100 text-black border-gray-300'"
             ></textarea>
           </div>
           <button
             type="submit"
-            class="w-full bg-emerald-500 hover:bg-emerald-600 px-4 py-3 rounded-xl text-white font-semibold transition-colors duration-200"
+            class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white transition duration-300"
           >
             Crear Club
           </button>
@@ -180,47 +166,37 @@ function logout() {
       </div>
     </div>
 
-    <!-- Sidebar izquierda -->
+    <!-- Sidebar izquierda - Ancho fijo similar a la imagen -->
     <Sidebarizquierda
       class="w-56 flex-shrink-0 flex flex-col border-r h-full"
-      :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
+      :class="isDarkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200'"
     />
 
-    <!-- Contenido principal -->
+    <!-- Contenido principal - Ocupa el espacio central -->
     <main
-      class="flex-1 flex flex-col p-8 overflow-y-auto border-r h-full"
-      :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
+      class="flex-1 flex flex-col p-4 overflow-y-auto border-r h-full"
+      :class="isDarkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200'"
     >
-      <!-- Header más limpio -->
-      <div class="mb-8">
-        <h2 class="text-2xl font-bold text-emerald-500 mb-1">
-          SELECT YOUR FAVORITES
-        </h2>
-        <p class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
-          Descubre y únete a los clubs que más te interesen
-        </p>
-      </div>
+      <h2 class="text-2xl font-bold mb-6 text-green-500">SELECT YOUR FAVORITES</h2>
 
       <!-- Sección Clubs -->
       <section class="mb-8">
-        <h3 class="text-lg font-semibold mb-4" :class="isDarkMode ? 'text-gray-200' : 'text-gray-800'">
-          Todos los Clubs
-        </h3>
-        <div class="grid gap-4">
+        <h3 class="text-xl font-semibold mb-4 text-green-400">Clubs</h3>
+        <div class="space-y-4">
           <div
             v-for="item in sports"
             :key="item._id"
-            class="p-4 rounded-2xl flex justify-between items-center border transition-all duration-200 hover:shadow-md"
-            :class="isDarkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:border-gray-300'"
+            class="p-4 rounded flex justify-between items-center border"
+            :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
           >
             <div class="flex-1 min-w-0">
               <router-link
                 :to="{ name: 'UserPosts', query: { club: item._id } }"
-                class="font-semibold text-emerald-500 hover:text-emerald-600 block truncate transition-colors duration-200"
+                class="font-semibold text-green-400 hover:underline block truncate"
               >
                 {{ item.name }}
               </router-link>
-              <p :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" class="text-sm mt-1 line-clamp-2">
+              <p :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" class="text-sm line-clamp-2">
                 {{ item.description }}
               </p>
             </div>
@@ -228,21 +204,21 @@ function logout() {
               <button
                 v-if="!hasJoined(item._id)"
                 @click="joinClub(item._id)"
-                class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-xl text-white font-medium transition-colors duration-200 text-sm"
+                class="bg-green-600 px-3 py-1.5 rounded hover:bg-green-700 text-white transition duration-300 text-sm"
               >
-                Unirse
+                Join
               </button>
               <button
                 v-else
                 @click="leaveClub(item._id)"
-                class="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded-xl text-white font-medium transition-colors duration-200 text-sm"
+                class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm"
               >
-                Salir
+                Leave
               </button>
               <button
                 v-if="isAdmin"
                 @click="onDeleteClub(item._id)"
-                class="bg-red-500 hover:bg-red-600 rounded-xl px-3 py-2 text-xs text-white font-medium transition-colors duration-200"
+                class="bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-xs text-white transition duration-300"
               >
                 Eliminar
               </button>
@@ -253,52 +229,50 @@ function logout() {
 
       <!-- Sección Mis Clubs -->
       <section v-if="userClubs.length" class="mb-8">
-        <h3 class="text-lg font-semibold mb-4" :class="isDarkMode ? 'text-gray-200' : 'text-gray-800'">
-          Mis Clubs
-        </h3>
-        <div class="grid gap-4">
+        <h3 class="text-xl font-semibold mb-4 text-green-400">Mis Clubs</h3>
+        <div class="space-y-4">
           <div
             v-for="clubId in userClubs"
             :key="clubId"
-            class="p-4 rounded-2xl flex justify-between items-center border transition-all duration-200 hover:shadow-md"
-            :class="isDarkMode ? 'bg-emerald-900/20 border-emerald-800/50 hover:border-emerald-700/50' : 'bg-emerald-50 border-emerald-200 hover:border-emerald-300'"
+            class="p-4 rounded flex justify-between items-center border"
+            :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
           >
             <router-link
               :to="{ name: 'UserPosts', query: { club: clubId } }"
-              class="font-semibold text-emerald-500 hover:text-emerald-600 flex-1 min-w-0 truncate transition-colors duration-200"
+              class="text-lg font-semibold text-green-400 hover:underline flex-1 min-w-0 truncate"
             >
               {{ clubsStore.clubs.find(c => c._id === clubId)?.name || clubId }}
             </router-link>
             <button
               @click="leaveClub(clubId)"
-              class="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded-xl text-white font-medium transition-colors duration-200 text-sm flex-shrink-0 ml-4"
+              class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm flex-shrink-0 ml-4"
             >
-              Salir
+              Leave
             </button>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- Sidebar derecha -->
+    <!-- Sidebar derecha - Ancho fijo similar a la imagen -->
     <aside
       class="w-80 flex-shrink-0 border-l p-0 relative h-full overflow-hidden"
-      :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
+      :class="isDarkMode ? 'bg-black border-gray-900' : 'bg-white border-gray-200'"
     >
       <News />
     </aside>
 
-    <!-- Botones flotantes más discretos -->
+    <!-- Botones flotantes -->
     <button
       v-if="isAdmin"
       @click="openModal"
-      class="fixed bottom-20 right-6 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-lg transition-all duration-200 z-30 font-medium"
+      class="fixed bottom-20 right-6 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300 z-30"
     >
       Crear Club
     </button>
     <button
       @click="logout"
-      class="fixed bottom-6 right-6 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-2xl shadow-lg transition-all duration-200 z-30 font-medium"
+      class="fixed bottom-6 right-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-lg transition duration-300 z-30"
     >
       Cerrar sesión
     </button>
@@ -315,12 +289,5 @@ function logout() {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* Transiciones suaves para todos los elementos */
-* {
-  transition-property: colors, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
 }
 </style>
