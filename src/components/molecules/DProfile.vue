@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import News from './News.vue';
 import Sidebarizquierda from './Sidebarizquierda.vue';
@@ -27,6 +27,17 @@ interface Notification {
   read?: boolean;
   userId?: string;
   userName?: string;
+  createdAt?: string;
+}
+
+interface ToastNotification {
+  id: string;
+  title: string;
+  content: string;
+  type: 'info' | 'warning' | 'alert' | 'success' | 'error';
+  timestamp: Date;
+  isVisible: boolean;
+  isLeaving: boolean;
 }
 
 interface StatusMessage {
@@ -43,6 +54,7 @@ const currentUser = ref<any>(null);
 const posts = ref<Post[]>([]);
 const userAbout = ref('');
 const notifications = ref<Notification[]>([]);
+const toastNotifications = ref<ToastNotification[]>([]);
 
 const userPostsCount = computed(() => posts.value.filter(p => p.user === currentUser.value?.sub).length);
 const userSavedCount = computed(() => posts.value.filter(p => p.saved).length);
@@ -55,15 +67,37 @@ const newNotification = ref<Omit<Notification, '_id'>>({ title: '', content: '',
 const editingNotification = ref<Notification | null>(null);
 const isEditing = computed(() => !!editingNotification.value);
 
-
 const isLoading = ref(false);
 const savingAboutMe = ref(false);
 const statusMessage = ref<StatusMessage | null>(null);
 
 const LS_NOTIFICATIONS_KEY = 'persistent_notifications';
+const LS_LAST_NOTIFICATION_CHECK = 'last_notification_check';
 
-// --- UI CLASSES (Centralización de clases de Tailwind para limpieza del template) ---
+// --- NUEVAS CONSTANTES Y COMPUTED PROPERTIES PARA EL FORMULARIO ---
+const notificationTypes = ref([
+  { value: 'info', label: 'Información', color: 'green', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { value: 'warning', label: 'Advertencia', color: 'yellow', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z' },
+  { value: 'alert', label: 'Alerta', color: 'red', icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' }
+]);
 
+const selectedNotificationType = computed(() => {
+  return notificationTypes.value.find(t => t.value === newNotification.value.type) || notificationTypes.value[0];
+});
+
+const formDynamicStyles = computed(() => {
+  const color = selectedNotificationType.value.color;
+  return {
+    border: `border-${color}-500 dark:border-${color}-700`,
+    buttonBg: `bg-${color}-600 hover:bg-${color}-700`,
+    buttonText: 'text-white'
+  };
+});
+
+const contentCharCount = computed(() => newNotification.value.content.length);
+
+
+// --- UI CLASSES ---
 const ui = computed(() => {
   const baseBorder = isDarkMode.value ? 'border-gray-700' : 'border-gray-300';
   const baseTextMuted = isDarkMode.value ? 'text-gray-400' : 'text-gray-600';
@@ -121,15 +155,54 @@ const notificationStyles = (type: Notification['type']) => {
   return styles[type as keyof typeof styles] || styles.default;
 };
 
-// --- HELPERS (Funciones auxiliares para reducir duplicación) ---
+const toastStyles = (type: ToastNotification['type']) => {
+  const baseClasses = 'backdrop-blur-md border shadow-2xl';
+  const styles = {
+    info: {
+      bg: isDarkMode.value 
+        ? `${baseClasses} bg-blue-900/90 border-blue-700 text-blue-100` 
+        : `${baseClasses} bg-blue-50/95 border-blue-200 text-blue-900`,
+      icon: 'text-blue-500',
+      iconBg: isDarkMode.value ? 'bg-blue-800' : 'bg-blue-100',
+    },
+    success: {
+      bg: isDarkMode.value 
+        ? `${baseClasses} bg-green-900/90 border-green-700 text-green-100` 
+        : `${baseClasses} bg-green-50/95 border-green-200 text-green-900`,
+      icon: 'text-green-500',
+      iconBg: isDarkMode.value ? 'bg-green-800' : 'bg-green-100',
+    },
+    warning: {
+      bg: isDarkMode.value 
+        ? `${baseClasses} bg-yellow-900/90 border-yellow-700 text-yellow-100` 
+        : `${baseClasses} bg-yellow-50/95 border-yellow-200 text-yellow-900`,
+      icon: 'text-yellow-500',
+      iconBg: isDarkMode.value ? 'bg-yellow-800' : 'bg-yellow-100',
+    },
+    alert: {
+      bg: isDarkMode.value 
+        ? `${baseClasses} bg-red-900/90 border-red-700 text-red-100` 
+        : `${baseClasses} bg-red-50/95 border-red-200 text-red-900`,
+      icon: 'text-red-500',
+      iconBg: isDarkMode.value ? 'bg-red-800' : 'bg-red-100',
+    },
+    error: {
+      bg: isDarkMode.value 
+        ? `${baseClasses} bg-red-900/90 border-red-700 text-red-100` 
+        : `${baseClasses} bg-red-50/95 border-red-200 text-red-900`,
+      icon: 'text-red-500',
+      iconBg: isDarkMode.value ? 'bg-red-800' : 'bg-red-100',
+    }
+  };
+  return styles[type] || styles.info;
+};
 
-/** Muestra un mensaje de estado y lo oculta después de un tiempo. */
+// --- HELPERS ---
 function showStatus(text: string, success: boolean, duration: number = 3000) {
   statusMessage.value = { text, success };
   setTimeout(() => statusMessage.value = null, duration);
 }
 
-/** Wrapper para las llamadas fetch que maneja la autenticación y los errores. */
 async function apiFetch(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('Usuario no autenticado');
@@ -151,8 +224,54 @@ async function apiFetch(url: string, options: RequestInit = {}) {
   return response.json();
 }
 
-// --- LÓGICA DE AUTENTICACIÓN Y DATOS DE USUARIO ---
+// --- TOAST NOTIFICATIONS ---
+function showToastNotification(title: string, content: string, type: ToastNotification['type'] = 'info', duration: number = 6000) {
+  const toast: ToastNotification = {
+    id: Date.now().toString() + Math.random(),
+    title,
+    content,
+    type,
+    timestamp: new Date(),
+    isVisible: false,
+    isLeaving: false,
+  };
 
+  toastNotifications.value.unshift(toast);
+  
+  setTimeout(() => {
+    toast.isVisible = true;
+  }, 100);
+
+  setTimeout(() => {
+    removeToast(toast.id);
+  }, duration);
+}
+
+function removeToast(id: string) {
+  const toast = toastNotifications.value.find(t => t.id === id);
+  if (toast) {
+    toast.isLeaving = true;
+    setTimeout(() => {
+      const index = toastNotifications.value.findIndex(t => t.id === id);
+      if (index > -1) {
+        toastNotifications.value.splice(index, 1);
+      }
+    }, 300);
+  }
+}
+
+function getToastIcon(type: ToastNotification['type']) {
+  const icons = {
+    info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    success: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+    warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z',
+    alert: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z',
+    error: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
+  };
+  return icons[type] || icons.info;
+}
+
+// --- LÓGICA DE AUTENTICACIÓN Y DATOS DE USUARIO ---
 function initializeUser() {
   const token = localStorage.getItem('token');
   if (token) {
@@ -210,7 +329,6 @@ function cancelEditAbout() {
 }
 
 // --- LÓGICA DE NOTIFICACIONES ---
-
 function getPersistentNotifications(): Notification[] {
   const raw = localStorage.getItem(LS_NOTIFICATIONS_KEY);
   try {
@@ -224,7 +342,7 @@ function savePersistentNotification(notification: Notification) {
   const persisted = getPersistentNotifications();
   if (!notification._id || persisted.some(n => n._id === notification._id)) return;
   persisted.unshift(notification);
-  localStorage.setItem(LS_NOTIFICATIONS_KEY, JSON.stringify(persisted.slice(0, 50))); // Limita el tamaño
+  localStorage.setItem(LS_NOTIFICATIONS_KEY, JSON.stringify(persisted.slice(0, 50)));
 }
 
 async function fetchNotifications() {
@@ -236,7 +354,27 @@ async function fetchNotifications() {
     const persisted = getPersistentNotifications();
     
     const fetchedIds = new Set(fetched.map(n => n._id));
-    notifications.value = [...fetched, ...persisted.filter(p => !fetchedIds.has(p._id))];
+    const allNotifications = [...fetched, ...persisted.filter(p => !fetchedIds.has(p._id))];
+    
+    const lastCheck = localStorage.getItem(LS_LAST_NOTIFICATION_CHECK);
+    const lastCheckTime = lastCheck ? new Date(lastCheck) : new Date(0);
+    
+    const newNotifications = allNotifications.filter(n => {
+      const notificationTime = n.createdAt ? new Date(n.createdAt) : new Date();
+      return notificationTime > lastCheckTime && !n.read;
+    });
+
+    newNotifications.forEach(notification => {
+      showToastNotification(
+        notification.title,
+        notification.content,
+        notification.type as ToastNotification['type'],
+        8000
+      );
+    });
+
+    notifications.value = allNotifications;
+    localStorage.setItem(LS_LAST_NOTIFICATION_CHECK, new Date().toISOString());
 
   } catch (error: any) {
     showStatus(error.message, false);
@@ -271,8 +409,10 @@ async function createNotification() {
     
     newNotification.value = { title: '', content: '', type: 'info' };
     showStatus('Notificación creada correctamente.', true);
+    showToastNotification('¡Notificación enviada!', 'La notificación se ha enviado correctamente', 'success');
   } catch (error: any) {
     showStatus(error.message, false);
+    showToastNotification('Error', error.message, 'error');
   } finally {
     isLoading.value = false;
   }
@@ -299,9 +439,11 @@ async function saveEdit() {
     if (idx !== -1) notifications.value[idx] = result.data;
 
     showStatus('Notificación actualizada correctamente.', true);
-    editingNotification.value = null; // Cierra el editor
+    showToastNotification('¡Actualizado!', 'La notificación se ha actualizado', 'success');
+    editingNotification.value = null;
   } catch (error: any) {
     showStatus(error.message, false);
+    showToastNotification('Error', error.message, 'error');
   } finally {
     isLoading.value = false;
   }
@@ -322,19 +464,89 @@ async function markAsRead(notificationId: string, index: number) {
   }
 }
 
+// Polling para nuevas notificaciones cada 30 segundos
+let notificationInterval: NodeJS.Timeout | null = null;
+
+function startNotificationPolling() {
+  if (notificationInterval) clearInterval(notificationInterval);
+  notificationInterval = setInterval(() => {
+    if (currentUser.value?.sub) {
+      fetchNotifications();
+    }
+  }, 30000); // 30 segundos
+}
+
+function stopNotificationPolling() {
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+    notificationInterval = null;
+  }
+}
+
 // --- CICLO DE VIDA ---
 onMounted(() => {
   if (initializeUser()) {
     fetchUserData();
     fetchNotifications();
+    startNotificationPolling();
   } else {
     showStatus('Debes iniciar sesión para ver tu perfil.', false);
   }
+});
+
+// Limpiar interval al desmontar
+onUnmounted(() => {
+  stopNotificationPolling();
 });
 </script>
 
 <template>
   <div class="flex flex-col md:flex-row h-screen overflow-hidden" :class="ui.container">
+    <div class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none">
+      <TransitionGroup name="toast" tag="div">
+        <div 
+          v-for="toast in toastNotifications" 
+          :key="toast.id"
+          class="pointer-events-auto max-w-sm w-full rounded-xl p-4 transform transition-all duration-300"
+          :class="[
+            toastStyles(toast.type).bg,
+            toast.isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0',
+            toast.isLeaving ? 'translate-x-full opacity-0' : ''
+          ]"
+        >
+          <div class="flex items-start">
+            <div 
+              class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3"
+              :class="toastStyles(toast.type).iconBg"
+            >
+              <svg 
+                class="w-5 h-5" 
+                :class="toastStyles(toast.type).icon" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getToastIcon(toast.type)" />
+              </svg>
+            </div>
+            <div class="flex-grow">
+              <h4 class="text-sm font-semibold mb-1">{{ toast.title }}</h4>
+              <p class="text-xs opacity-90 leading-relaxed">{{ toast.content }}</p>
+              <p class="text-xs opacity-70 mt-2">{{ toast.timestamp.toLocaleTimeString() }}</p>
+            </div>
+            <button 
+              @click="removeToast(toast.id)"
+              class="flex-shrink-0 ml-2 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            >
+              <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </TransitionGroup>
+    </div>
+
     <Sidebarizquierda class="w-full md:w-2/6 lg:w-2/6"/>
     
     <div class="w-full md:w-4/6 lg:w-4/6 flex flex-col relative overflow-y-auto" :class="ui.contentBg">
@@ -407,22 +619,49 @@ onMounted(() => {
             Debes iniciar sesión para acceder a las notificaciones
           </div>
           <template v-else>
-            <div class="mx-4 my-4 p-4 border rounded-lg" :class="ui.formContainer">
+            <div class="mx-4 my-4 p-4 border rounded-lg transition-colors duration-300" :class="[ui.formContainer, isEditing ? '' : formDynamicStyles.border]">
               <h3 class="text-sm font-medium mb-3">Crear nueva notificación</h3>
               <div class="text-xs mb-3" :class="ui.textMuted">
                 Usuario: {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.email }})
               </div>
               <form @submit.prevent="createNotification">
                 <input v-model="newNotification.title" type="text" placeholder="Título" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500 mb-3" :class="ui.formInput" required />
-                <textarea v-model="newNotification.content" placeholder="Contenido" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500 h-20 mb-3" :class="ui.formInput" required></textarea>
-                <select v-model="newNotification.type" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500 mb-3" :class="ui.formInput" required :disabled="currentUser?.rol?.toLowerCase() !== 'admin' && newNotification.type === 'alert'">
-                  <option value="info">Información</option>
-                  <option value="warning">Advertencia</option>
-                  <option value="alert">Alerta</option>
-                </select>
+                
+                <div>
+                  <textarea v-model="newNotification.content" placeholder="Contenido" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500" :class="ui.formInput" rows="4" required maxlength="500"></textarea>
+                  <p class="text-right text-xs mt-1" :class="ui.textMutedLight">{{ contentCharCount }} / 500</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 my-4">
+                  <button
+                    v-for="type in notificationTypes"
+                    :key="type.value"
+                    type="button"
+                    @click="newNotification.type = type.value"
+                    :class="[
+                      'p-2 rounded-lg text-xs flex items-center justify-center transition-all duration-200 border',
+                      newNotification.type === type.value
+                        ? `bg-${type.color}-500 border-${type.color}-500 text-white shadow-lg scale-105`
+                        : isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-gray-100 border-gray-200 hover:bg-gray-200'
+                    ]"
+                    :disabled="currentUser?.rol?.toLowerCase() !== 'admin' && type.value === 'alert'"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="type.icon" />
+                    </svg>
+                    <span>{{ type.label }}</span>
+                  </button>
+                </div>
+
                 <div class="flex justify-end">
-                  <button type="submit" class="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-1 text-sm" :disabled="isLoading">
-                    {{ isLoading ? 'Enviando...' : 'Enviar notificación' }}
+                  <button 
+                    type="submit" 
+                    class="text-white rounded-full px-5 py-2 text-sm font-semibold transition-colors duration-300 flex items-center" 
+                    :class="[formDynamicStyles.buttonBg, formDynamicStyles.buttonText]"
+                    :disabled="isLoading"
+                  >
+                    <span v-if="!isLoading">Enviar notificación</span>
+                    <span v-else>Enviando...</span>
                   </button>
                 </div>
               </form>
@@ -511,5 +750,28 @@ onMounted(() => {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+/* Toast animations */
+.toast-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.toast-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.toast-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.toast-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.toast-move {
+  transition: transform 0.3s ease;
 }
 </style>

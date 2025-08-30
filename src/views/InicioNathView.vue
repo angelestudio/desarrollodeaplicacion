@@ -100,47 +100,7 @@
       </div>
     </section>
 
-    <!-- SECCIÓN NOTIFICACIONES -->
-    <section class="px-12 py-16 grid grid-cols-1 md:grid-cols-3 gap-10 transition-colors duration-300" :class="theme === 'light' ? 'bg-white' : 'bg-gray-800'">
-      <div
-        v-for="(notification, idx) in notifications"
-        :key="notification._id || idx"
-        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
-        :class="[ 
-          theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-20',
-          notification.type === 'info' && 'border border-green-400',
-          notification.type === 'warning' && 'border border-yellow-400',
-          notification.type === 'alert' && 'border border-red-400'
-        ]"
-      >
-        <h3 class="text-xl font-bold mb-2"
-            :class="notification.type === 'info'
-              ? 'text-green-700'
-              : notification.type === 'warning'
-                ? 'text-yellow-700'
-                : notification.type === 'alert'
-                  ? 'text-red-700'
-                  : 'text-[#39A900]'">
-          {{ notification.title }}
-        </h3>
-        <p class="mb-2">{{ notification.content }}</p>
-        <p class="text-xs mb-1" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">
-          {{ notification.timestamp }}
-          <template v-if="notification.userName">
-            &mdash; por {{ notification.userName }}
-          </template>
-        </p>
-        <span v-if="notification.type==='alert'" class="inline-block px-2 py-1 text-xs rounded bg-red-200 text-red-800">Alerta</span>
-        <span v-else-if="notification.type==='warning'" class="inline-block px-2 py-1 text-xs rounded bg-yellow-200 text-yellow-800">Advertencia</span>
-        <span v-else-if="notification.type==='info'" class="inline-block px-2 py-1 text-xs rounded bg-green-200 text-green-800">Información</span>
-      </div>
-      <div
-        v-if="notifications.length === 0"
-        class="col-span-3 text-center" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'"
-      >
-        No hay notificaciones disponibles en este momento.
-      </div>
-    </section>
+    
 
     <!-- SECCIÓN DE ÚLTIMAS NOTICIAS -->
     <section class="py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-white to-gray-50' : 'bg-gradient-to-b from-gray-800 to-gray-900'">
