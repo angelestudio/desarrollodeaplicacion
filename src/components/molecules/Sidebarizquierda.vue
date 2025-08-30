@@ -100,11 +100,12 @@ const isActiveRoute = (path: string): boolean => {
 <template>
   <aside
     :class="[
-      'md:w-80 flex flex-col justify-between h-screen border-r relative overflow-hidden',
+      'w-64 md:w-80 flex flex-col justify-between h-screen border-r relative overflow-hidden',
       isDarkMode
         ? 'bg-gradient-to-b from-gray-900 via-black to-gray-900 text-white border-gray-800'
         : 'bg-gradient-to-b from-white via-gray-50 to-white text-green-700 border-gray-200'
     ]"
+    style="min-width: 320px;"
   >
     <!-- Fondo decorativo animado -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
