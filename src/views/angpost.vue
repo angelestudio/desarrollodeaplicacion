@@ -13,7 +13,7 @@ interface JwtPayload {
   rol: string
   firstName: string
   lastName: string
-  clubs: string[]
+  clubs: any[] // puede venir string[] o Array<{_id: string, ...}>
   iat: number
   exp: number
 }
@@ -29,34 +29,55 @@ const loginStore = useLoginStore()
 const showModal = ref(false)
 const newClub = ref({ name: '', description: '' })
 
+// Bloqueos para evitar clicks concurrentes
+const leavingClubId = ref<string | null>(null)
+const joiningClubId = ref<string | null>(null)
+
 // Decode JWT on load
 let payload: JwtPayload | null = null
 const token = localStorage.getItem('token')
 if (token) {
   try {
     payload = jwt_decode<JwtPayload>(token)
-  } catch {
+  } catch (e) {
     console.warn('Token inválido o expirado')
   }
 }
 
 // On mount: fetch clubs and hydrate loginStore.user
 onMounted(async () => {
-  await clubsStore.fetchClubs()
+  try {
+    await clubsStore.fetchClubs()
+  } catch (err) {
+    console.error('Error fetching clubs:', err)
+  }
+
   if (payload) {
+    // Normalizamos clubs al setear el usuario
+    const rawClubs = payload.clubs || []
+    const clubIds = Array.isArray(rawClubs)
+      ? rawClubs.map((c: any) => (typeof c === 'object' && c._id ? String(c._id) : String(c)))
+      : []
+
     loginStore.setUser({
       _id: payload.sub,
       firstName: payload.firstName,
       lastName: payload.lastName,
       role: payload.rol,
-      clubs: payload.clubs || []
+      clubs: clubIds
     })
   }
 })
 
+// Helpers para normalizar clubs desde el store (puede venir string[] o object[])
+function normalizeClubs(raw: any): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map((c: any) => (typeof c === 'object' && c._id ? String(c._id) : String(c)))
+}
+
 // Computed props
 const isAdmin = computed(() => loginStore.user?.role === 'admin')
-const userClubs = computed(() => loginStore.user?.clubs || [])
+const userClubs = computed(() => normalizeClubs(loginStore.user?.clubs))
 const sports = computed(() =>
   clubsStore.clubs.map(c => ({
     _id: c._id,
@@ -77,37 +98,75 @@ function closeModal() {
 // Create club
 async function submitClub() {
   if (!newClub.value.name || !newClub.value.description) return
-  await clubsStore.createClub({
-    name: newClub.value.name,
-    description: newClub.value.description
-  })
-  closeModal()
+  try {
+    await clubsStore.createClub({
+      name: newClub.value.name,
+      description: newClub.value.description
+    })
+    closeModal()
+  } catch (err) {
+    console.error('Error creando club:', err)
+    alert('No se pudo crear el club. Revisa la consola.')
+  }
 }
 
 // Delete club
 async function onDeleteClub(id: string) {
-  if (confirm('¿Estás seguro de eliminar este club?')) {
+  if (!confirm('¿Estás seguro de eliminar este club?')) return
+  try {
     await clubsStore.deleteClub(id)
+  } catch (err) {
+    console.error('Error eliminando club:', err)
+    alert('No se pudo eliminar el club. Revisa la consola.')
   }
 }
 
-// Join / Leave
+// Join / Leave con protección y fallback local
 async function joinClub(clubId: string) {
+  if (joiningClubId.value) return
+  joiningClubId.value = clubId
   try {
     await loginStore.joinClub(clubId)
-  } catch {
-    alert('Error al unirte al club')
+
+    // fallback: si el store no añadió el id, lo añadimos localmente
+    if (loginStore.user) {
+      const normalized = normalizeClubs(loginStore.user.clubs)
+      if (!normalized.includes(clubId)) {
+        loginStore.user.clubs = [...normalized, clubId]
+      }
+    }
+  } catch (err) {
+    console.error('Error al unirte al club:', err)
+    alert('Error al unirte al club. Revisa la consola (Network) para más detalles.')
+  } finally {
+    joiningClubId.value = null
   }
 }
+
 async function leaveClub(clubId: string) {
+  if (leavingClubId.value) return
+  leavingClubId.value = clubId
   try {
     await loginStore.leaveClub(clubId)
-  } catch {
-    alert('Error al salir del club')
+await clubsStore.fetchClubs()
+    // fallback: si el store no actualizó, lo actualizamos localmente
+    if (loginStore.user) {
+      const normalized = normalizeClubs(loginStore.user.clubs)
+      loginStore.user.clubs = normalized.filter(id => id !== clubId)
+    }
+  } catch (err) {
+    console.error('Error al salir del club:', err)
+    alert('Error al salir del club: ' + (err?.message || 'revisa la consola y el Network tab'))
+  } finally {
+    leavingClubId.value = null
   }
 }
+
+// Comprobación robusta de si el usuario pertenece al club
 function hasJoined(clubId: string): boolean {
-  return loginStore.user?.clubs.includes(clubId) ?? false
+  const clubs = loginStore.user?.clubs
+  if (!Array.isArray(clubs)) return false
+  return normalizeClubs(clubs).includes(clubId)
 }
 
 // Prevent body scroll when modal open
@@ -126,7 +185,7 @@ function logout() {
   <div
     class="h-screen w-screen overflow-hidden flex"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
-  > 
+  >
     <!-- Modal Crear Club -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
     <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center">
@@ -204,17 +263,23 @@ function logout() {
               <button
                 v-if="!hasJoined(item._id)"
                 @click="joinClub(item._id)"
-                class="bg-green-600 px-3 py-1.5 rounded hover:bg-green-700 text-white transition duration-300 text-sm"
+                :disabled="joiningClubId === item._id"
+                class="bg-green-600 px-3 py-1.5 rounded hover:bg-green-700 text-white transition duration-300 text-sm disabled:opacity-50"
               >
-                Join
+                <span v-if="joiningClubId === item._id">Uniendo...</span>
+                <span v-else>Join</span>
               </button>
+
               <button
                 v-else
                 @click="leaveClub(item._id)"
-                class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm"
+                :disabled="leavingClubId === item._id"
+                class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm disabled:opacity-50"
               >
-                Leave
+                <span v-if="leavingClubId === item._id">Saliendo...</span>
+                <span v-else>Leave</span>
               </button>
+
               <button
                 v-if="isAdmin"
                 @click="onDeleteClub(item._id)"
@@ -243,11 +308,14 @@ function logout() {
             >
               {{ clubsStore.clubs.find(c => c._id === clubId)?.name || clubId }}
             </router-link>
+
             <button
               @click="leaveClub(clubId)"
-              class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm flex-shrink-0 ml-4"
+              :disabled="leavingClubId === clubId"
+              class="bg-gray-600 px-3 py-1.5 rounded hover:bg-gray-500 text-white transition duration-300 text-sm flex-shrink-0 ml-4 disabled:opacity-50"
             >
-              Leave
+              <span v-if="leavingClubId === clubId">Saliendo...</span>
+              <span v-else>Leave</span>
             </button>
           </div>
         </div>
@@ -280,8 +348,8 @@ function logout() {
 </template>
 
 <style scoped>
-.modal-open { 
-  overflow: hidden; 
+.modal-open {
+  overflow: hidden;
 }
 
 .line-clamp-2 {
