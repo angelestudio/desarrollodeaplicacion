@@ -3,8 +3,16 @@
     
     <!-- NAVBAR CON ANIMACIÓN -->     
     <nav class="flex justify-between items-center px-12 py-6 backdrop-blur-md shadow-lg border-b sticky top-0 z-50 transition-all duration-300" :class="theme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-black/90 border-gray-800'">       
-      <div class="text-3xl font-black hover:text-[#3B9D30] transition-colors cursor-pointer" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-100'">
-        SENA<span class="text-[#3B9D30]">CLUB</span>
+      <div class="flex items-center space-x-4">
+        <!-- Logo del SENA -->
+        <img 
+          src="@/assets/logo-del-sena-01.png" 
+          alt="Logo SENA" 
+          class="h-16 w-auto hover:scale-105 transition-transform duration-300"
+        />
+        <div class="text-3xl font-black hover:text-[#3B9D30] transition-colors cursor-pointer" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-100'">
+          SENA<span class="text-[#3B9D30]">CLUB</span>
+        </div>
       </div>       
       <div class="flex space-x-8">         
         <a href="#" class="hover:text-[#3B9D30] font-semibold text-lg transition-all duration-300 hover:scale-105" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">Sena mejora tu vida</a>       
