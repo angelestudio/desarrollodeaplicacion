@@ -1,15 +1,11 @@
 <template>
   <div
-    :class="[ 
-      'min-h-screen overflow-y-auto flex relative',
-      isDarkMode
-        ? 'bg-black text-white'
-        : 'bg-white text-green-700'
-    ]"
+    class="h-screen w-screen overflow-hidden flex"
+    :class="isDarkMode ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'"
   >
     <!-- Backdrop y modal de creación de post -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
-    <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center">
+    <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center p-4">
       <div
         class="p-6 rounded-2xl shadow-xl w-full max-w-md relative border"
         :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
@@ -23,166 +19,172 @@
         <h3 class="text-xl mb-4 font-semibold text-emerald-500">
           Crear nuevo post
         </h3>
-        <form @submit.prevent="submitPost">
-          <div class="mb-3" v-if="!selectedClub">
-            <label :class="isDarkMode ? 'block text-sm mb-1 text-green-400' : 'block text-sm mb-1 text-green-600'">
+        <form @submit.prevent="submitPost" class="space-y-4">
+          <div class="space-y-2" v-if="!selectedClub">
+            <label class="block text-sm font-medium" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
               Selecciona un club
             </label>
             <select v-model="selectedFormClub" required
-                    :class="isDarkMode
-                      ? 'w-full p-2 rounded bg-gray-800 text-white border border-gray-700'
-                      : 'w-full p-2 rounded bg-white text-green-700 border border-green-200'">
+                    class="w-full p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    :class="isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'">
               <option disabled value="">-- Selecciona un club --</option>
               <option v-for="club in userClubs" :key="club" :value="club">{{ club }}</option>
             </select>
           </div>
-          <div class="mb-3" v-else>
-            <p :class="isDarkMode ? 'text-sm text-green-400' : 'text-sm text-green-600'">
-              Este post se asociará al club: <strong>{{ selectedClub }}</strong>
+          <div class="space-y-2" v-else>
+            <p class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+              Este post se asociará al club: <strong class="text-emerald-500">{{ selectedClub }}</strong>
             </p>
           </div>
-          <div class="mb-3">
-            <label :class="isDarkMode ? 'block text-sm mb-1 text-green-400' : 'block text-sm mb-1 text-green-600'">Título</label>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">Título</label>
             <input v-model="newPost.title" type="text" required
-                   :class="isDarkMode
-                     ? 'w-full p-2 rounded bg-gray-800 text-white border border-gray-700'
-                     : 'w-full p-2 rounded bg-white text-green-700 border border-green-200'" />
+                   class="w-full p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                   :class="isDarkMode ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' : 'bg-gray-50 text-gray-900 border-gray-300 placeholder-gray-500'"
+                   placeholder="Título del post" />
           </div>
-          <div class="mb-3">
-            <label :class="isDarkMode ? 'block text-sm mb-1 text-green-400' : 'block text-sm mb-1 text-green-600'">Contenido</label>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">Contenido</label>
             <textarea
               v-model="newPost.content"
               rows="4"
               required
-              :class="isDarkMode
-                ? 'w-full p-2 rounded bg-gray-800 text-white border border-gray-700'
-                : 'w-full p-2 rounded bg-white text-green-700 border border-green-200'"
+              class="w-full p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none outline-none"
+              :class="isDarkMode ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' : 'bg-gray-50 text-gray-900 border-gray-300 placeholder-gray-500'"
               placeholder="Escribe el contenido aquí..."
             ></textarea>
           </div>
           <button type="submit"
-                  :class="isDarkMode
-                    ? 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white transition'
-                    : 'bg-[#21c25a] hover:bg-green-700 px-4 py-2 rounded text-white transition'">
-            Crear
+                  class="w-full bg-emerald-500 hover:bg-emerald-600 px-4 py-3 rounded-xl text-white font-semibold transition-colors duration-200">
+            Crear Post
           </button>
         </form>
       </div>
     </div>
 
-    <!-- Sidebar -->
+    <!-- Sidebar izquierda -->
     <Sidebarizquierda
-      :class="isDarkMode
-        ? 'w-full md:w-1/5 bg-black border-b md:border-b-0 md:border-r border-gray-800'
-        : 'w-full md:w-1/5 bg-white border-b md:border-b-0 md:border-r border-gray-200'"
+      class="w-56 flex-shrink-0 flex flex-col border-r h-full"
+      :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
     />
 
     <!-- Contenido principal -->
-    <main :class="isDarkMode ? 'flex-1 bg-black p-4' : 'flex-1 bg-white p-4'">
-      <div class="flex justify-between items-center mb-4">
-        <h2 :class="isDarkMode ? 'text-2xl font-bold text-green-500' : 'text-2xl font-bold text-green-600'">Posts</h2>
+    <main
+      class="flex-1 flex flex-col p-8 overflow-y-auto border-r h-full"
+      :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
+    >
+      <!-- Header más limpio -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-emerald-500 mb-1">Posts</h2>
+          <p class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+            Comparte y descubre contenido de la comunidad
+          </p>
+        </div>
         <button @click="onAddPost"
-                :class="isDarkMode
-                  ? 'bg-green-600 hover:bg-green-700 rounded-full w-8 h-8 flex items-center justify-center text-white'
-                  : 'bg-[#21c25a] hover:bg-green-700 rounded-full w-8 h-8 flex items-center justify-center text-white'">
+                class="bg-emerald-500 hover:bg-emerald-600 rounded-2xl w-12 h-12 flex items-center justify-center text-white text-xl font-bold transition-colors duration-200 shadow-lg">
           +
         </button>
       </div>
 
       <!-- Filtros por club -->
-      <div class="overflow-x-auto whitespace-nowrap mb-4">
-        <button v-for="club in userClubs" :key="club" @click="filterByClub(club)"
-                :class="isDarkMode
-                  ? 'inline-block px-4 py-2 my-2 mr-2 bg-gray-900 hover:bg-gray-800 rounded-full border border-green-700 text-green-400'
-                  : 'inline-block px-4 py-2 my-2 mr-2 bg-green-50 hover:bg-green-100 rounded-full border border-green-200 text-green-700'">
-          {{ club }}
-        </button>
-        <button @click="filterByClub('')"
-                :class="isDarkMode
-                  ? 'inline-block px-4 py-2 my-2 bg-gray-800 hover:bg-gray-700 rounded-full border border-green-700 text-green-400'
-                  : 'inline-block px-4 py-2 my-2 bg-green-100 hover:bg-green-200 rounded-full border border-green-300 text-green-700'">
-          Todos
-        </button>
+      <div class="mb-6">
+        <div class="flex flex-wrap gap-2">
+          <button v-for="club in userClubs" :key="club" @click="filterByClub(club)"
+                  class="px-4 py-2 rounded-xl border transition-all duration-200 hover:shadow-md"
+                  :class="selectedClub === club
+                    ? (isDarkMode ? 'bg-emerald-900/50 border-emerald-700 text-emerald-400' : 'bg-emerald-100 border-emerald-300 text-emerald-700')
+                    : (isDarkMode ? 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300')">
+            {{ club }}
+          </button>
+          <button @click="filterByClub('')"
+                  class="px-4 py-2 rounded-xl border transition-all duration-200 hover:shadow-md"
+                  :class="selectedClub === ''
+                    ? (isDarkMode ? 'bg-emerald-900/50 border-emerald-700 text-emerald-400' : 'bg-emerald-100 border-emerald-300 text-emerald-700')
+                    : (isDarkMode ? 'bg-gray-800 border-gray-600 text-gray-300 hover:border-gray-500' : 'bg-gray-100 border-gray-300 text-gray-700 hover:border-gray-400')">
+            Todos
+          </button>
+        </div>
       </div>
 
       <!-- Listado de posts -->
-      <div v-if="filteredPosts.length">
-        <div v-for="post in filteredPosts" :key="post._id"
-             :class="isDarkMode
-               ? 'bg-gray-900 p-4 rounded mb-4 border border-gray-700 relative'
-               : 'bg-green-50 p-4 rounded mb-4 border border-green-200 relative'">
+      <div v-if="filteredPosts.length" class="space-y-6">
+        <article v-for="post in filteredPosts" :key="post._id"
+             class="p-6 rounded-2xl border transition-all duration-200 hover:shadow-md relative"
+             :class="isDarkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:border-gray-300'">
           <!-- Título y expandir -->
-          <h3 :class="isDarkMode ? 'text-xl font-semibold text-green-400 cursor-pointer' : 'text-xl font-semibold text-green-600 cursor-pointer'"
-              @click="toggleExpand(post._id)">
-            {{ post.title }}
-          </h3>
+          <header class="mb-4">
+            <h3 class="text-xl font-semibold text-emerald-500 cursor-pointer hover:text-emerald-600 transition-colors duration-200 mb-2"
+                @click="toggleExpand(post._id)">
+              {{ post.title }}
+            </h3>
+            <p class="leading-relaxed" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ post.content }}</p>
+          </header>
 
-          <!-- Nombre del autor -->
-          <p :class="isDarkMode ? 'text-sm text-green-300 mb-1' : 'text-sm text-green-700 mb-1'">
-            Publicado por: <strong>{{ getAuthorName(post) }}</strong>
-          </p>
-
-          <p :class="isDarkMode ? 'text-gray-300 mb-2' : 'text-green-900 mb-2'">{{ post.content }}</p>
-
-          <!-- Contador de likes y club -->
-          <div :class="isDarkMode ? 'flex items-center text-sm text-green-400 mb-2' : 'flex items-center text-sm text-green-500 mb-2'">
-            <span class="mr-4">Club: {{ post.club }}</span>
-            <span>{{ post.likesCount || 0 }} 👍</span>
+          <!-- Metadata -->
+          <div class="flex items-center justify-between text-sm mb-4" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
+            <div class="flex items-center space-x-4">
+              <span class="px-3 py-1 rounded-full text-xs font-medium"
+                    :class="isDarkMode ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'">
+                {{ post.club }}
+              </span>
+              <span class="flex items-center space-x-1">
+                <span>{{ post.likesCount || 0 }}</span>
+                <span>👍</span>
+              </span>
+            </div>
           </div>
 
           <!-- Botones Like / Comentarios -->
-          <div class="flex space-x-2 mb-2">
+          <div class="flex space-x-3 mb-4">
             <button @click="onToggleLike(post._id)"
-                    :class="isDarkMode
-                      ? 'px-3 py-1 bg-blue-950 hover:bg-blue-900 border border-blue-900 rounded text-sm text-blue-400'
-                      : 'px-3 py-1 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded text-sm text-blue-800'">
+                    class="px-4 py-2 rounded-xl border font-medium text-sm transition-all duration-200"
+                    :class="likedPosts.has(post._id)
+                      ? (isDarkMode ? 'bg-blue-900/50 border-blue-800 text-blue-400' : 'bg-blue-100 border-blue-300 text-blue-800')
+                      : (isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400')">
               {{ likedPosts.has(post._id) ? 'Unlike' : 'Like' }}
             </button>
             <button @click="toggleExpand(post._id)"
-                    :class="isDarkMode
-                      ? 'px-3 py-1 bg-purple-950 hover:bg-purple-900 border border-purple-900 rounded text-sm text-purple-300'
-                      : 'px-3 py-1 bg-purple-100 hover:bg-purple-200 border border-purple-300 rounded text-sm text-purple-800'">
-              {{ expandedPostId === post._id ? 'Ocultar comentarios' : 'Comentarios' }}
+                    class="px-4 py-2 rounded-xl border font-medium text-sm transition-all duration-200"
+                    :class="isDarkMode ? 'bg-purple-900/50 border-purple-800 text-purple-400' : 'bg-purple-100 border-purple-300 text-purple-800'">
+              {{ expandedPostId === post._id ? 'Ocultar comentarios' : 'Ver comentarios' }}
             </button>
           </div>
 
           <!-- Sección de comentarios -->
-          <div v-if="expandedPostId === post._id" :class="isDarkMode ? 'mt-2 border-t border-gray-700 pt-2' : 'mt-2 border-t border-green-200 pt-2'">
+          <div v-if="expandedPostId === post._id" class="border-t pt-4" :class="isDarkMode ? 'border-gray-800' : 'border-gray-200'">
             <!-- Lista de comentarios -->
-            <div v-if="commentsMap[post._id]?.length" class="space-y-2 mb-4">
+            <div v-if="commentsMap[post._id]?.length" class="space-y-3 mb-6">
               <div v-for="c in commentsMap[post._id]" :key="c._id"
-                   :class="isDarkMode
-                     ? 'bg-gray-800 p-2 rounded mb-2 relative border border-gray-700'
-                     : 'bg-green-100 p-2 rounded mb-2 relative border border-green-200'">
+                   class="p-4 rounded-xl relative border"
+                   :class="isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
                 <!-- Botón eliminar comentario -->
                 <button @click="onDeleteComment(post._id, c._id)"
-                        :class="isDarkMode
-                          ? 'absolute top-2 right-2 bg-red-900 hover:bg-red-800 px-2 py-1 rounded text-xs text-white'
-                          : 'absolute top-2 right-2 bg-red-100 hover:bg-red-200 px-2 py-1 rounded text-xs text-red-700'">
+                        class="absolute top-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
+                        :class="isDarkMode ? 'bg-red-900/50 hover:bg-red-800/70 text-red-400' : 'bg-red-100 hover:bg-red-200 text-red-600'">
                   🗑
                 </button>
-                <p :class="isDarkMode ? 'text-gray-200' : 'text-green-900'">{{ c.content }}</p>
-                <p :class="isDarkMode ? 'text-xs text-gray-400' : 'text-xs text-green-500'">— {{ c.username }}</p>
+                <p class="pr-10 mb-2" :class="isDarkMode ? 'text-gray-200' : 'text-gray-800'">{{ c.content }}</p>
+                <p class="text-xs font-medium" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">— {{ c.username }}</p>
               </div>
             </div>
-            <p v-else :class="isDarkMode ? 'text-gray-400 mb-4' : 'text-green-500 mb-4'">No hay comentarios.</p>
+            <p v-else class="text-center py-8" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
+              No hay comentarios aún. ¡Sé el primero en comentar!
+            </p>
 
             <!-- Formulario nuevo comentario -->
-            <form @submit.prevent="onSubmitComment(post._id)" class="flex items-center space-x-2">
+            <form @submit.prevent="onSubmitComment(post._id)" class="flex items-center space-x-3">
               <input
                 v-model="newCommentMap[post._id]"
                 type="text"
                 maxlength="100"
                 placeholder="Escribe un comentario..."
-                :class="isDarkMode
-                  ? 'flex-1 p-2 rounded bg-gray-800 text-white border border-gray-700'
-                  : 'flex-1 p-2 rounded bg-white text-green-900 border border-green-200'"
+                class="flex-1 p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                :class="isDarkMode ? 'bg-gray-800 text-white border-gray-700 placeholder-gray-400' : 'bg-white text-gray-900 border-gray-300 placeholder-gray-500'"
                 required
               />
               <button type="submit"
-                      :class="isDarkMode
-                        ? 'px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm text-white'
-                        : 'px-3 py-1 bg-[#21c25a] hover:bg-green-700 rounded text-sm text-white'">
+                      class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-white font-medium transition-colors duration-200">
                 Enviar
               </button>
             </form>
@@ -190,29 +192,35 @@
 
           <!-- Botón eliminar post (solo admin) -->
           <button v-if="userRole === 'admin'" @click="onDeletePost(post._id)"
-                  :class="isDarkMode
-                    ? 'absolute top-2 right-2 bg-red-900 hover:bg-red-800 px-2 py-1 rounded text-sm text-white border border-red-900'
-                    : 'absolute top-2 right-2 bg-red-100 hover:bg-red-200 px-2 py-1 rounded text-sm text-red-700 border border-red-300'">
-            Delete
+                  class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium transition-colors duration-200"
+                  :class="isDarkMode ? 'bg-red-900/50 hover:bg-red-800/70 text-red-400 border border-red-800' : 'bg-red-100 hover:bg-red-200 text-red-600 border border-red-300'">
+            ×
           </button>
-        </div>
+        </article>
       </div>
-      <p v-else :class="isDarkMode ? 'text-center text-gray-400' : 'text-center text-green-500'">No hay posts disponibles.</p>
+      <div v-else class="text-center py-16">
+        <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
+          No hay posts disponibles
+        </p>
+        <p class="text-sm mt-2" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
+          ¡Crea el primer post de la comunidad!
+        </p>
+      </div>
     </main>
 
-    <!-- Aside de noticias -->
+    <!-- Sidebar derecha -->
     <aside
-      :class="isDarkMode
-        ? 'w-[297px] bg-black border-l border-gray-900 p-4'
-        : 'w-[297px] bg-white border-l border-green-200 p-4'">
+      class="w-80 flex-shrink-0 border-l p-0 relative h-full overflow-hidden"
+      :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
+    >
       <News />
     </aside>
 
-    <!-- Logout -->
-    <button @click="logout"
-            :class="isDarkMode
-              ? 'absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full'
-              : 'absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full'">
+    <!-- Botón logout flotante -->
+    <button
+      @click="logout"
+      class="fixed bottom-6 right-6 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-2xl shadow-lg transition-all duration-200 z-30 font-medium"
+    >
       Cerrar sesión
     </button>
   </div>
@@ -227,7 +235,6 @@ import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
 import News from '@/components/molecules/News.vue'
 import { useClubsStore } from '@/stores/clubsStore'
 import { usePostsStore } from '@/stores/postsStore'
-import type { PostItem } from '@/stores/postsStore'
 import { useThemeStore } from '@/stores/theme'
 
 const themeStore = useThemeStore()
@@ -242,6 +249,7 @@ if (!payload) {
 const username = payload ? `${payload.firstName} ${payload.lastName}`.trim() : ''
 const userRole = payload ? payload.rol : ''
 const userClubs = payload?.clubs ?? []
+// Asegura header Authorization ya configurado en main.ts; si no, vuelve a asignar:
 axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
 
 // --- Stores ---
@@ -275,6 +283,11 @@ watch(
   }
 )
 
+// Prevent body scroll when modal open
+watch(showModal, open => {
+  document.body.classList.toggle('modal-open', open)
+})
+
 // Ciclo inicial
 onMounted(async () => {
   await clubsStore.fetchClubs()
@@ -291,44 +304,11 @@ function closeModal() {
   selectedFormClub.value = ''
 }
 
-// Devuelve el nombre del autor manejando varios formatos que puede devolver el backend
-function getAuthorName(post: PostItem): string {
-  // 1) Si backend añadió top-level username en el post
-  if (post.username && typeof post.username === 'string' && post.username.trim()) {
-    return post.username.trim();
-  }
-
-  // 2) Si user vino poblado (objeto)
-  const userField: any = post.user;
-  if (userField && typeof userField === 'object') {
-    // varios posibles nombres de campo: username, name, firstName+lastName
-    if (userField.username && typeof userField.username === 'string' && userField.username.trim()) {
-      return userField.username.trim();
-    }
-    if (userField.name && typeof userField.name === 'string' && userField.name.trim()) {
-      return userField.name.trim();
-    }
-    const fn = (userField.firstName || userField.first_name || userField.first) ?? '';
-    const ln = (userField.lastName || userField.last_name || userField.last) ?? '';
-    const full = `${fn} ${ln}`.trim();
-    if (full) return full;
-  }
-
-  // 3) Si solo tenemos el id en user (string) — opcional: intentar buscar en cache local (no implementado)
-  if (typeof userField === 'string' && userField.trim()) {
-    // no podemos obtener el nombre real solo con el id aquí — fallback razonable:
-    return 'usuario'; // o puedes devolver userField para ver el id: return userField;
-  }
-
-  // 4) fallback final
-  return 'anonimo';
-}
-
 // CRUD Posts
 async function submitPost() {
   const clubToSend = selectedClub.value || selectedFormClub.value
   if (!clubToSend) return alert('Debes seleccionar un club.')
-  // Llamada al store para crear post
+  // Llamada corregida: enviar solo title, content, club
   await postsStore.addPost({ title: newPost.title, content: newPost.content, club: clubToSend })
   closeModal()
 }
@@ -368,7 +348,9 @@ async function onToggleLike(postId: string) {
 async function onSubmitComment(postId: string) {
   const text = newCommentMap[postId]?.trim()
   if (!text) return
+  // Llamada corregida: solo postId y content
   await postsStore.addComment(postId, text.slice(0, 100))
+  // Recargar comentarios
   const comments = await postsStore.fetchComments(postId)
   commentsMap[postId] = comments.map(c => ({
     _id: c._id,
@@ -404,5 +386,19 @@ function logout() {
 <style scoped>
 .modal-open {
   overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Transiciones suaves para todos los elementos */
+* {
+  transition-property: colors, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 </style>
