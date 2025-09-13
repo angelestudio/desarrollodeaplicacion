@@ -447,8 +447,8 @@ const initiateVerification = async () => {
   if (!/^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.value.email)) { toast.error('Correo inválido'); return }
   if (!/^\d{10}$/.test(form.value.phone)) { toast.error('Teléfono inválido'); return }
   if (selectedClubs.value.length === 0) { toast.error('Selecciona al menos un club'); return }
-  if (form.value.rol === 'admin' && !form.value.email.includes('clubsena@gmail.com')) {
-  toast.error('El correo del administrador debe contener "clubsena@gmail.com"');
+  if (form.value.rol === 'admin' && !form.value.email.includes('@soy.sena.edu.co')) {
+  toast.error('El correo del administrador debe contener "@soy.sena.edu.co"');
   return;
 }
   
