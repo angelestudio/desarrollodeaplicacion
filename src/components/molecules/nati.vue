@@ -1,10 +1,18 @@
 <template>   
-  <div class="min-h-screen flex flex-col overflow-x-hidden" :class="theme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-gray-900 text-gray-100'">     
+  <div class="min-h-screen flex flex-col overflow-x-hidden" :class="theme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-black text-gray-100'">     
     
     <!-- NAVBAR CON ANIMACIÓN -->     
-    <nav class="flex justify-between items-center px-12 py-6 backdrop-blur-md shadow-lg border-b sticky top-0 z-50 transition-all duration-300" :class="theme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-gray-800/90 border-gray-700'">       
-      <div class="text-3xl font-black hover:text-[#3B9D30] transition-colors cursor-pointer" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-100'">
-        SENA<span class="text-[#3B9D30]">CLUB</span>
+    <nav class="flex justify-between items-center px-12 py-6 backdrop-blur-md shadow-lg border-b sticky top-0 z-50 transition-all duration-300" :class="theme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-black/90 border-gray-800'">       
+      <div class="flex items-center space-x-4">
+        <!-- Logo del SENA -->
+        <img 
+          src="@/assets/logo-del-sena-01.png" 
+          alt="Logo SENA" 
+          class="h-16 w-auto hover:scale-105 transition-transform duration-300"
+        />
+        <div class="text-3xl font-black hover:text-[#3B9D30] transition-colors cursor-pointer" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-100'">
+          SENA<span class="text-[#3B9D30]">CLUB</span>
+        </div>
       </div>       
       <div class="flex space-x-8">         
         <a href="#" class="hover:text-[#3B9D30] font-semibold text-lg transition-all duration-300 hover:scale-105" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">Sena mejora tu vida</a>       
@@ -29,7 +37,7 @@
     </nav>      
     
     <!-- MAIN CONTENT CON PARTÍCULAS ANIMADAS -->     
-    <main class="flex flex-1 justify-center items-center p-16 flex-wrap gap-20 text-center relative" :class="theme === 'light' ? 'bg-gradient-to-br from-gray-50 to-gray-100' : 'bg-gradient-to-br from-gray-900 to-gray-800'">
+    <main class="flex flex-1 justify-center items-center p-16 flex-wrap gap-20 text-center relative" :class="theme === 'light' ? 'bg-gradient-to-br from-gray-50 to-gray-100' : 'bg-gradient-to-br from-black to-black'">
       <!-- Partículas flotantes -->
       <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="particle particle-1"></div>
@@ -77,7 +85,7 @@
     </main>      
     
     <!-- ESTADÍSTICAS ANIMADAS -->
-    <section class="py-12 border-y transition-colors duration-300" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-700'">
+    <section class="py-12 border-y transition-colors duration-300" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-gray-800'">
       <div class="max-w-6xl mx-auto px-12">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
           <div class="group cursor-pointer">
@@ -100,50 +108,10 @@
       </div>
     </section>
 
-    <!-- SECCIÓN NOTIFICACIONES -->
-    <section class="px-12 py-16 grid grid-cols-1 md:grid-cols-3 gap-10 transition-colors duration-300" :class="theme === 'light' ? 'bg-white' : 'bg-gray-800'">
-      <div
-        v-for="(notification, idx) in notifications"
-        :key="notification._id || idx"
-        class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition"
-        :class="[ 
-          theme === 'light' ? 'bg-green-100 bg-opacity-50' : 'bg-green-900 bg-opacity-20',
-          notification.type === 'info' && 'border border-green-400',
-          notification.type === 'warning' && 'border border-yellow-400',
-          notification.type === 'alert' && 'border border-red-400'
-        ]"
-      >
-        <h3 class="text-xl font-bold mb-2"
-            :class="notification.type === 'info'
-              ? 'text-green-700'
-              : notification.type === 'warning'
-                ? 'text-yellow-700'
-                : notification.type === 'alert'
-                  ? 'text-red-700'
-                  : 'text-[#39A900]'">
-          {{ notification.title }}
-        </h3>
-        <p class="mb-2">{{ notification.content }}</p>
-        <p class="text-xs mb-1" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">
-          {{ notification.timestamp }}
-          <template v-if="notification.userName">
-            &mdash; por {{ notification.userName }}
-          </template>
-        </p>
-        <span v-if="notification.type==='alert'" class="inline-block px-2 py-1 text-xs rounded bg-red-200 text-red-800">Alerta</span>
-        <span v-else-if="notification.type==='warning'" class="inline-block px-2 py-1 text-xs rounded bg-yellow-200 text-yellow-800">Advertencia</span>
-        <span v-else-if="notification.type==='info'" class="inline-block px-2 py-1 text-xs rounded bg-green-200 text-green-800">Información</span>
-      </div>
-      <div
-        v-if="notifications.length === 0"
-        class="col-span-3 text-center" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'"
-      >
-        No hay notificaciones disponibles en este momento.
-      </div>
-    </section>
+    
 
     <!-- SECCIÓN DE ÚLTIMAS NOTICIAS -->
-    <section class="py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-white to-gray-50' : 'bg-gradient-to-b from-gray-800 to-gray-900'">
+    <section class="py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-white to-gray-50' : 'bg-gradient-to-b from-black to-black'">
       <div class="max-w-7xl mx-auto px-12 relative z-10">
         <div class="text-center mb-16">
           <div class="flex justify-between items-center mb-8">
@@ -167,7 +135,7 @@
               :class="[
                 theme === 'light' 
                   ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200' 
-                  : 'bg-green-900 border-green-700 text-green-300 hover:bg-green-800',
+                  : 'bg-black border-green-700 text-green-300 hover:bg-gray-900',
                 isLoadingNews ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
               ]"
             >
@@ -212,7 +180,7 @@
             :class="[
               theme === 'light' 
                 ? 'bg-white border-gray-100 hover:border-[#3B9D30]/30' 
-                : 'bg-gray-800 border-gray-700 hover:border-[#3B9D30]/30'
+                : 'bg-black border-gray-800 hover:border-[#3B9D30]/30'
             ]"
           >
             <!-- Indicador de noticia nueva -->
@@ -257,7 +225,7 @@
 
             <!-- News footer -->
             <div class="px-6 pb-6">
-              <div class="flex justify-between items-center pt-4 border-t" :class="theme === 'light' ? 'border-gray-100' : 'border-gray-700'">
+              <div class="flex justify-between items-center pt-4 border-t" :class="theme === 'light' ? 'border-gray-100' : 'border-gray-800'">
                 <button class="text-[#3B9D30] font-semibold text-sm hover:underline transition-colors">
                   Leer más →
                 </button>
@@ -285,7 +253,7 @@
     </section>
     
     <!-- SECCIÓN CLUBES CON ANIMACIONES AVANZADAS -->     
-    <section class="px-12 py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-gray-50 to-white' : 'bg-gradient-to-b from-gray-900 to-gray-800'">
+    <section class="px-12 py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-gray-50 to-white' : 'bg-gradient-to-b from-black to-black'">
       <!-- Patrón de fondo -->
       <div class="absolute inset-0 bg-pattern opacity-5"></div>
       
@@ -297,7 +265,7 @@
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">       
-          <div class="group border-2 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:border-[#3B9D30] relative overflow-hidden" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-700'">
+          <div class="group border-2 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:border-[#3B9D30] relative overflow-hidden" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-gray-800'">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>         
             <div class="w-20 h-20 bg-gradient-to-br from-[#3B9D30] to-[#2E7D2E] rounded-2xl flex items-center justify-center mb-8 group-hover:rotate-12 transition-all duration-500 mx-auto shadow-xl">
               <span class="text-white text-3xl font-bold">🏃</span>
@@ -309,7 +277,7 @@
             </div>       
           </div>       
           
-          <div class="group border-2 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:border-[#3B9D30] relative overflow-hidden" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-700'">
+          <div class="group border-2 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:border-[#3B9D30] relative overflow-hidden" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-gray-800'">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>         
             <div class="w-20 h-20 bg-gradient-to-br from-[#3B9D30] to-[#2E7D2E] rounded-2xl flex items-center justify-center mb-8 group-hover:rotate-12 transition-all duration-500 mx-auto shadow-xl">
               <span class="text-white text-3xl font-bold">💻</span>
@@ -321,7 +289,7 @@
             </div>       
           </div>       
           
-          <div class="group border-2 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:border-[#3B9D30] relative overflow-hidden" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-700'">
+          <div class="group border-2 p-10 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:border-[#3B9D30] relative overflow-hidden" :class="theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-gray-800'">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>         
             <div class="w-20 h-20 bg-gradient-to-br from-[#3B9D30] to-[#2E7D2E] rounded-2xl flex items-center justify-center mb-8 group-hover:rotate-12 transition-all duration-500 mx-auto shadow-xl">
               <span class="text-white text-3xl font-bold">💰</span>
@@ -358,7 +326,7 @@
     
     <!-- FOOTER MEJORADO -->     
     <footer class="relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gray-900 text-white' : 'bg-black text-gray-300'">
-      <div class="absolute inset-0" :class="theme === 'light' ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-black to-gray-900'"></div>
+      <div class="absolute inset-0" :class="theme === 'light' ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-950 via-black to-gray-900'"></div>
       <div class="max-w-6xl mx-auto px-12 py-16 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           <div>
@@ -394,7 +362,7 @@
             </div>
           </div>
         </div>
-        <div class="border-t pt-8 text-center" :class="theme === 'light' ? 'border-gray-700' : 'border-gray-800'">
+        <div class="border-t pt-8 text-center" :class="theme === 'light' ? 'border-gray-700' : 'border-gray-600'">
           <p :class="theme === 'light' ? 'text-gray-400' : 'text-gray-500'">© 2025 SenaClub - Todos los derechos reservados.</p>
         </div>
       </div>     
