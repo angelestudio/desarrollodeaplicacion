@@ -319,7 +319,13 @@ const scrollToForm = () => {
     </div>
 
     <!-- News creation form - AMPLIADO -->
-    <div id="news-form" class="mb-8 p-6 rounded-xl shadow-lg" :class="isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'">
+  <div 
+  id="news-form" 
+  class="mb-8 p-6 rounded-2xl shadow-xl w-full max-w-[400px] mx-auto"
+  :class="isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'"
+>
+
+
       <h3 class="text-green-600 font-semibold text-lg mb-4 flex items-center">
         <span class="mr-2">📝</span>
         {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}

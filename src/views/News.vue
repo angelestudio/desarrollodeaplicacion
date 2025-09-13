@@ -315,30 +315,56 @@ const scrollToForm = () => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto p-4">
+  <div
+    class="flex-1 flex flex-col p-8 overflow-y-auto border-r h-full"
+    :class="isDarkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-100'"
+  >
+    <!-- Header igual al de clubs -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-emerald-500 mb-1">
+        NOTIFICACIONES
+      </h2>
+      <p class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+        Mantente al día con las últimas actualizaciones
+      </p>
+    </div>
+
+    <!-- Notification -->
+    <div 
+      v-if="showNotification" 
+      class="fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 max-w-sm"
+      :class="notificationType === 'success' ? 'bg-green-600 text-white' : 'bg-black text-white'"
+    >
+      <div class="flex items-center space-x-2">
+        <span v-if="notificationType === 'success'">✓</span>
+        <span v-else>⚠</span>
+        <span class="text-sm">{{ notificationMessage }}</span>
+      </div>
+    </div>
+
     <!-- Estado de autenticación -->
-    <div v-if="newsUser" class="mb-6 p-3 rounded-lg shadow-sm" :class="isDarkMode ? 'bg-gray-900 text-white border border-gray-700' : 'bg-green-50 text-green-900 border border-green-200'">
+    <div v-if="newsUser" class="mb-6 p-4 rounded-2xl border transition-all duration-200" :class="isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-emerald-50 border-emerald-200'">
       <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+        <div class="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
           {{ newsUser.firstName[0] }}{{ newsUser.lastName[0] }}
         </div>
         <div>
-          <p class="font-medium text-sm">{{ newsUser.firstName }} {{ newsUser.lastName }}</p>
-          <p class="text-xs opacity-75">{{ newsUser.rol }}</p>
+          <p class="font-medium text-sm" :class="isDarkMode ? 'text-white' : 'text-emerald-900'">{{ newsUser.firstName }} {{ newsUser.lastName }}</p>
+          <p class="text-xs" :class="isDarkMode ? 'text-gray-400' : 'text-emerald-700'">{{ newsUser.rol }}</p>
         </div>
       </div>
     </div>
 
     <!-- Botón de actualización manual -->
-    <div class="mb-4 flex justify-end">
+    <div class="mb-6 flex justify-end">
       <button 
         @click="manualRefresh"
         :disabled="isLoading"
-        class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors duration-200"
         :class="[
           isDarkMode 
-            ? 'bg-green-900 border-green-700 text-green-300 hover:bg-green-800' 
-            : 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200',
+            ? 'bg-gray-900 border-gray-700 text-emerald-300 hover:bg-gray-800' 
+            : 'bg-emerald-100 border-emerald-300 text-emerald-700 hover:bg-emerald-200',
           isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
         ]"
       >
@@ -360,107 +386,103 @@ const scrollToForm = () => {
       </button>
     </div>
 
-    <!-- Notification -->
-    <div 
-      v-if="showNotification" 
-      class="fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 max-w-sm"
-      :class="notificationType === 'success' ? 'bg-green-600 text-white' : 'bg-black text-white'"
-    >
-      <div class="flex items-center space-x-2">
-        <span v-if="notificationType === 'success'">✓</span>
-        <span v-else>⚠</span>
-        <span class="text-sm">{{ notificationMessage }}</span>
-      </div>
-    </div>
-
-    <!-- News creation form -->
-    <div id="news-form" class="mb-8 p-6 rounded-xl shadow-lg" :class="isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'">
-      <h3 class="text-green-600 font-semibold text-lg mb-4 flex items-center">
-        <span class="mr-2">📝</span>
-        {{ isEditing ? 'Editar noticia' : 'Crear nueva noticia' }}
+    <!-- Sección Crear Noticia -->
+    <section class="mb-8">
+      <h3 class="text-lg font-semibold mb-4" :class="isDarkMode ? 'text-gray-200' : 'text-gray-800'">
+        Crear nueva noticaa
       </h3>
       
-      <div v-if="!newsUser" class="p-3 mb-4 rounded-lg bg-black text-white text-sm">
-        <span class="font-medium">⚠️ Debes iniciar sesión para publicar noticias</span>
-      </div>
-      
-      <div v-else-if="newsUser.rol !== 'admin'" class="p-3 mb-4 rounded-lg bg-gray-800 text-white text-sm">
-        <span class="font-medium">🔒 Solo los administradores pueden publicar noticias</span>
-      </div>
-      
-      <div class="space-y-4">
-        <div>
-          <label for="news-title" class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
-            Título de la noticia
-          </label>
-          <input
-            type="text"
-            id="news-title"
-            v-model="title"
-            :disabled="!newsUser || newsUser.rol !== 'admin'"
-            class="w-full border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'"
-            placeholder="Escribe un título llamativo para tu noticia..."
+      <div
+  id="news-form"
+  class="w-full max-w-xl mx-auto p-4 rounded-2xl border transition-all duration-200"
+ :class="isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'">
+        <div v-if="!newsUser" class="p-3 mb-4 rounded-xl bg-red-500 text-white text-sm">
+          <span class="font-medium">⚠️ Debes iniciar sesión para publicar noticias</span>
+        </div>
+        
+        <div v-else-if="newsUser.rol !== 'admin'" class="p-3 mb-4 rounded-xl bg-gray-500 text-white text-sm">
+          <span class="font-medium">🔒 Solo los administradores pueden publicar noticias</span>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <label for="news-title" class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
+              Título de la noticia
+            </label>
+            <input
+              type="text"
+              id="news-title"
+              v-model="title"
+              :disabled="!newsUser || newsUser.rol !== 'admin'"
+              class="w-full border rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'"
+              placeholder="Escribe un título llamativo para tu noticia..."
+            >
+          </div>
+          
+          <div>
+            <label for="news-content" class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
+              Contenido de la noticia
+            </label>
+            <textarea
+              id="news-content"
+              v-model="content"
+              :disabled="!newsUser || newsUser.rol !== 'admin'"
+              class="w-full border rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 h-32 resize-none transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'"
+              placeholder="Escribe el contenido completo de tu noticia aquí..."
+            ></textarea>
+          </div>
+        </div>
+        
+        <div class="flex justify-end gap-3 mt-4">
+          <button
+            v-if="isEditing"
+            @click="cancelEdit"
+            :disabled="isLoading"
+            class="px-4 py-2 text-sm font-medium rounded-xl transition duration-200 disabled:opacity-50"
+            :class="isDarkMode ? 'text-white bg-gray-700 hover:bg-gray-600' : 'text-gray-700 bg-gray-200 hover:bg-gray-300'"
           >
-        </div>
-        
-        <div>
-          <label for="news-content" class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
-            Contenido de la noticia
-          </label>
-          <textarea
-            id="news-content"
-            v-model="content"
-            :disabled="!newsUser || newsUser.rol !== 'admin'"
-            class="w-full border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 h-32 resize-none transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'"
-            placeholder="Escribe el contenido completo de tu noticia aquí..."
-          ></textarea>
+            Cancelar
+          </button>
+          
+          <button
+            @click="publishNews"
+            :disabled="isLoading || !newsUser || newsUser.rol !== 'admin'"
+            class="px-4 py-2 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition duration-200 disabled:opacity-50 flex items-center space-x-2"
+          >
+            <span v-if="isLoading" class="animate-spin">⏳</span>
+            <span>{{ isLoading ? (isEditing ? 'Actualizando...' : 'Publicando...') : (isEditing ? 'Actualizar noticia' : 'Publicar noticia') }}</span>
+          </button>
         </div>
       </div>
-      
-      <div class="flex justify-end gap-3 mt-6">
-        <button
-          v-if="isEditing"
-          @click="cancelEdit"
-          :disabled="isLoading"
-          class="px-6 py-2 text-sm font-medium rounded-lg transition duration-200 disabled:opacity-50"
-          :class="isDarkMode ? 'text-white bg-gray-700 hover:bg-gray-600' : 'text-black bg-gray-200 hover:bg-gray-300'"
-        >
-          Cancelar
-        </button>
-        
-        <button
-          @click="publishNews"
-          :disabled="isLoading || !newsUser || newsUser.rol !== 'admin'"
-          class="px-6 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 disabled:opacity-50 flex items-center space-x-2"
-        >
-          <span v-if="isLoading" class="animate-spin">⏳</span>
-          <span v-else>{{ isEditing ? '💾' : '📢' }}</span>
-          <span>{{ isLoading ? (isEditing ? 'Actualizando...' : 'Publicando...') : (isEditing ? 'Actualizar noticia' : 'Publicar noticia') }}</span>
-        </button>
-      </div>
-    </div>
+    </section>
 
-    <!-- News items display con SCROLL -->
-    <div id="news-items-container" class="space-y-4 max-h-96 overflow-y-auto pr-2">
-      <div v-if="isLoading && newsItems.length === 0" class="text-center py-12">
-        <div class="animate-spin text-4xl mb-4">⏳</div>
-        <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Cargando noticias...</p>
-      </div>
+    <!-- Sección Noticias -->
+    <section class="mb-8">
+      <h3 class="text-lg font-semibold mb-4" :class="isDarkMode ? 'text-gray-200' : 'text-gray-800'">
+        Todas las noticias
+      </h3>
       
-      <div v-else-if="newsItems.length === 0" class="text-center py-12">
-        <div class="text-6xl mb-4">📰</div>
-        <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">No hay noticias disponibles.</p>
-        <p class="text-sm mt-2" :class="isDarkMode ? 'text-gray-500' : 'text-gray-500'">¡Sé el primero en publicar una noticia!</p>
-      </div>
-      
-      <div v-else v-for="item in newsItems" :key="item._id" class="rounded-xl shadow-lg overflow-hidden transition-transform duration-200 hover:scale-[1.02]" :class="isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'">
-        <div class="p-6">
+      <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+        <div v-if="isLoading && newsItems.length === 0" class="text-center py-12">
+          <div class="animate-spin text-4xl mb-4">⏳</div>
+          <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Cargando noticias...</p>
+        </div>
+        
+        <div v-else-if="newsItems.length === 0" class="text-center py-12">
+          <div class="text-6xl mb-4">📰</div>
+          <p class="text-lg" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">No hay noticias disponibles.</p>
+          <p class="text-sm mt-2" :class="isDarkMode ? 'text-gray-500' : 'text-gray-500'">¡Sé el primero en publicar una noticia!</p>
+        </div>
+        
+        <div v-else v-for="item in newsItems" :key="item._id"
+  class="w-full max-w-xl mx-auto p-4 rounded-2xl border transition-all duration-200 hover:shadow-md">
+ :class="isDarkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:border-gray-300'">
           <!-- Header con autor -->
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-3">
-              <div class="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+              <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                 {{ getAuthorInitials(item.author || '') }}
               </div>
               <div>
@@ -468,7 +490,7 @@ const scrollToForm = () => {
                   {{ getAuthorName(item.author || '') }}
                 </h4>
                 <div class="flex items-center space-x-2">
-                  <span class="text-xs px-2 py-1 rounded-full bg-green-600 text-white font-medium">
+                  <span class="text-xs px-2 py-1 rounded-full bg-emerald-600 text-white font-medium">
                     Administrador
                   </span>
                   <span v-if="item.createdAt" class="text-xs" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
@@ -480,7 +502,7 @@ const scrollToForm = () => {
           </div>
           
           <!-- Título de la noticia -->
-          <h3 class="text-xl font-bold mb-3 leading-tight" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+          <h3 class="text-lg font-semibold mb-3 leading-tight" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
             {{ item.title }}
           </h3>
           
@@ -490,7 +512,7 @@ const scrollToForm = () => {
           </p>
           
           <!-- Mostrar si fue actualizada -->
-          <div v-if="item.updatedAt && item.updatedAt !== item.createdAt" class="text-xs mb-4 p-2 rounded-lg" :class="isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'">
+          <div v-if="item.updatedAt && item.updatedAt !== item.createdAt" class="text-xs mb-4 p-2 rounded-xl" :class="isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'">
             ✏️ Actualizado el {{ formatDate(item.updatedAt) }}
           </div>
           
@@ -498,16 +520,16 @@ const scrollToForm = () => {
           <div v-if="canManageNews(item)" class="flex justify-end gap-3 pt-4 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
             <button
               @click="editNews(item)"
-              class="flex items-center space-x-2 text-xs px-4 py-2 rounded-lg font-medium transition duration-200"
-              :class="isDarkMode ? 'bg-green-800 hover:bg-green-700 text-white' : 'bg-green-50 hover:bg-green-100 text-green-700'"
+              class="flex items-center space-x-2 text-xs px-4 py-2 rounded-xl font-medium transition duration-200"
+              :class="isDarkMode ? 'bg-emerald-800 hover:bg-emerald-700 text-white' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'"
             >
               <span>✏️</span>
               <span>Editar</span>
             </button>
             <button
               @click="deleteNews(item._id)"
-              class="flex items-center space-x-2 text-xs px-4 py-2 rounded-lg font-medium transition duration-200"
-              :class="isDarkMode ? 'bg-gray-800 hover:bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'"
+              class="flex items-center space-x-2 text-xs px-4 py-2 rounded-xl font-medium transition duration-200"
+              :class="isDarkMode ? 'bg-red-800 hover:bg-red-700 text-white' : 'bg-red-50 hover:bg-red-100 text-red-700'"
             >
               <span>🗑️</span>
               <span>Eliminar</span>
@@ -515,33 +537,33 @@ const scrollToForm = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <style>
 /* Scrollbar personalizada para el contenedor de noticias */
-#news-items-container::-webkit-scrollbar {
+.space-y-4::-webkit-scrollbar {
   width: 8px;
 }
 
-#news-items-container::-webkit-scrollbar-track {
-  background: #1f2937;
+.space-y-4::-webkit-scrollbar-track {
+  background: #374151;
   border-radius: 4px;
 }
 
-#news-items-container::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
-}
-
-#news-items-container::-webkit-scrollbar-thumb:hover {
+.space-y-4::-webkit-scrollbar-thumb {
   background: #6b7280;
+  border-radius: 4px;
+}
+
+.space-y-4::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 /* Para Firefox */
-#news-items-container {
+.space-y-4 {
   scrollbar-width: thin;
-  scrollbar-color: #4b5563 #1f2937;
+  scrollbar-color: #6b7280 #374151;
 }
 </style>

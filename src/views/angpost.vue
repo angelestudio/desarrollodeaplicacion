@@ -130,10 +130,12 @@ function logout() {
     <!-- Modal Crear Club - Estilo más limpio -->
     <div v-if="showModal" class="absolute inset-0 backdrop-blur-sm bg-black/50 z-40"></div>
     <div v-if="showModal" class="fixed z-50 inset-0 flex items-center justify-center p-4">
-      <div
-        class="p-6 rounded-2xl shadow-xl w-full max-w-md relative border"
-        :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
-      >
+  <div
+  class="p-6 rounded-2xl shadow-xl w-full max-w-[600x] relative border"
+  :class="isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
+>
+
+
         <button 
           @click="closeModal" 
           class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold transition-colors duration-200"

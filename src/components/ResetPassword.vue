@@ -1,163 +1,63 @@
+<!-- UpdatePasswordView.vue -->
 <template>
-  <div class="reset-container">
-    <h2>Restablecer contraseña</h2>
-    <form @submit.prevent="resetPassword">
-      <input
-        type="password"
-        v-model="password"
-        placeholder="Ingresa tu nueva contraseña"
-        required
-      />
-      <input
-        type="password"
-        v-model="confirmPassword"
-        placeholder="Confirma tu contraseña"
-        required
-      />
-      <button type="submit" :disabled="isLoading">
-        {{ isLoading ? 'Cambiando...' : 'Cambiar contraseña' }}
-      </button>
-    </form>
-
-    <p v-if="message" class="success">{{ message }}</p>
-    <p v-if="error" class="error">{{ error }}</p>
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Restablecer contraseña</h2>
+      
+      <form @submit.prevent="handleUpdate" class="space-y-5">
+        <div>
+          <input
+            type="password"
+            v-model="newPassword"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+            placeholder="Ingrese su nueva contraseña"
+            required
+          />
+        </div>
+        
+        <div>
+          <input
+            type="password"
+            v-model="confirmPassword"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+            placeholder="Confirma tu contraseña"
+            required
+          />
+        </div>
+        
+        <button
+          type="submit"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+        >
+          Cambiar contraseña
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import axios from "axios"
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useLoginStore } from '@/stores/milogin';
 
-const route = useRoute()
-const router = useRouter()
+const newPassword = ref('');
+const confirmPassword = ref('');
+const router = useRouter();
+const store = useLoginStore();
 
-const password = ref("")
-const confirmPassword = ref("")
-const message = ref("")
-const error = ref("")
-const isLoading = ref(false)
-
-// Verificar que tenemos el token al cargar
-onMounted(() => {
-  const token = route.query.token
-  if (!token) {
-    error.value = "Token de recuperación no válido"
-    setTimeout(() => router.push("/login"), 3000)
+const handleUpdate = async () => {
+  if (newPassword.value !== confirmPassword.value) {
+    alert('Las contraseñas no coinciden');
+    return;
   }
-})
-
-const resetPassword = async () => {
-  // Limpiar mensajes anteriores
-  error.value = ""
-  message.value = ""
-
-  // Validaciones
-  if (password.value.length < 6) {
-    error.value = "La contraseña debe tener al menos 6 caracteres"
-    return
-  }
-
-  if (password.value !== confirmPassword.value) {
-    error.value = "Las contraseñas no coinciden"
-    return
-  }
-
-  isLoading.value = true
-
   try {
-    const token = route.query.token
-    
-    // ⚠️ CORRECCIÓN: Tu backend espera 'newPassword', no 'password'
-    await axios.post("http://localhost:3000/auth/reset-password", {
-      token,
-      newPassword: password.value  // <- Cambiado de 'password' a 'newPassword'
-    })
-
-    message.value = "Contraseña actualizada con éxito"
-    
-    // Limpiar campos
-    password.value = ""
-    confirmPassword.value = ""
-    
-    // Redirigir al login (cambié de "/signin" a "/login")
-    setTimeout(() => router.push("/login"), 2000)
-    
-  } catch (err) {
-    console.error('Error:', err)
-    error.value = err.response?.data?.message || "Error al cambiar la contraseña"
-  } finally {
-    isLoading.value = false
+    await store.updatePassword(newPassword.value);
+    alert('Contraseña actualizada correctamente');
+    router.push('/acceder');
+  } catch (error) {
+    console.error('Error actualizando la contraseña:', error);
+    alert('Error al actualizar la contraseña');
   }
-}
+};
 </script>
-
-<style scoped>
-.reset-container {
-  max-width: 400px;
-  margin: auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  margin-top: 2rem;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-input:focus {
-  outline: none;
-  border-color: #16a34a;
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
-}
-
-button {
-  background-color: #16a34a;
-  color: white;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-button:hover:not(:disabled) {
-  background-color: #15803d;
-}
-
-button:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.success {
-  color: #16a34a;
-  text-align: center;
-  font-weight: 500;
-  margin-top: 1rem;
-}
-
-.error {
-  color: #dc2626;
-  text-align: center;
-  font-weight: 500;
-  margin-top: 1rem;
-}
-</style>

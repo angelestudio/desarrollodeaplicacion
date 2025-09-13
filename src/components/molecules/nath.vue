@@ -614,4 +614,27 @@ const sendRecoveryEmail = async () => {
   animation: border-glow 3s ease-in-out infinite;
 }
 
+.animate-field-slide {
+  animation: field-slide 0.6s ease-out both;
+}
+
+.animate-admin-slide {
+  animation: admin-slide 0.5s ease-out both;
+}
+
+.animate-modal-fade {
+  animation: modal-fade 0.3s ease-out;
+}
+
+.animate-modal-slide {
+  animation: modal-slide 0.4s ease-out;
+}
+
+.animate-toast-slide {
+  animation: toast-slide 0.4s ease-out;
+}
+
+.animate-toast-progress {
+  animation: toast-progress 4s linear;
+}
 </style>
