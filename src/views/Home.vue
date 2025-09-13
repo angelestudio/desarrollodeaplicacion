@@ -28,12 +28,14 @@
                     class="w-full p-3 rounded-xl border transition-colors duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                     :class="isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'">
               <option disabled value="">-- Selecciona un club --</option>
-              <option v-for="club in userClubs" :key="club" :value="club">{{ club }}</option>
+              <option v-for="clubId in userClubs" :key="clubId" :value="clubId">
+                {{ clubName(clubId) }}
+              </option>
             </select>
           </div>
           <div class="space-y-2" v-else>
             <p class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
-              Este post se asociará al club: <strong class="text-emerald-500">{{ selectedClub }}</strong>
+              Este post se asociará al club: <strong class="text-emerald-500">{{ clubName(selectedClub) }}</strong>
             </p>
           </div>
           <div class="space-y-2">
@@ -90,12 +92,12 @@
       <!-- Filtros por club -->
       <div class="mb-6">
         <div class="flex flex-wrap gap-2">
-          <button v-for="club in userClubs" :key="club" @click="filterByClub(club)"
+          <button v-for="clubId in userClubs" :key="clubId" @click="filterByClub(clubId)"
                   class="px-4 py-2 rounded-xl border transition-all duration-200 hover:shadow-md"
-                  :class="selectedClub === club
+                  :class="selectedClub === clubId
                     ? (isDarkMode ? 'bg-emerald-900/50 border-emerald-700 text-emerald-400' : 'bg-emerald-100 border-emerald-300 text-emerald-700')
                     : (isDarkMode ? 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300')">
-            {{ club }}
+            {{ clubName(clubId) }}
           </button>
           <button @click="filterByClub('')"
                   class="px-4 py-2 rounded-xl border transition-all duration-200 hover:shadow-md"
@@ -118,6 +120,12 @@
                 @click="toggleExpand(post._id)">
               {{ post.title }}
             </h3>
+
+            <!-- Nombre del autor -->
+            <p class="text-xs mb-2" :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+              Publicado por <strong class="text-emerald-500">{{ authorDisplay(post) }}</strong>
+            </p>
+
             <p class="leading-relaxed" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ post.content }}</p>
           </header>
 
@@ -126,7 +134,7 @@
             <div class="flex items-center space-x-4">
               <span class="px-3 py-1 rounded-full text-xs font-medium"
                     :class="isDarkMode ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'">
-                {{ post.club }}
+                {{ clubName(post.club) }}
               </span>
               <span class="flex items-center space-x-1">
                 <span>{{ post.likesCount || 0 }}</span>
@@ -139,20 +147,20 @@
           <div class="flex space-x-3 mb-4">
             <button @click="onToggleLike(post._id)"
                     class="px-4 py-2 rounded-xl border font-medium text-sm transition-all duration-200"
-                    :class="likedPosts.has(post._id)
+                    :class="isLiked(post._id)
                       ? (isDarkMode ? 'bg-blue-900/50 border-blue-800 text-blue-400' : 'bg-blue-100 border-blue-300 text-blue-800')
                       : (isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400')">
-              {{ likedPosts.has(post._id) ? 'Unlike' : 'Like' }}
+              {{ isLiked(post._id) ? 'Unlike' : 'Like' }}
             </button>
             <button @click="toggleExpand(post._id)"
                     class="px-4 py-2 rounded-xl border font-medium text-sm transition-all duration-200"
                     :class="isDarkMode ? 'bg-purple-900/50 border-purple-800 text-purple-400' : 'bg-purple-100 border-purple-300 text-purple-800'">
-              {{ expandedPostId === post._id ? 'Ocultar comentarios' : 'Ver comentarios' }}
+              {{ isExpanded(post._id) ? 'Ocultar comentarios' : 'Ver comentarios' }}
             </button>
           </div>
 
           <!-- Sección de comentarios -->
-          <div v-if="expandedPostId === post._id" class="border-t pt-4" :class="isDarkMode ? 'border-gray-800' : 'border-gray-200'">
+          <div v-if="isExpanded(post._id)" class="border-t pt-4" :class="isDarkMode ? 'border-gray-800' : 'border-gray-200'">
             <!-- Lista de comentarios -->
             <div v-if="commentsMap[post._id]?.length" class="space-y-3 mb-6">
               <div v-for="c in commentsMap[post._id]" :key="c._id"
@@ -190,8 +198,8 @@
             </form>
           </div>
 
-          <!-- Botón eliminar post (solo admin) -->
-          <button v-if="userRole === 'admin'" @click="onDeletePost(post._id)"
+          <!-- Botón eliminar post (autor o admin) -->
+          <button v-if="canDeletePost(post)" @click="onDeletePost(post._id, post)"
                   class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium transition-colors duration-200"
                   :class="isDarkMode ? 'bg-red-900/50 hover:bg-red-800/70 text-red-400 border border-red-800' : 'bg-red-100 hover:bg-red-200 text-red-600 border border-red-300'">
             ×
@@ -230,6 +238,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import type { JwtPayload } from '@/composables/useAuth'
 import { getUserFromToken } from '@/composables/useAuth'
 import Sidebarizquierda from '@/components/molecules/Sidebarizquierda.vue'
 import News from '@/components/molecules/News.vue'
@@ -242,13 +251,17 @@ const isDarkMode = computed(() => themeStore.theme === 'dark')
 
 const router = useRouter()
 
-const payload = getUserFromToken()
+// tipado seguro: JwtPayload | null
+const payload = getUserFromToken() as JwtPayload | null
 if (!payload) {
   router.replace({ name: 'SignUp' })
 }
-const username = payload ? `${payload.firstName} ${payload.lastName}`.trim() : ''
-const userRole = payload ? payload.rol : ''
-const userClubs = payload?.clubs ?? []
+const username = payload ? `${payload.firstName ?? ''} ${payload.lastName ?? ''}`.trim() : ''
+const userRole = payload ? payload.rol ?? '' : ''
+const userClubs: string[] = (payload?.clubs ?? []).map(String)
+// Usar `sub` como id principal; fallback a otros nombres si existen
+const userId = payload ? String(payload.sub ?? (payload as any)._id ?? (payload as any).id ?? (payload as any).userId ?? '') : ''
+
 // Asegura header Authorization ya configurado en main.ts; si no, vuelve a asignar:
 axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
 
@@ -256,30 +269,56 @@ axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem(
 const clubsStore = useClubsStore()
 const postsStore = usePostsStore()
 
+// --- Map de clubs y helper para mostrar nombre (robusto) ---
+const clubMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  const clubsArr = Array.isArray(clubsStore.clubs) ? clubsStore.clubs : []
+  clubsArr.forEach((c: any) => {
+    const id = String(c?._id ?? c?.id ?? '')
+    if (id) map[id] = c?.name ?? id
+  })
+  return map
+})
+
+const clubName = (club: any): string => {
+  if (!club) return ''
+  if (typeof club === 'object') return String(club?.name ?? club?._id ?? club?.id ?? '')
+  const id = String(club)
+  return clubMap.value[id] ?? id
+}
+
+const getClubId = (club: any): string => {
+  if (!club) return ''
+  if (typeof club === 'object') return String(club?._id ?? club?.id ?? '')
+  return String(club)
+}
+
 // --- Estado UI ---
 const showModal = ref(false)
-const selectedClub = ref('')
-const selectedFormClub = ref('')
+const selectedClub = ref<string>('')      // club seleccionado para filtrar (id)
+const selectedFormClub = ref<string>('')  // club seleccionado en el form de creación (id)
 const newPost = reactive({ title: '', content: '' })
 
-// Filtrado de posts
+// Filtrado de posts (compara ids normalizados)
 const filteredPosts = computed(() => {
   const all = postsStore.posts ?? []
-  const clubs = selectedClub.value ? [selectedClub.value] : userClubs
-  return all.filter(p => clubs.includes(p.club))
+  const clubs = selectedClub.value ? [String(selectedClub.value)] : (userClubs || []).map(String)
+  return all.filter(p => {
+    const postClubId = getClubId(p.club)
+    return clubs.includes(postClubId)
+  })
 })
 
 // Comentarios y likes
 const expandedPostId = ref<string | null>(null)
 const commentsMap = reactive<Record<string, Array<{ _id: string; content: string; username: string }>>>({})
 const newCommentMap = reactive<Record<string, string>>({})
-const likedPosts = reactive(new Set<string>(postsStore.likedByUser ?? []))
+const likedPosts = ref<Set<string>>(new Set(postsStore.likedByUser ?? []))
 
 watch(
   () => postsStore.likedByUser,
   (newVal) => {
-    likedPosts.clear()
-    newVal.forEach(pid => likedPosts.add(pid))
+    likedPosts.value = new Set((newVal ?? []).map(String))
   }
 )
 
@@ -293,6 +332,43 @@ onMounted(async () => {
   await clubsStore.fetchClubs()
   await postsStore.fetchPosts()
 })
+
+// Helpers de plantilla
+const isLiked = (postId: string) => likedPosts.value.has(postId)
+const isExpanded = (postId: string) => expandedPostId.value === postId
+
+// --- AUTOR & PERMISOS ---
+// obtener id del autor del post (soporta post.author como objeto o id)
+const getPostAuthorId = (post: any): string => {
+  if (!post) return ''
+  if (post.author) {
+    if (typeof post.author === 'object') return String(post.author._id ?? post.author.id ?? post.author.userId ?? '')
+    return String(post.author)
+  }
+  return String(post.authorId ?? post.userId ?? post.user ?? '')
+}
+
+// obtener nombre legible del autor (si backend devuelve objeto poblado)
+const authorDisplay = (post: any): string => {
+  if (!post) return ''
+  const a = post.author
+  if (a && typeof a === 'object') {
+    const name = (a.name ?? `${a.firstName ?? ''} ${a.lastName ?? ''}`).trim()
+    if (name) return name
+    return String(a.username ?? a.email ?? a._id ?? '')
+  }
+  if (post.authorName) return String(post.authorName)
+  // fallback: si solo viene id devuelve "Usuario #xxxx" o el id
+  const id = String(post.author ?? post.authorId ?? '')
+  return id ? `Usuario ${id}` : ''
+}
+
+// permiso: admin o autor del post
+const canDeletePost = (post: any): boolean => {
+  if (!post) return false
+  if (userRole === 'admin') return true
+  return getPostAuthorId(post) === userId
+}
 
 // Funciones UI
 function filterByClub(c: string) { selectedClub.value = c }
@@ -308,14 +384,30 @@ function closeModal() {
 async function submitPost() {
   const clubToSend = selectedClub.value || selectedFormClub.value
   if (!clubToSend) return alert('Debes seleccionar un club.')
-  // Llamada corregida: enviar solo title, content, club
-  await postsStore.addPost({ title: newPost.title, content: newPost.content, club: clubToSend })
-  closeModal()
+  // enviar solo title, content, club; backend debe asignar author desde el token
+  try {
+    await postsStore.addPost({ title: newPost.title, content: newPost.content, club: clubToSend })
+    // refrescar posts
+    await postsStore.fetchPosts()
+    closeModal()
+  } catch (err: any) {
+    console.error(err)
+    alert(err?.response?.data?.message ?? 'Error al crear el post.')
+  }
 }
-async function onDeletePost(id: string) {
-  if (userRole !== 'admin') return
-  if (confirm('¿Eliminar este post?')) {
+
+async function onDeletePost(id: string, post?: any) {
+  // comprobación extra en frontend (no sustituye la validación en backend)
+  if (post && !canDeletePost(post)) {
+    return alert('No tienes permiso para eliminar este post.')
+  }
+  if (!confirm('¿Eliminar este post?')) return
+  try {
     await postsStore.removePost(id)
+    await postsStore.fetchPosts()
+  } catch (err: any) {
+    console.error(err)
+    alert(err?.response?.data?.message ?? 'Error eliminando post')
   }
 }
 
@@ -326,7 +418,7 @@ async function toggleExpand(postId: string) {
   } else {
     expandedPostId.value = postId
     const comments = await postsStore.fetchComments(postId)
-    commentsMap[postId] = comments.map(c => ({
+    commentsMap[postId] = (comments || []).map((c: any) => ({
       _id: c._id,
       content: c.content,
       username: c.username,
@@ -337,22 +429,23 @@ async function toggleExpand(postId: string) {
 
 // Likes
 async function onToggleLike(postId: string) {
-  if (likedPosts.has(postId)) {
+  if (likedPosts.value.has(postId)) {
     await postsStore.removeLike(postId)
+    likedPosts.value = new Set([...likedPosts.value].filter(id => id !== postId))
   } else {
     await postsStore.addLike(postId)
+    likedPosts.value = new Set([...likedPosts.value, postId])
   }
 }
 
 // Comentarios
 async function onSubmitComment(postId: string) {
-  const text = newCommentMap[postId]?.trim()
+  const text = (newCommentMap[postId] ?? '').trim()
   if (!text) return
-  // Llamada corregida: solo postId y content
   await postsStore.addComment(postId, text.slice(0, 100))
   // Recargar comentarios
   const comments = await postsStore.fetchComments(postId)
-  commentsMap[postId] = comments.map(c => ({
+  commentsMap[postId] = (comments || []).map((c: any) => ({
     _id: c._id,
     content: c.content,
     username: c.username,
@@ -364,7 +457,7 @@ async function onDeleteComment(postId: string, commentId: string) {
   try {
     await postsStore.removeComment(postId, commentId)
     const comments = await postsStore.fetchComments(postId)
-    commentsMap[postId] = comments.map(c => ({
+    commentsMap[postId] = (comments || []).map((c: any) => ({
       _id: c._id,
       content: c.content,
       username: c.username,

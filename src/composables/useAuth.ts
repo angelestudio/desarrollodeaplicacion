@@ -2,14 +2,23 @@
 import jwt_decode from 'jwt-decode';
 
 export interface JwtPayload {
-  sub: string;         // userId
-  email: string;
-  rol: string;
-  firstName: string;
-  lastName: string;
-  clubs: string[];
-  exp: number;
-  iat: number;
+  // campos estándar que ya tienes
+  sub?: string;         // habitualmente el userId
+  email?: string;
+  rol?: string;
+  firstName?: string;
+  lastName?: string;
+  clubs?: string[];     // o (string|number)[]
+  exp?: number;
+  iat?: number;
+
+  // añadir variantes que algunos backends usan
+  _id?: string;
+  id?: string;
+  userId?: string;
+
+  // Si quieres aceptar otros campos sin tipado estricto:
+  [key: string]: any;
 }
 
 /**
@@ -22,8 +31,8 @@ export function getUserFromToken(): JwtPayload | null {
 
   try {
     const decoded = jwt_decode<JwtPayload>(token);
-    // Verificar expiración
-    if (decoded.exp * 1000 < Date.now()) {
+    // Verificar expiración si viene exp
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
       localStorage.removeItem('token');
       return null;
     }

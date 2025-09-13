@@ -6,12 +6,10 @@ const API_URL =
   (import.meta.env.VITE_API_URL && String(import.meta.env.VITE_API_URL).replace(/\/$/, '')) ||
   'http://localhost:3000'
 
-// Cliente Axios compartido
 export const apiClient = axios.create({
   baseURL: API_URL,
 })
 
-// Interceptor: inyecta token con header "Authorization"
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -28,17 +26,31 @@ interface JwtPayload {
   exp: number
 }
 
-// Extrae el userId del token (lanza si no hay token)
+// Nuevo: intenta token primero, si no existe usa localStorage.user
 function getUserIdFromToken(): string {
   const token = localStorage.getItem('token')
-  if (!token) throw new Error('No hay token en localStorage')
-  try {
-    const { sub } = jwt_decode<JwtPayload>(token)
-    if (!sub) throw new Error('Token sin sub')
-    return sub
-  } catch (err) {
-    throw new Error('Token inválido')
+  if (token) {
+    try {
+      const { sub } = jwt_decode<JwtPayload>(token)
+      if (!sub) throw new Error('Token sin sub')
+      return sub
+    } catch (err) {
+      console.warn('Token inválido o no se pudo decodificar:', (err as Error).message)
+    }
   }
+
+  // fallback a localStorage.user
+  const stored = localStorage.getItem('user')
+  if (stored) {
+    try {
+      const u = JSON.parse(stored)
+      if (u && u._id) return u._id
+    } catch (e) {
+      console.warn('No se pudo parsear localStorage.user:', (e as Error).message)
+    }
+  }
+
+  throw new Error('No hay userId disponible (token y localStorage fallaron)')
 }
 
 // 1) Registro de usuario
@@ -76,12 +88,24 @@ export async function updatePassword(params: { userId: string; password: string 
   }
 }
 
+// Helper: obtener perfil (fallback para sincronizar user)
+export async function fetchProfile() {
+  const userId = getUserIdFromToken()
+  try {
+    const res = await apiClient.get(`/usuarios/${userId}`)
+    return res.data
+  } catch (err: any) {
+    console.error('fetchProfile error:', err.response?.data ?? err.message)
+    throw err
+  }
+}
 
-// 4) Unirse a un club
+// 4) Unirse a un club (usa endpoint /auth que firma token nuevo)
 export async function joinClubApi(clubId: string) {
   const userId = getUserIdFromToken()
   try {
-    const res = await apiClient.patch(`/usuarios/${userId}/clubs/${clubId}`)
+    // En tu backend auth tienes: PATCH /auth/:userId/clubs { club }
+    const res = await apiClient.patch(`/auth/${userId}/clubs`, { club: clubId })
     return res.data as { token?: string; clubs?: string[] }
   } catch (err: any) {
     console.error('joinClubApi error status:', err.response?.status)
@@ -90,11 +114,12 @@ export async function joinClubApi(clubId: string) {
   }
 }
 
-// 5) Salir de un club
+// 5) Salir de un club (usa endpoint /auth que firma token nuevo)
 export async function leaveClubApi(clubId: string) {
   const userId = getUserIdFromToken()
   try {
-    const res = await apiClient.delete(`/usuarios/${userId}/clubs/${clubId}`)
+    // En tu backend auth tienes: DELETE /auth/:userId/clubs/:club
+    const res = await apiClient.delete(`/auth/${userId}/clubs/${encodeURIComponent(clubId)}`)
     return res.data as { token?: string; clubs?: string[] }
   } catch (err: any) {
     console.error('leaveClubApi error status:', err.response?.status)

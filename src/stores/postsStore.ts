@@ -28,8 +28,10 @@ export interface PostItem {
   club: string;
   // puede venir como id (string) o como objeto poblado (UserInfo)
   user: string | UserInfo;
-  // nombre para mostrar (opcional; extraído de p.username o p.user.*)
-  username?: string;
+  // alias para compatibilidad en el template
+  author?: string | UserInfo;
+  username?: string;     // nombre para mostrar
+  authorName?: string;   // alias del username
   likesCount: number;
   likedBy?: string[];
 }
@@ -60,9 +62,8 @@ export const usePostsStore = defineStore('posts', {
         const raw = Array.isArray(response.data) ? response.data : [];
         this.posts = raw.map((p: any) => {
           const userField = p.user;
-          // Obtener username preferentemente de p.username (top-level),
-          // luego de userField.username, luego de firstName+lastName.
           let username: string | undefined;
+
           if (p.username && typeof p.username === 'string' && p.username.trim()) {
             username = p.username.trim();
           } else if (userField && typeof userField === 'object') {
@@ -82,7 +83,9 @@ export const usePostsStore = defineStore('posts', {
             content: p.content,
             club: p.club,
             user: userField ?? (p.userId ?? ''),
+            author: userField ?? (p.userId ?? ''), // alias para compatibilidad
             username,
+            authorName: username, // alias directo
             likesCount: typeof p.likesCount === 'number' ? p.likesCount : 0,
             likedBy: Array.isArray(p.likedBy) ? p.likedBy : [],
           } as PostItem;
@@ -92,7 +95,9 @@ export const usePostsStore = defineStore('posts', {
         const payload = getUserFromToken();
         const userId = payload?.sub;
         if (userId) {
-          this.likedByUser = this.posts.filter((p) => p.likedBy?.includes(userId)).map((p) => p._id);
+          this.likedByUser = this.posts
+            .filter((p) => p.likedBy?.includes(userId))
+            .map((p) => p._id);
         } else {
           this.likedByUser = [];
         }
@@ -101,16 +106,13 @@ export const usePostsStore = defineStore('posts', {
         if (error?.response) {
           console.error('Status:', error.response.status, 'Data:', error.response.data);
         }
-        // dejar posts como estaba o vacío; no lanzamos para que UI pueda manejar
       }
     },
 
-    // Crear post (backend toma user/username del token en tu controller)
     async addPost(post: { title: string; content: string; club: string }) {
       try {
         const response = await createPost(post);
         console.log('✅ Post creado, status:', response.status);
-        // Re-fetch para obtener el post con username normalizado
         await this.fetchPosts();
       } catch (error: any) {
         console.error('❌ Error al crear post:', error);
@@ -121,7 +123,6 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    // Eliminar post
     async removePost(id: string) {
       try {
         const response = await deletePost(id);
@@ -138,14 +139,14 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    // Likes
     async addLike(postId: string) {
       try {
         const resp = await apiAddLike(postId);
         console.log('✅ Like añadido, status:', resp.status);
         const idx = this.posts.findIndex((p) => p._id === postId);
         if (idx !== -1) {
-          this.posts[idx].likesCount = resp.data?.likesCount ?? this.posts[idx].likesCount;
+          this.posts[idx].likesCount =
+            resp.data?.likesCount ?? this.posts[idx].likesCount;
         }
         const payload = getUserFromToken();
         const userId = payload?.sub;
@@ -167,7 +168,8 @@ export const usePostsStore = defineStore('posts', {
         console.log('✅ Like removido, status:', resp.status);
         const idx = this.posts.findIndex((p) => p._id === postId);
         if (idx !== -1) {
-          this.posts[idx].likesCount = resp.data?.likesCount ?? this.posts[idx].likesCount;
+          this.posts[idx].likesCount =
+            resp.data?.likesCount ?? this.posts[idx].likesCount;
         }
         this.likedByUser = this.likedByUser.filter((pid) => pid !== postId);
       } catch (error: any) {
@@ -179,12 +181,13 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    // Comentarios
     async fetchComments(postId: string): Promise<CommentItem[]> {
       try {
         const resp = await apiFetchComments(postId);
         console.log('✅ Comentarios obtenidos, status:', resp.status);
-        this.comments[postId] = Array.isArray(resp.data) ? (resp.data as CommentItem[]) : [];
+        this.comments[postId] = Array.isArray(resp.data)
+          ? (resp.data as CommentItem[])
+          : [];
         return this.comments[postId];
       } catch (error: any) {
         console.error('❌ Error al obtener comentarios:', error);
