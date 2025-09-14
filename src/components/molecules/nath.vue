@@ -302,6 +302,8 @@ const showModal = ref(false)
 const forgotEmail = ref('')
 const isLoading = ref(false)
 
+const URLS = import.meta.env.VITE_API_URL
+
 // Efecto de máquina de escribir elegante
 const displayedTitle = ref('')
 const fullTitle = 'Iniciar Sesión'
@@ -354,7 +356,7 @@ const loginUser = async () => {
       payload.adminCode = adminCode.value
     }
 
-    const response = await axios.post('http://localhost:3000/auth/login', payload)
+    const response = await axios.post('{URLS}/auth/login', payload)
     const { token, rol, requireAdminCode, message } = response.data
 
     if (requireAdminCode) {
@@ -400,7 +402,7 @@ const sendRecoveryEmail = async () => {
   isLoading.value = true
   
   try {
-    await axios.post('http://localhost:3000/auth/forgot-password', {
+    await axios.post('{URLS}/auth/forgot-password', {
       email: forgotEmail.value
     })
     
