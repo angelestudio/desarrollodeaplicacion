@@ -4,7 +4,7 @@
     <!-- Sección izquierda: formulario -->
     <div class="w-1/2 bg-black text-white flex flex-col justify-center items-center px-10">
       <div class="text-center w-3/4">
-        <img src="./logo.png" alt="Logo" class="w-12 mb-6 mx-auto" />
+        <img :src="logo" alt="Logo" class="w-12 mb-6 mx-auto" />
         <h2 class="text-2xl font-bold mb-6">Sign in to your account</h2>
 
         <div class="mb-4 text-left">
@@ -64,6 +64,7 @@ import { useRouter } from 'vue-router';
 import { useLoginStore } from '@/stores/milogin';
 import miTextInputAtom from '@/components/atoms/miTextInputAtom.vue';
 import miButtonAtom from '@/components/atoms/miButtonAtom.vue';
+import logo from '@/assets/logo.png';  // <-- Importa el logo correctamente
 
 const router = useRouter();
 const store = useLoginStore();

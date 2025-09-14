@@ -102,9 +102,13 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
+import { RouterLink } from 'vue-router'
 import { loginStore } from '@/stores/login'
+// Asumo que usas algún paquete para mostrar toast, ejemplo vue-toastification
+import { useToast } from 'vue-toastification'
 
 const login = loginStore()
+const toast = useToast()
 
 const formData = reactive({
   firstName: '',
@@ -121,7 +125,7 @@ const handleClick = () => {
   if (
     !formData.firstName.trim() ||
     !formData.lastName.trim() ||
-    !formData.role ||
+    !formData.role.trim() ||
     !formData.phone.trim() ||
     !formData.email.trim() ||
     !formData.password ||
@@ -160,3 +164,4 @@ const handleClick = () => {
   // Si todo está bien, continuar con el registro o login
   login.validateUser(formData.email, formData.password)
 }
+</script>
