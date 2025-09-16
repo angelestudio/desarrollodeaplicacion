@@ -66,7 +66,7 @@ const menuItems = [
     name: 'Notifications', 
     path: '/Profile/notifications', 
     icon: '🔔',
-    badge: '3',
+    badge: null,
     gradient: 'from-yellow-400 to-orange-500'
   },
   { 
@@ -96,6 +96,7 @@ const isActiveRoute = (path: string): boolean => {
   return route.path === path || (path === '/home' && route.path === '/')
 }
 </script>
+
 
 <template>
   <aside
