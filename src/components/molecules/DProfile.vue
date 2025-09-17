@@ -74,6 +74,9 @@ const statusMessage = ref<StatusMessage | null>(null);
 const LS_NOTIFICATIONS_KEY = 'persistent_notifications';
 const LS_LAST_NOTIFICATION_CHECK = 'last_notification_check';
 
+// Verificar si el usuario es admin
+const isAdmin = computed(() => currentUser.value?.rol?.toLowerCase() === 'admin');
+
 // --- NUEVAS CONSTANTES Y COMPUTED PROPERTIES PARA EL FORMULARIO ---
 const notificationTypes = ref([
   { value: 'info', label: 'Información', color: 'green', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
@@ -86,42 +89,159 @@ const selectedNotificationType = computed(() => {
 });
 
 const formDynamicStyles = computed(() => {
-  const color = selectedNotificationType.value.color;
-  return {
-    border: `border-${color}-500 dark:border-${color}-700`,
-    buttonBg: `bg-${color}-600 hover:bg-${color}-700`,
-    buttonText: 'text-white'
+  const type = selectedNotificationType.value;
+  
+  if (isDarkMode.value) {
+    // Tema oscuro
+    switch (type.color) {
+      case 'green':
+        return {
+          border: 'border-green-700',
+          buttonBg: 'bg-green-600 hover:bg-green-700',
+          buttonText: 'text-white'
+        };
+      case 'yellow':
+        return {
+          border: 'border-yellow-700',
+          buttonBg: 'bg-yellow-600 hover:bg-yellow-700',
+          buttonText: 'text-white'
+        };
+      case 'red':
+        return {
+          border: 'border-red-700',
+          buttonBg: 'bg-red-600 hover:bg-red-700',
+          buttonText: 'text-white'
+        };
+      default:
+        return {
+          border: 'border-green-700',
+          buttonBg: 'bg-green-600 hover:bg-green-700',
+          buttonText: 'text-white'
+        };
+    }
+  } else {
+    // Tema claro
+    switch (type.color) {
+      case 'green':
+        return {
+          border: 'border-green-500',
+          buttonBg: 'bg-green-600 hover:bg-green-700',
+          buttonText: 'text-white'
+        };
+      case 'yellow':
+        return {
+          border: 'border-yellow-500',
+          buttonBg: 'bg-yellow-600 hover:bg-yellow-700',
+          buttonText: 'text-white'
+        };
+      case 'red':
+        return {
+          border: 'border-red-500',
+          buttonBg: 'bg-red-600 hover:bg-red-700',
+          buttonText: 'text-white'
+        };
+      default:
+        return {
+          border: 'border-green-500',
+          buttonBg: 'bg-green-600 hover:bg-green-700',
+          buttonText: 'text-white'
+        };
+    }
+  }
+});
+
+const getNotificationTypeButtonClass = computed(() => {
+  return (type: any) => {
+    const baseClass = 'p-2 rounded-lg text-xs flex items-center justify-center transition-all duration-200 border';
+    
+    if (newNotification.value.type === type.value) {
+      // Botón seleccionado
+      if (isDarkMode.value) {
+        switch (type.color) {
+          case 'green':
+            return `${baseClass} bg-green-600 border-green-600 text-white shadow-lg scale-105`;
+          case 'yellow':
+            return `${baseClass} bg-yellow-600 border-yellow-600 text-white shadow-lg scale-105`;
+          case 'red':
+            return `${baseClass} bg-red-600 border-red-600 text-white shadow-lg scale-105`;
+          default:
+            return `${baseClass} bg-green-600 border-green-600 text-white shadow-lg scale-105`;
+        }
+      } else {
+        switch (type.color) {
+          case 'green':
+            return `${baseClass} bg-green-500 border-green-500 text-white shadow-lg scale-105`;
+          case 'yellow':
+            return `${baseClass} bg-yellow-500 border-yellow-500 text-white shadow-lg scale-105`;
+          case 'red':
+            return `${baseClass} bg-red-500 border-red-500 text-white shadow-lg scale-105`;
+          default:
+            return `${baseClass} bg-green-500 border-green-500 text-white shadow-lg scale-105`;
+        }
+      }
+    } else {
+      // Botón no seleccionado
+      if (isDarkMode.value) {
+        return `${baseClass} bg-gray-800 border-gray-600 hover:bg-gray-700 text-gray-200`;
+      } else {
+        return `${baseClass} bg-white border-gray-300 hover:bg-gray-50 text-gray-700`;
+      }
+    }
   };
+});
+
+const postCardStyles = computed(() => {
+  if (isDarkMode.value) {
+      return {
+        card: 'bg-gray-800 border-gray-600 text-white shadow-lg',
+        statsBar: 'bg-gray-700/70 text-gray-100',
+        actionButton: {
+          like: 'bg-gray-700 text-green-400 hover:bg-green-800/50 border-green-600',
+          comment: 'bg-gray-700 text-blue-400 hover:bg-blue-800/50 border-blue-600',
+          delete: 'bg-gray-700 text-red-400 hover:bg-red-800/50 border-red-600'
+        }
+      };
+    } else {
+      return {
+        card: 'bg-white border-gray-200 text-gray-900 shadow-md',
+        statsBar: 'bg-gray-50 text-gray-700',
+        actionButton: {
+          like: 'bg-white text-green-600 hover:bg-green-50 border-green-200',
+          comment: 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200',
+          delete: 'bg-white text-red-600 hover:bg-red-50 border-red-200'
+        }
+      };
+    }
 });
 
 const contentCharCount = computed(() => newNotification.value.content.length);
 
-
 // --- UI CLASSES ---
 const ui = computed(() => {
-  const baseBorder = isDarkMode.value ? 'border-gray-700' : 'border-gray-300';
-  const baseTextMuted = isDarkMode.value ? 'text-gray-400' : 'text-gray-600';
-  const formInput = isDarkMode.value ? `bg-gray-800 ${baseBorder}` : `bg-white ${baseBorder}`;
+  const baseBorder = isDarkMode.value ? 'border-gray-600' : 'border-gray-300';
+  const baseTextMuted = isDarkMode.value ? 'text-gray-300' : 'text-gray-600';
+  const formInput = isDarkMode.value ? `bg-gray-800 border-gray-600 text-white` : `bg-white ${baseBorder}`;
   
   return {
     container: isDarkMode.value ? 'bg-black text-white' : 'bg-white text-black',
     contentBg: isDarkMode.value ? 'bg-black' : 'bg-white',
-    headerBg: isDarkMode.value ? 'bg-gray-700' : 'bg-gray-300',
+    headerBg: isDarkMode.value ? 'bg-gray-800' : 'bg-gray-300',
     profileBorder: isDarkMode.value ? 'border-white' : 'border-black',
     textPrimary: isDarkMode.value ? 'text-white' : 'text-black',
     textMuted: baseTextMuted,
-    textMutedLight: isDarkMode.value ? 'text-gray-500' : 'text-gray-500',
-    statBubble: isDarkMode.value ? 'border-gray-700' : 'border-gray-400',
-    editButton: isDarkMode.value ? 'border-gray-600 text-gray-300' : 'border-gray-400 text-gray-700',
+    textMutedLight: isDarkMode.value ? 'text-gray-400' : 'text-gray-500',
+    statBubble: isDarkMode.value ? 'border-gray-500 text-gray-200' : 'border-gray-400',
+    editButton: isDarkMode.value ? 'border-gray-500 text-gray-200 hover:bg-gray-800' : 'border-gray-400 text-gray-700',
     border: baseBorder,
     formInput: formInput,
-    formContainer: isDarkMode.value ? `${baseBorder} bg-gray-900` : `${baseBorder} bg-gray-50`,
-    editFormContainer: isDarkMode.value ? 'border-yellow-700 bg-gray-900' : 'border-yellow-400 bg-yellow-50',
+    formContainer: isDarkMode.value ? `border-gray-600 bg-gray-900` : `${baseBorder} bg-gray-50`,
+    editFormContainer: isDarkMode.value ? 'border-yellow-600 bg-gray-900' : 'border-yellow-400 bg-yellow-50',
     status: {
-      success: isDarkMode.value ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800',
-      error: isDarkMode.value ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-800',
+      success: isDarkMode.value ? 'bg-green-900/70 text-green-200 border border-green-700' : 'bg-green-100 text-green-800',
+      error: isDarkMode.value ? 'bg-red-900/70 text-red-200 border border-red-700' : 'bg-red-100 text-red-800',
     },
-    loginWarning: isDarkMode.value ? 'border-red-700 bg-red-900 text-white' : 'border-red-400 bg-red-100 text-red-800',
+    loginWarning: isDarkMode.value ? 'border-red-600 bg-red-900/50 text-red-200' : 'border-red-400 bg-red-100 text-red-800',
+    noAccessWarning: isDarkMode.value ? 'border-yellow-600 bg-yellow-900/50 text-yellow-200' : 'border-yellow-400 bg-yellow-100 text-yellow-800',
   };
 });
 
@@ -134,25 +254,49 @@ const tabClasses = (path: string) => {
 };
 
 const notificationStyles = (type: Notification['type']) => {
-  const styles = {
-    info: {
-      bg: isDarkMode.value ? 'bg-green-900 bg-opacity-20 border border-green-800' : 'bg-green-50 border border-green-200',
-      icon: 'bg-green-500',
-    },
-    warning: {
-      bg: isDarkMode.value ? 'bg-yellow-900 bg-opacity-20 border border-yellow-800' : 'bg-yellow-50 border border-yellow-200',
-      icon: 'bg-yellow-500',
-    },
-    alert: {
-      bg: isDarkMode.value ? 'bg-red-900 bg-opacity-20 border border-red-800' : 'bg-red-50 border border-red-200',
-      icon: 'bg-red-500',
-    },
-    default: {
-      bg: isDarkMode.value ? 'bg-gray-800' : 'bg-gray-100',
-      icon: 'bg-gray-500',
-    }
-  };
-  return styles[type as keyof typeof styles] || styles.default;
+  if (isDarkMode.value) {
+    // Tema oscuro
+    const styles = {
+      info: {
+        bg: 'bg-green-900/30 border border-green-700',
+        icon: 'bg-green-600',
+      },
+      warning: {
+        bg: 'bg-yellow-900/30 border border-yellow-700',
+        icon: 'bg-yellow-600',
+      },
+      alert: {
+        bg: 'bg-red-900/30 border border-red-700',
+        icon: 'bg-red-600',
+      },
+      default: {
+        bg: 'bg-gray-800/70 border border-gray-600',
+        icon: 'bg-gray-600',
+      }
+    };
+    return styles[type as keyof typeof styles] || styles.default;
+  } else {
+    // Tema claro
+    const styles = {
+      info: {
+        bg: 'bg-green-50 border border-green-200',
+        icon: 'bg-green-500',
+      },
+      warning: {
+        bg: 'bg-yellow-50 border border-yellow-200',
+        icon: 'bg-yellow-500',
+      },
+      alert: {
+        bg: 'bg-red-50 border border-red-200',
+        icon: 'bg-red-500',
+      },
+      default: {
+        bg: 'bg-gray-100 border border-gray-300',
+        icon: 'bg-gray-500',
+      }
+    };
+    return styles[type as keyof typeof styles] || styles.default;
+  }
 };
 
 const toastStyles = (type: ToastNotification['type']) => {
@@ -385,6 +529,12 @@ async function fetchNotifications() {
 }
 
 async function createNotification() {
+  if (!isAdmin.value) {
+    showStatus('Solo los administradores pueden crear notificaciones.', false);
+    showToastNotification('Acceso denegado', 'Solo los administradores pueden crear notificaciones', 'error');
+    return;
+  }
+
   isLoading.value = true;
   try {
     const payload: any = {
@@ -393,9 +543,6 @@ async function createNotification() {
       read: false,
       userName: `${currentUser.value.firstName} ${currentUser.value.lastName}`
     };
-    if (currentUser.value.rol?.toLowerCase() !== 'admin') {
-      payload.userId = currentUser.value.sub;
-    }
     
     const result = await apiFetch('/notifications', {
       method: 'POST',
@@ -568,14 +715,14 @@ onUnmounted(() => {
         </div>
 
         <div class="w-full flex flex-col items-center mt-2" style="max-width: 300px;">
-          <button v-if="!editingAbout" @click="editingAbout = true" class="mt-2 md:mt-3 px-4 md:px-5 py-1 border rounded-full text-xs" :class="ui.editButton">
+          <button v-if="!editingAbout" @click="editingAbout = true" class="mt-2 md:mt-3 px-4 md:px-5 py-1 border rounded-full text-xs transition-colors" :class="ui.editButton">
             Editar "About me"
           </button>
           <form v-if="editingAbout" @submit.prevent="saveAboutMe" class="flex flex-col w-full gap-2 mt-2">
-            <textarea v-model="aboutMeDraft" class="w-full rounded px-3 py-2 text-xs border focus:outline-none" :class="ui.formInput" rows="3" maxlength="500"></textarea>
+            <textarea v-model="aboutMeDraft" class="w-full rounded px-3 py-2 text-xs border focus:outline-none focus:ring-2 focus:ring-green-500" :class="ui.formInput" rows="3" maxlength="500"></textarea>
             <div class="flex gap-2">
-              <button type="button" @click="cancelEditAbout" class="px-4 py-1 rounded bg-gray-400 text-white text-xs">Cancelar</button>
-              <button type="submit" class="px-4 py-1 rounded bg-green-600 text-white text-xs" :disabled="savingAboutMe">
+              <button type="button" @click="cancelEditAbout" class="px-4 py-1 rounded bg-gray-500 hover:bg-gray-600 text-white text-xs transition-colors">Cancelar</button>
+              <button type="submit" class="px-4 py-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs transition-colors" :disabled="savingAboutMe">
                 {{ savingAboutMe ? 'Guardando...' : 'Guardar' }}
               </button>
             </div>
@@ -595,21 +742,110 @@ onUnmounted(() => {
       
       <router-view>
         <template v-if="$route.path === '/Profile/posts'">
-          <div v-if="ownPosts.length === 0" class="text-center py-6 mt-4" :class="ui.textMuted">
-            No hay posts disponibles
-          </div>
-          <div v-for="post in ownPosts" :key="post._id" class="bg-gray-900 border border-gray-700 rounded-lg p-5 mb-5 mx-4" style="color: #fff">
-            <h2 class="text-2xl font-bold mb-2" style="color: #39FF14">{{ post.title }}</h2>
-            <p class="mb-2">{{ post.content }}</p>
-            <div class="mb-2">
-              <span>Club: {{ post.club || 'Sin club' }}</span>
-              <span class="ml-4">👍 {{ post.likesCount || 0 }}</span>
-              <span class="ml-4">📝 {{ post.commentsCount || 0 }} Comentarios</span>
+          <div v-if="ownPosts.length === 0" class="text-center py-12 mt-8 mx-4">
+            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-8 border border-green-200 dark:border-green-800">
+              <div class="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-800/50 rounded-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">No hay posts disponibles</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Comparte tu primer post para conectar con la comunidad SENA</p>
             </div>
-            <div class="flex gap-2">
-              <button class="bg-blue-700 px-3 py-1 rounded text-white text-xs">Like</button>
-              <button class="bg-purple-700 px-3 py-1 rounded text-white text-xs">Comentarios</button>
-              <button class="bg-red-700 px-3 py-1 rounded text-white text-xs ml-auto">Delete</button>
+          </div>
+
+          <div class="space-y-6 p-4">
+            <div v-for="post in ownPosts" :key="post._id" class="group">
+              <!-- Card Container con mejor contraste -->
+              <div :class="[postCardStyles.card, 'rounded-2xl hover:shadow-xl transition-all duration-300 overflow-hidden border-2']">
+                
+                <!-- Header del post -->
+                <div class="p-6 pb-4">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md ring-2 ring-green-200 dark:ring-green-800">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 :class="['font-bold text-sm', isDarkMode ? 'text-white' : 'text-gray-900']">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h3>
+                        <p :class="['text-xs font-medium', isDarkMode ? 'text-gray-200' : 'text-gray-600']">Aprendiz SENA</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Badge del club -->
+                    <div v-if="post.club" class="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-800/40 dark:to-green-900/30 px-3 py-1 rounded-full border border-green-200 dark:border-green-600 shadow-sm">
+                      <span class="text-xs font-bold text-green-700 dark:text-green-200">{{ post.club }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Título del post -->
+                  <h2 :class="['text-xl font-bold mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-200', isDarkMode ? 'text-white' : 'text-gray-900']">
+                    {{ post.title }}
+                  </h2>
+
+                  <!-- Contenido del post -->
+                  <div class="prose prose-sm max-w-none" :class="isDarkMode ? 'text-gray-100' : 'text-gray-700'">
+                    <p class="leading-relaxed font-medium">{{ post.content }}</p>
+                  </div>
+                </div>
+
+                <!-- Estadísticas y acciones -->
+                <div class="px-6 pb-6">
+                  <!-- Stats bar con mejor contraste -->
+                  <div :class="['flex items-center justify-between py-3 px-4 rounded-xl mb-4 border', postCardStyles.statsBar, isDarkMode ? 'border-gray-600' : 'border-gray-200']">
+                    <div class="flex items-center space-x-6 text-sm">
+                      <div :class="['flex items-center space-x-2 font-semibold', isDarkMode ? 'text-gray-100' : 'text-gray-700']">
+                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.822-4.255-3.902-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"/>
+                        </svg>
+                        <span>{{ post.likesCount || 0 }}</span>
+                        <span class="hidden sm:inline">Me gusta</span>
+                      </div>
+                      
+                      <div :class="['flex items-center space-x-2 font-semibold', isDarkMode ? 'text-gray-100' : 'text-gray-700']">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <span>{{ post.commentsCount || 0 }}</span>
+                        <span class="hidden sm:inline">Comentarios</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Timestamp -->
+                    <div :class="['text-xs font-medium', isDarkMode ? 'text-gray-300' : 'text-gray-500']">
+                      Hace 2 horas
+                    </div>
+                  </div>
+
+                  <!-- Action buttons con mejor contraste -->
+                  <div class="flex items-center justify-between">
+                    <div class="flex space-x-3">
+                      <!-- Like button -->
+                      <button :class="['flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 border-2 hover:scale-105 hover:shadow-md', postCardStyles.actionButton.like]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </button>
+
+                      <!-- Comments button -->
+                      <button :class="['flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 border-2 hover:scale-105 hover:shadow-md', postCardStyles.actionButton.comment]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <!-- Delete button -->
+                    <button :class="['flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 border-2 group/delete hover:scale-105 hover:shadow-md', postCardStyles.actionButton.delete]">
+                      <svg class="w-5 h-5 group-hover/delete:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </template>
@@ -619,16 +855,33 @@ onUnmounted(() => {
             Debes iniciar sesión para acceder a las notificaciones
           </div>
           <template v-else>
-            <div class="mx-4 my-4 p-4 border rounded-lg transition-colors duration-300" :class="[ui.formContainer, isEditing ? '' : formDynamicStyles.border]">
-              <h3 class="text-sm font-medium mb-3">Crear nueva notificación</h3>
+            <!-- Mensaje para usuarios no admin -->
+            <div v-if="!isAdmin" class="mx-4 my-4 p-4 border rounded-lg text-center" :class="ui.noAccessWarning">
+              <div class="flex items-center justify-center mb-2">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span class="font-semibold">Acceso restringido</span>
+              </div>
+              <p class="text-sm">Solo los administradores pueden crear notificaciones. Puedes ver las notificaciones existentes a continuación.</p>
+            </div>
+
+            <!-- Formulario para crear notificaciones (solo admins) -->
+            <div v-if="isAdmin" class="mx-4 my-4 p-4 border-2 rounded-lg transition-colors duration-300" :class="[ui.formContainer, isEditing ? '' : formDynamicStyles.border]">
+              <h3 class="text-sm font-medium mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Crear nueva notificación
+              </h3>
               <div class="text-xs mb-3" :class="ui.textMuted">
                 Usuario: {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.email }})
               </div>
               <form @submit.prevent="createNotification">
-                <input v-model="newNotification.title" type="text" placeholder="Título" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500 mb-3" :class="ui.formInput" required />
+                <input v-model="newNotification.title" type="text" placeholder="Título de la notificación" class="w-full rounded px-3 py-2 text-sm border-2 focus:outline-none focus:border-blue-500 mb-3 transition-colors" :class="ui.formInput" required />
                 
                 <div>
-                  <textarea v-model="newNotification.content" placeholder="Contenido" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500" :class="ui.formInput" rows="4" required maxlength="500"></textarea>
+                  <textarea v-model="newNotification.content" placeholder="Contenido de la notificación" class="w-full rounded px-3 py-2 text-sm border-2 focus:outline-none focus:border-blue-500 transition-colors" :class="ui.formInput" rows="4" required maxlength="500"></textarea>
                   <p class="text-right text-xs mt-1" :class="ui.textMutedLight">{{ contentCharCount }} / 500</p>
                 </div>
 
@@ -638,13 +891,7 @@ onUnmounted(() => {
                     :key="type.value"
                     type="button"
                     @click="newNotification.type = type.value"
-                    :class="[
-                      'p-2 rounded-lg text-xs flex items-center justify-center transition-all duration-200 border',
-                      newNotification.type === type.value
-                        ? `bg-${type.color}-500 border-${type.color}-500 text-white shadow-lg scale-105`
-                        : isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-gray-100 border-gray-200 hover:bg-gray-200'
-                    ]"
-                    :disabled="currentUser?.rol?.toLowerCase() !== 'admin' && type.value === 'alert'"
+                    :class="getNotificationTypeButtonClass(type)"
                   >
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="type.icon" />
@@ -656,10 +903,13 @@ onUnmounted(() => {
                 <div class="flex justify-end">
                   <button 
                     type="submit" 
-                    class="text-white rounded-full px-5 py-2 text-sm font-semibold transition-colors duration-300 flex items-center" 
+                    class="text-white rounded-full px-6 py-2 text-sm font-bold transition-all duration-300 flex items-center hover:shadow-lg" 
                     :class="[formDynamicStyles.buttonBg, formDynamicStyles.buttonText]"
                     :disabled="isLoading"
                   >
+                    <svg v-if="!isLoading" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
                     <span v-if="!isLoading">Enviar notificación</span>
                     <span v-else>Enviando...</span>
                   </button>
@@ -667,62 +917,75 @@ onUnmounted(() => {
               </form>
             </div>
 
-            <div v-if="isEditing && editingNotification" class="mx-4 my-4 p-4 border rounded-lg" :class="ui.editFormContainer">
-              <h3 class="text-sm font-medium mb-3">Editar notificación</h3>
+            <!-- Formulario de edición -->
+            <div v-if="isEditing && editingNotification" class="mx-4 my-4 p-4 border-2 rounded-lg" :class="ui.editFormContainer">
+              <h3 class="text-sm font-medium mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar notificación
+              </h3>
               <form @submit.prevent="saveEdit">
-                <input v-model="editingNotification.title" type="text" placeholder="Título" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-blue-500 mb-3" :class="ui.formInput" required />
-                <textarea v-model="editingNotification.content" placeholder="Contenido" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-green-500 h-20 mb-3" :class="ui.formInput" required></textarea>
-                <select v-model="editingNotification.type" class="w-full rounded px-3 py-2 text-sm border focus:outline-none focus:border-green-500 mb-3" :class="ui.formInput" required :disabled="currentUser?.rol?.toLowerCase() !== 'admin' && editingNotification.type === 'alert'">
+                <input v-model="editingNotification.title" type="text" placeholder="Título" class="w-full rounded px-3 py-2 text-sm border-2 focus:outline-none focus:border-blue-500 mb-3 transition-colors" :class="ui.formInput" required />
+                <textarea v-model="editingNotification.content" placeholder="Contenido" class="w-full rounded px-3 py-2 text-sm border-2 focus:outline-none focus:border-green-500 h-20 mb-3 transition-colors" :class="ui.formInput" required></textarea>
+                <select v-model="editingNotification.type" class="w-full rounded px-3 py-2 text-sm border-2 focus:outline-none focus:border-green-500 mb-3 transition-colors" :class="ui.formInput" required>
                    <option value="info">Información</option>
                   <option value="warning">Advertencia</option>
                   <option value="alert">Alerta</option>
                 </select>
                 <div class="flex justify-end space-x-2">
-                  <button type="button" @click="cancelEdit" class="bg-gray-600 hover:bg-gray-700 text-white rounded-full px-4 py-1 text-sm">
+                  <button type="button" @click="cancelEdit" class="bg-gray-600 hover:bg-gray-700 text-white rounded-full px-4 py-1 text-sm transition-colors">
                     Cancelar
                   </button>
-                  <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white rounded-full px-4 py-1 text-sm" :disabled="isLoading">
+                  <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white rounded-full px-4 py-1 text-sm transition-colors" :disabled="isLoading">
                     {{ isLoading ? 'Guardando...' : 'Guardar cambios' }}
                   </button>
                 </div>
               </form>
             </div>
             
-            <div v-if="statusMessage" class="mx-4 mb-3 p-2 rounded-lg text-center text-sm" :class="statusMessage.success ? ui.status.success : ui.status.error">
+            <!-- Mensaje de estado -->
+            <div v-if="statusMessage" class="mx-4 mb-3 p-3 rounded-lg text-center text-sm font-medium" :class="statusMessage.success ? ui.status.success : ui.status.error">
               {{ statusMessage.text }}
             </div>
             
+            <!-- Loading -->
             <div v-if="isLoading" class="text-center my-4">
               <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             </div>
 
-            <div v-if="validNotifications.length === 0 && !isLoading" class="text-center py-6 mt-4 rounded-lg mx-4" :class="ui.container">
-              No hay notificaciones disponibles
+            <!-- Lista de notificaciones -->
+            <div v-if="validNotifications.length === 0 && !isLoading" class="text-center py-8 mt-4 rounded-lg mx-4 border-2" :class="[ui.container, ui.border]">
+              <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5V7H7V6h8v11z" />
+              </svg>
+              <p class="font-medium">No hay notificaciones disponibles</p>
             </div>
-            <div v-for="(notification, index) in validNotifications" :key="notification._id || index" class="mx-4 mb-3 mt-4">
-              <div class="p-3 rounded-lg" :class="notificationStyles(notification.type).bg">
+            
+            <div v-for="(notification, index) in validNotifications" :key="notification._id || index" class="mx-4 mb-4 mt-4">
+              <div class="p-4 rounded-lg border-2" :class="notificationStyles(notification.type).bg">
                 <div class="flex">
-                  <div class="mr-3">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="notificationStyles(notification.type).icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                  <div class="mr-4">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center" :class="notificationStyles(notification.type).icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                       </svg>
                     </div>
                   </div>
                   <div class="flex-grow">
-                    <h3 class="text-sm font-medium">{{ notification.title }}</h3>
-                    <p class="text-xs mt-1" :class="ui.textMuted">{{ notification.content }}</p>
-                    <div class="flex justify-between items-center mt-2">
-                      <span class="text-xs" :class="ui.textMutedLight">
+                    <h3 :class="['text-sm font-bold mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ notification.title }}</h3>
+                    <p :class="['text-sm mb-3 leading-relaxed', isDarkMode ? 'text-gray-200' : 'text-gray-700']">{{ notification.content }}</p>
+                    <div class="flex justify-between items-center mt-3">
+                      <span :class="['text-xs font-medium', isDarkMode ? 'text-gray-300' : 'text-gray-600']">
                         {{ notification.timestamp || 'Hace un momento' }}
-                        <span v-if="notification.userName" class="ml-1">- por {{ notification.userName }}</span>
+                        <span v-if="notification.userName" class="ml-2 px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded-full text-xs font-semibold">{{ notification.userName }}</span>
                       </span>
-                      <div class="flex space-x-2 items-center">
-                        <button v-if="!notification.read" @click="markAsRead(notification._id!, index)" class="text-xs hover:text-white" :class="ui.textMuted">
+                      <div class="flex space-x-3 items-center">
+                        <button v-if="!notification.read" @click="markAsRead(notification._id!, index)" :class="['text-xs hover:underline font-medium transition-colors', isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800']">
                           Marcar como leída
                         </button>
-                        <span v-else class="text-xs text-green-500">Leída</span>
-                        <button v-if="currentUser?.rol?.toLowerCase() === 'admin'" @click="startEdit(notification)" class="text-xs text-yellow-400 hover:text-yellow-300">
+                        <span v-else class="text-xs text-green-500 font-semibold bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">✓ Leída</span>
+                        <button v-if="isAdmin" @click="startEdit(notification)" :class="['text-xs hover:underline font-medium transition-colors', isDarkMode ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-800']">
                           Editar
                         </button>
                       </div>
