@@ -72,15 +72,13 @@
       </div>        
       
       <!-- IMAGEN CON EFECTOS -->       
-      <div class="max-w-lg animate-float z-10 relative">
-        <div class="absolute -inset-4 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] rounded-3xl blur opacity-20 animate-pulse"></div>         
+               
         <div class="relative bg-gradient-to-br from-[#3B9D30] to-[#2E7D2E] p-1 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:rotate-2">
           <img           
             src="@/assets/inicio.png.jpeg"           
             alt="Centro de Servicios Financieros SENA Chapinero"           
             class="w-full rounded-3xl transform transition-all duration-500 hover:scale-105"         
           />
-        </div>       
       </div>     
     </main>      
     
@@ -108,10 +106,133 @@
       </div>
     </section>
 
-    
+    <!-- SECCIÓN NOTIFICACIONES -->
+    <section 
+      class="relative z-10 px-12 py-16 transition-colors duration-300" 
+      :class="theme === 'light' ? 'bg-gradient-to-b from-white to-gray-50' : 'bg-gradient-to-b from-black to-black'"
+    >
+      <div class="max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-12">
+          <div class="flex justify-between items-center mb-8">
+            <div class="flex-1">
+              <h2 class="text-4xl font-black mb-4" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-100'">
+                Notificaciones <span class="text-[#3B9D30]">Recientes</span>
+                <span v-if="notifications.length > 0" class="text-sm font-normal ml-2" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">
+                  ({{ notifications.length }} {{ notifications.length === 1 ? 'notificación' : 'notificaciones' }})
+                </span>
+              </h2>
+              <div class="w-24 h-1 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] mx-auto mb-4"></div>
+              <p class="text-lg" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-300'">
+                Mantente informado de las últimas novedades
+              </p>
+            </div>
+            
+            <button 
+              @click="loadNotifications"
+              :disabled="isLoadingNotifications"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ml-8"
+              :class="[
+                theme === 'light' 
+                  ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200' 
+                  : 'bg-black border-green-700 text-green-300 hover:bg-gray-900',
+                isLoadingNotifications ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              ]"
+            >
+              <svg 
+                class="w-4 h-4 transition-transform"
+                :class="{ 'animate-spin': isLoadingNotifications }"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  stroke-width="2" 
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              {{ isLoadingNotifications ? 'Actualizando...' : 'Actualizar' }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Loading state -->
+        <div v-if="isLoadingNotifications && notifications.length === 0" class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#39A900]"></div>
+          <p class="mt-2 text-gray-500">Cargando notificaciones...</p>
+        </div>
+
+        <!-- Notifications grid -->
+        <div 
+          v-else-if="notifications.length > 0"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <article
+            v-for="(notification, idx) in displayedNotifications"
+            :key="notification._id || idx"
+            class="cursor-pointer p-6 rounded-xl shadow-lg hover:scale-105 transition-all duration-300 border-l-4"
+            :class="getNotificationClasses(notification)"
+            @click="handleNotificationClick(notification)"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <span 
+                class="inline-block px-3 py-1 text-xs rounded-full font-medium"
+                :class="getNotificationBadgeClasses(notification.type)"
+              >
+                {{ getNotificationTypeLabel(notification.type) }}
+              </span>
+              <span class="text-xs" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">
+                {{ formatTimestamp(notification.timestamp) }}
+              </span>
+            </div>
+            
+            <h3 
+              class="text-xl font-bold mb-3"
+              :class="getNotificationTitleClasses(notification.type)"
+            >
+              {{ notification.title }}
+            </h3>
+            
+            <p class="mb-3 leading-relaxed" :class="theme === 'light' ? 'text-gray-700' : 'text-gray-300'">
+              {{ notification.content }}
+            </p>
+            
+            <div v-if="notification.userName" class="flex items-center text-xs" :class="theme === 'light' ? 'text-gray-500' : 'text-gray-400'">
+              <span class="mr-1">👤</span>
+              <span>por {{ notification.userName }}</span>
+            </div>
+          </article>
+        </div>
+        
+        <!-- Empty state -->
+        <div
+          v-else
+          class="text-center py-16"
+        >
+          <div class="text-6xl mb-4">📢</div>
+          <h3 class="text-xl font-semibold mb-2" :class="theme === 'light' ? 'text-gray-600' : 'text-gray-400'">
+            No hay notificaciones
+          </h3>
+          <p class="text-gray-500">
+            No hay notificaciones disponibles en este momento.
+          </p>
+        </div>
+
+        <!-- Show more button -->
+        <div v-if="notifications.length > maxNotificationsToShow" class="text-center mt-8">
+          <button
+            @click="showAllNotifications = !showAllNotifications"
+            class="bg-[#39A900] text-white px-6 py-3 rounded-xl hover:bg-[#2d7a00] transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            {{ showAllNotifications ? 'Mostrar menos' : `Ver todas (${notifications.length})` }}
+          </button>
+        </div>
+      </div>
+    </section>
 
     <!-- SECCIÓN DE ÚLTIMAS NOTICIAS -->
-    <section class="py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-white to-gray-50' : 'bg-gradient-to-b from-black to-black'">
+    <section class="py-20 relative overflow-hidden transition-colors duration-300" :class="theme === 'light' ? 'bg-gradient-to-b from-gray-50 to-white' : 'bg-gradient-to-b from-black to-black'">
       <div class="max-w-7xl mx-auto px-12 relative z-10">
         <div class="text-center mb-16">
           <div class="flex justify-between items-center mb-8">
@@ -484,37 +605,53 @@
   </div> 
 </template>  
 
-<script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
+
+// Types
+interface Notification {
+  _id?: string
+  title: string
+  content: string
+  type: 'info' | 'warning' | 'alert'
+  timestamp: string
+  userName?: string
+  isRead?: boolean
+}
 
 const themeStore = useThemeStore()
 const { theme } = storeToRefs(themeStore)
 
 // Controladores para cada club
-const showFinanzas = ref(false);
-const showTecnologia = ref(false);
-const showLiderazgo = ref(false);
+const showFinanzas = ref(false)
+const showTecnologia = ref(false)
+const showLiderazgo = ref(false)
 
 // News data
 const newsItems = ref([])
 const isLoadingNews = ref(false)
-const notifications = ref([])
 const refreshInterval = ref(null)
 
-const API_URL = 'http://localhost:3000/news'
+// Notifications data
+const notifications = ref([])
+const isLoadingNotifications = ref(false)
+const showAllNotifications = ref(false)
+const maxNotificationsToShow = 6
+
+// Computed
+const displayedNotifications = computed(() => {
+  return showAllNotifications.value 
+    ? notifications.value 
+    : notifications.value.slice(0, maxNotificationsToShow)
+})
+
+const API_URL = 'http://localhost:3000/api/news'
 
 onMounted(async () => {
   // ------------------ NOTIFICACIONES ------------------
-  const rawNotifications = localStorage.getItem('persistent_notifications')
-  let persistedNotifications = []
-  try {
-    persistedNotifications = rawNotifications ? JSON.parse(rawNotifications) : []
-  } catch {
-    persistedNotifications = []
-  }
-  notifications.value = persistedNotifications
+  await loadNotifications()
 
   // ------------------ NOTICIAS desde API ------------------
   await fetchNews()
@@ -529,6 +666,143 @@ onUnmounted(() => {
   }
 })
 
+// ============ NOTIFICACIONES ============
+const loadNotifications = async () => {
+  try {
+    isLoadingNotifications.value = true
+    
+    // Cargar notificaciones persistentes del localStorage
+    const persistentNotifications = loadPersistentNotifications()
+    
+    // Aquí podrías hacer una llamada a la API para obtener notificaciones del servidor
+    // const serverNotifications = await fetchServerNotifications()
+    
+    // Combinar y ordenar notificaciones por fecha (más recientes primero)
+    const allNotifications = [...persistentNotifications]
+    allNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    
+    notifications.value = allNotifications
+  } catch (error) {
+    console.error('Error al cargar notificaciones:', error)
+    notifications.value = []
+  } finally {
+    isLoadingNotifications.value = false
+  }
+}
+
+const loadPersistentNotifications = () => {
+  try {
+    const raw = localStorage.getItem('persistent_notifications')
+    return raw ? JSON.parse(raw) : []
+  } catch (error) {
+    console.error('Error al parsear notificaciones del localStorage:', error)
+    return []
+  }
+}
+
+const handleNotificationClick = (notification) => {
+  // Marcar notificación como leída
+  if (!notification.isRead) {
+    notification.isRead = true
+    updatePersistentNotifications()
+  }
+  
+  // Aquí podrías agregar lógica adicional, como navegar a una página específica
+  console.log('Notificación clickeada:', notification)
+}
+
+const updatePersistentNotifications = () => {
+  try {
+    localStorage.setItem('persistent_notifications', JSON.stringify(notifications.value))
+  } catch (error) {
+    console.error('Error al guardar notificaciones en localStorage:', error)
+  }
+}
+
+const formatTimestamp = (timestamp) => {
+  try {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffInMs = now.getTime() - date.getTime()
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
+    
+    if (diffInHours < 1) return 'Hace unos minutos'
+    if (diffInHours < 24) return `Hace ${diffInHours} horas`
+    if (diffInDays === 1) return 'Hace 1 día'
+    if (diffInDays < 7) return `Hace ${diffInDays} días`
+    
+    return date.toLocaleDateString('es-CO')
+  } catch (error) {
+    return timestamp
+  }
+}
+
+const getNotificationTypeLabel = (type) => {
+  const labels = {
+    info: 'Información',
+    warning: 'Advertencia',
+    alert: 'Alerta'
+  }
+  return labels[type] || 'Notificación'
+}
+
+const getNotificationClasses = (notification) => {
+  const baseClasses = theme.value === 'light' 
+    ? 'bg-white bg-opacity-80' 
+    : 'bg-gray-900 bg-opacity-50'
+  
+  const typeClasses = {
+    info: 'border-l-green-400 hover:bg-green-50',
+    warning: 'border-l-yellow-400 hover:bg-yellow-50',
+    alert: 'border-l-red-400 hover:bg-red-50'
+  }
+  
+  const darkTypeClasses = {
+    info: 'border-l-green-400 hover:bg-green-900 hover:bg-opacity-20',
+    warning: 'border-l-yellow-400 hover:bg-yellow-900 hover:bg-opacity-20',
+    alert: 'border-l-red-400 hover:bg-red-900 hover:bg-opacity-20'
+  }
+  
+  const themeTypeClasses = theme.value === 'light' ? typeClasses : darkTypeClasses
+  return `${baseClasses} ${themeTypeClasses[notification.type] || ''}`
+}
+
+const getNotificationTitleClasses = (type) => {
+  const typeClasses = {
+    info: 'text-green-700',
+    warning: 'text-yellow-700',
+    alert: 'text-red-700'
+  }
+  
+  const darkTypeClasses = {
+    info: 'text-green-400',
+    warning: 'text-yellow-400',
+    alert: 'text-red-400'
+  }
+  
+  const themeTypeClasses = theme.value === 'light' ? typeClasses : darkTypeClasses
+  return themeTypeClasses[type] || 'text-[#39A900]'
+}
+
+const getNotificationBadgeClasses = (type) => {
+  const typeClasses = {
+    info: 'bg-green-100 text-green-800',
+    warning: 'bg-yellow-100 text-yellow-800',
+    alert: 'bg-red-100 text-red-800'
+  }
+  
+  const darkTypeClasses = {
+    info: 'bg-green-900 bg-opacity-30 text-green-400',
+    warning: 'bg-yellow-900 bg-opacity-30 text-yellow-400',
+    alert: 'bg-red-900 bg-opacity-30 text-red-400'
+  }
+  
+  const themeTypeClasses = theme.value === 'light' ? typeClasses : darkTypeClasses
+  return themeTypeClasses[type] || 'bg-gray-100 text-gray-800'
+}
+
+// ============ NOTICIAS ============
 const fetchNews = async () => {
   try {
     isLoadingNews.value = true
@@ -755,12 +1029,19 @@ const getAuthorName = (author) => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Custom shadow for enhanced hover effect */
+.hover\:shadow-3xl:hover {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
 }
 </style>
