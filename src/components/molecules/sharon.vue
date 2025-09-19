@@ -140,26 +140,25 @@
                 </div>
               </div>
 
-              <!-- Rol -->
+              <!-- Email -->
               <div class="space-y-3">
                 <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
-                  Rol
+                  Email
                 </label>
-                <select 
-                  id="rol" 
-                  v-model="form.rol"
+                <input 
+                  id="email" 
+                  type="email" 
+                  v-model="form.email" 
+                  placeholder="tu@soy.sena.edu.co" 
                   required
                   class="input-elegant-green"
                   :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                >
-                  <option disabled value="">-- Selecciona tu rol --</option>
-                  <option value="user">Aprendiz</option>
-                  <option value="admin">Administrador</option>
-                </select>
+                  @input="detectRole"
+                />
               </div>
 
               <!-- Código admin -->
-              <div v-if="form.rol === 'admin'" class="animate-slideDown space-y-3">
+              <div v-if="isAdmin" class="animate-slideDown space-y-3">
                 <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
                   Código de Administrador
                 </label>
@@ -168,6 +167,7 @@
                   v-model="form.adminCode" 
                   type="password"
                   placeholder="Código secreto" 
+                  required
                   class="input-elegant-green"
                   :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
                 />
@@ -221,35 +221,19 @@
                 </div>
               </div>
 
-              <!-- Teléfono y Email -->
-              <div class="grid grid-cols-2 gap-6">
-                <div class="space-y-3">
-                  <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
-                    Teléfono
-                  </label>
-                  <input 
-                    id="phone" 
-                    v-model="form.phone" 
-                    placeholder="3001234567" 
-                    required
-                    class="input-elegant-green"
-                    :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                  />
-                </div>
-                <div class="space-y-3">
-                  <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
-                    Email
-                  </label>
-                  <input 
-                    id="email" 
-                    type="email" 
-                    v-model="form.email" 
-                    placeholder="tu@email.com" 
-                    required
-                    class="input-elegant-green"
-                    :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                  />
-                </div>
+              <!-- Teléfono -->
+              <div class="space-y-3">
+                <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
+                  Teléfono
+                </label>
+                <input 
+                  id="phone" 
+                  v-model="form.phone" 
+                  placeholder="3001234567" 
+                  required
+                  class="input-elegant-green"
+                  :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
+                />
               </div>
 
               <!-- Contraseñas -->
@@ -372,7 +356,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { toast, type Content } from 'vue3-toastify'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
@@ -384,7 +368,6 @@ const { theme } = storeToRefs(themeStore)
 interface SignupForm {
   firstName: string
   lastName: string
-  rol: string
   phone: string
   email: string
   password: string
@@ -393,7 +376,7 @@ interface SignupForm {
 }
 
 const form = ref<SignupForm>({
-  firstName: '', lastName: '', rol: '', phone: '',
+  firstName: '', lastName: '', phone: '',
   email: '', password: '', confirmPassword: '', adminCode: ''
 })
 
@@ -401,6 +384,14 @@ const clubOptions = ['futbol','ajedrez','tenis','matematicas','programacion','fi
 const selectedClubs = ref<string[]>([])
 const showClubs = ref(false)
 const clubsContainer = ref<HTMLElement|null>(null)
+
+const isAdmin = computed(() => {
+  return form.value.email.includes('@sena.edu.co')
+})
+
+const detectRole = () => {
+  // Se ejecuta cuando cambia el email para detectar automáticamente el rol
+}
 
 const getClubEmoji = (club: string) => {
   const emojis: Record<string, string> = {
@@ -441,19 +432,44 @@ const sentCode = ref('')
 const verificationInput = ref('')
 
 const initiateVerification = async () => {
-  // validaciones básicas...
-  if (!form.value.rol) { toast.error('Selecciona un rol'); return }
-  if (form.value.password !== form.value.confirmPassword) { toast.error('Las contraseñas no coinciden'); return }
-  if (!/^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.value.email)) { toast.error('Correo inválido'); return }
-  if (!/^\d{10}$/.test(form.value.phone)) { toast.error('Teléfono inválido'); return }
-  if (selectedClubs.value.length === 0) { toast.error('Selecciona al menos un club'); return }
-  if (form.value.rol === 'admin' && !form.value.email.includes('@soy.sena.edu.co')) {
-  toast.error('El correo del administrador debe contener "@soy.sena.edu.co"');
-  return;
-}
+  // Validaciones básicas
+  if (form.value.password !== form.value.confirmPassword) { 
+    toast.error('Las contraseñas no coinciden'); 
+    return 
+  }
   
+  if (!/^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.value.email)) { 
+    toast.error('Correo inválido'); 
+    return 
+  }
+  
+  if (!/^\d{10}$/.test(form.value.phone)) { 
+    toast.error('Teléfono inválido'); 
+    return 
+  }
+  
+  if (selectedClubs.value.length === 0) { 
+    toast.error('Selecciona al menos un club'); 
+    return 
+  }
+  
+  // Validación de correos según el rol
+  if (isAdmin.value && !form.value.email.includes('@sena.edu.co')) {
+    toast.error('El correo del administrador debe contener "@sena.edu.co"');
+    return;
+  }
+  
+  if (!isAdmin.value && !form.value.email.includes('@soy.sena.edu.co')) {
+    toast.error('El correo del aprendiz debe contener "@soy.sena.edu.co"');
+    return;
+  }
 
-  // genera y envía código
+  if (isAdmin.value && !form.value.adminCode) {
+    toast.error('Ingresa el código de administrador');
+    return;
+  }
+
+  // Genera y envía código
   sentCode.value = Math.floor(100000 + Math.random()*900000).toString()
   try {
     await fetch('http://localhost:3000/auth/send-code', {
@@ -483,13 +499,15 @@ const verifyCode = async () => {
 
 const registerUser = async () => {
   try {
+    const rol = isAdmin.value ? 'admin' : 'user'
     const res = await fetch('http://localhost:3000/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form.value,
+        rol,
         clubs: selectedClubs.value,
-        adminCode: form.value.rol === 'admin' ? form.value.adminCode : undefined
+        adminCode: isAdmin.value ? form.value.adminCode : undefined
       })
     })
     const data = await res.json()
@@ -511,6 +529,17 @@ const registerUser = async () => {
 
 * {
   font-family: 'Inter', sans-serif;
+}
+
+.glass-effect {
+  backdrop-filter: blur(25px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dark .glass-effect {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-effect-elegant {
@@ -614,6 +643,15 @@ const registerUser = async () => {
   100% {
     transform: translateY(-100px) rotate(360deg);
     opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
   }
 }
 </style>
