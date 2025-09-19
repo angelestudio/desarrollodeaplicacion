@@ -252,6 +252,75 @@
       </div>
     </div>
 
+    <!-- =============================== 
+         NUEVA VENTANA DE BIENVENIDA
+         =============================== -->
+    <div
+      v-if="showWelcomeModal"
+      class="fixed inset-0 bg-black/70 backdrop-blur-md flex justify-center items-center z-[60] animate-modal-fade"
+    >
+      <div class="relative w-full max-w-sm mx-4 animate-welcome-entrance">
+        <!-- Partículas decorativas -->
+        <div class="absolute -inset-4 pointer-events-none">
+          <div class="absolute top-0 left-1/4 w-2 h-2 bg-green-400 rounded-full animate-welcome-particles" style="animation-delay: 0.5s;"></div>
+          <div class="absolute top-1/4 right-1/4 w-1.5 h-1.5 bg-green-300 rounded-full animate-welcome-particles" style="animation-delay: 1s;"></div>
+          <div class="absolute bottom-1/4 left-1/3 w-2.5 h-2.5 bg-green-500 rounded-full animate-welcome-particles" style="animation-delay: 1.5s;"></div>
+          <div class="absolute bottom-0 right-1/3 w-1 h-1 bg-green-200 rounded-full animate-welcome-particles" style="animation-delay: 2s;"></div>
+        </div>
+
+        <!-- Contenedor principal de bienvenida -->
+        <div class="relative welcome-gradient rounded-3xl shadow-2xl overflow-hidden animate-welcome-glow">
+          <!-- Efecto shimmer en el borde -->
+          <div class="absolute inset-0 rounded-3xl animate-welcome-shimmer"></div>
+          
+          <!-- Contenido -->
+          <div class="relative p-8 text-center text-white">
+            <!-- Ícono de usuario con animación -->
+            <div class="relative inline-block mb-6 animate-welcome-icon">
+              <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <div class="w-16 h-16 bg-white/30 rounded-full flex items-center justify-center">
+                  <!-- Ícono de admin o aprendiz según el rol -->
+                  <svg v-if="userRole === 'admin'" class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                  </svg>
+                  <svg v-else class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                  </svg>
+                </div>
+              </div>
+              
+              <!-- Anillo exterior con rotación -->
+              <div class="absolute inset-0 border-2 border-white/30 rounded-full animate-rotate-elegant"></div>
+            </div>
+
+            <!-- Mensaje de bienvenida -->
+            <h2 class="text-2xl font-bold mb-3">
+              ¡Bienvenido{{ userRole === 'admin' ? ' Admin' : ' Aprendiz' }}!
+            </h2>
+            
+            <div class="w-16 h-0.5 bg-white/60 mx-auto mb-4"></div>
+            
+            <p class="text-white/90 text-sm mb-6 leading-relaxed">
+              {{ userRole === 'admin' ? 'Has iniciado sesión como administrador del sistema SENA' : 'Has iniciado sesión exitosamente en el sistema SENACLUB' }}
+            </p>
+
+            <!-- Botón elegante para continuar -->
+            <button
+              @click="continueToHome"
+              class="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 border border-white/30 hover:border-white/50 group"
+            >
+              <span class="flex items-center justify-center">
+                <span class="mr-2">Continuar</span>
+                <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast notification profesional -->
     <div
       v-if="toastMessage"
@@ -283,7 +352,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
@@ -301,6 +370,10 @@ const toastType = ref<'success' | 'error' | ''>('')
 const showModal = ref(false)
 const forgotEmail = ref('')
 const isLoading = ref(false)
+
+// Nuevas variables para la ventana de bienvenida
+const showWelcomeModal = ref(false)
+const userRole = ref('')
 
 const URLS = import.meta.env.VITE_API_URL
 
@@ -337,7 +410,7 @@ const closeModal = () => {
   forgotEmail.value = ''
 }
 
-// Login con manejo elegante
+// Login con manejo elegante - LÓGICA EXACTAMENTE IGUAL + ventana bienvenida
 const loginUser = async () => {
   if (!email.value || !password.value) {
     showToast('Por favor completa todos los campos requeridos', 'error')
@@ -356,7 +429,7 @@ const loginUser = async () => {
       payload.adminCode = adminCode.value
     }
 
-  const response = await axios.post(`${URLS}auth/login`, payload)
+    const response = await axios.post(`${URLS}auth/login`, payload)
     const { token, rol, requireAdminCode, message } = response.data
 
     if (requireAdminCode) {
@@ -366,16 +439,20 @@ const loginUser = async () => {
       return
     }
 
-    // Éxito
+    // Éxito - GUARDAMOS EL ROL PARA LA VENTANA DE BIENVENIDA
     localStorage.setItem('token', token)
     localStorage.setItem('rol', rol)
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
+    // Guardamos el rol del usuario para mostrar en la ventana de bienvenida
+    userRole.value = rol
+
     showToast('Inicio de sesión exitoso', 'success')
     
+    // Mostramos la ventana de bienvenida después del toast de éxito
     setTimeout(() => {
       isLoading.value = false
-      router.push('/home')
+      showWelcomeModal.value = true
     }, 1500)
 
   } catch (error: any) {
@@ -384,6 +461,12 @@ const loginUser = async () => {
     showToast(errorMessage, 'error')
     isLoading.value = false
   }
+}
+
+// Nueva función para continuar al home desde la ventana de bienvenida
+const continueToHome = () => {
+  showWelcomeModal.value = false
+  router.push('/home')
 }
 
 // Recuperación de contraseña profesional
@@ -577,6 +660,72 @@ const sendRecoveryEmail = async () => {
 }
 
 /* ===============================
+   NUEVAS ANIMACIONES PARA BIENVENIDA
+   =============================== */
+
+@keyframes welcome-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(50px);
+  }
+  50% {
+    transform: scale(1.05) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes welcome-icon-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40%, 43% {
+    transform: translate3d(0, -20px, 0) scale(1.1);
+  }
+  70% {
+    transform: translate3d(0, -10px, 0) scale(1.05);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0) scale(1.02);
+  }
+}
+
+@keyframes welcome-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes welcome-particles {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.5);
+  }
+}
+
+@keyframes welcome-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
+  }
+}
+
+/* ===============================
    CLASES DE ANIMACIÓN
    =============================== */
 
@@ -638,5 +787,32 @@ const sendRecoveryEmail = async () => {
 
 .animate-toast-progress {
   animation: toast-progress 4s linear;
+}
+
+/* Nuevas clases para bienvenida */
+.animate-welcome-entrance {
+  animation: welcome-entrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-welcome-icon {
+  animation: welcome-icon-bounce 1.5s ease-out 0.3s both;
+}
+
+.animate-welcome-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: welcome-shimmer 2s infinite;
+}
+
+.animate-welcome-particles {
+  animation: welcome-particles 2s ease-out infinite;
+}
+
+.animate-welcome-glow {
+  animation: welcome-glow 2s ease-in-out infinite;
+}
+
+.welcome-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 </style>
