@@ -115,10 +115,10 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-  path: "/reset-password",
-  name: "ResetPassword",
-  component: () => import("../components/ResetPassword.vue"),
-},
+      path: '/reset-password',
+      name: 'ResetPassword',
+      component: () => import('../components/ResetPassword.vue')
+    },
     {
       path: '/user-posts',
       name: 'UserPosts',
@@ -138,6 +138,7 @@ router.beforeEach((to, from, next) => {
     const user = getUserFromToken()
     if (!user) {
       // Si no está autenticado, redirige a la página de login (o signup)
+      //
       return next({ name: 'SignUp' })
     }
   }
