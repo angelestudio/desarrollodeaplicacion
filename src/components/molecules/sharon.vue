@@ -242,29 +242,103 @@
                   <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
                     Contraseña
                   </label>
-                  <input 
-                    id="password" 
-                    type="password" 
-                    v-model="form.password" 
-                    placeholder="••••••••" 
-                    required
-                    class="input-elegant-green"
-                    :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                  />
+                  <div class="relative">
+                    <input 
+                      id="password" 
+                      :type="showPassword ? 'text' : 'password'"
+                      v-model="form.password" 
+                      placeholder="••••••••" 
+                      required
+                      class="input-elegant-green pr-12"
+                      :class="[
+                        theme === 'light' ? 'input-light-green' : 'input-dark-green',
+                        passwordValidation.isValid === false ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : '',
+                        passwordValidation.isValid === true ? 'border-green-500 focus:border-green-500 focus:ring-green-500/30' : ''
+                      ]"
+                      @input="validatePassword"
+                    />
+                    <button 
+                      type="button"
+                      @click="showPassword = !showPassword"
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                      <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- Indicadores de validación de contraseña -->
+                  <div v-if="form.password" class="space-y-1 text-xs">
+                    <div class="flex items-center space-x-2">
+                      <svg class="w-4 h-4" :class="passwordValidation.length ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
+                        <path v-if="passwordValidation.length" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        <path v-else fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                      <span :class="passwordValidation.length ? 'text-green-600' : 'text-red-600'">6-12 caracteres</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <svg class="w-4 h-4" :class="passwordValidation.noSpaces ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
+                        <path v-if="passwordValidation.noSpaces" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        <path v-else fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                      <span :class="passwordValidation.noSpaces ? 'text-green-600' : 'text-red-600'">Sin espacios</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <svg class="w-4 h-4" :class="passwordValidation.hasSpecial ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
+                        <path v-if="passwordValidation.hasSpecial" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        <path v-else fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                      <span :class="passwordValidation.hasSpecial ? 'text-green-600' : 'text-red-600'">Al menos 1 carácter especial</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="space-y-3">
                   <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
                     Confirmar
                   </label>
-                  <input 
-                    id="confirmPassword" 
-                    type="password" 
-                    v-model="form.confirmPassword" 
-                    placeholder="••••••••" 
-                    required
-                    class="input-elegant-green"
-                    :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                  />
+                  <div class="relative">
+                    <input 
+                      id="confirmPassword" 
+                      :type="showConfirmPassword ? 'text' : 'password'"
+                      v-model="form.confirmPassword" 
+                      placeholder="••••••••" 
+                      required
+                      class="input-elegant-green pr-12"
+                      :class="[
+                        theme === 'light' ? 'input-light-green' : 'input-dark-green',
+                        confirmPasswordValidation === false ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : '',
+                        confirmPasswordValidation === true ? 'border-green-500 focus:border-green-500 focus:ring-green-500/30' : ''
+                      ]"
+                      @input="validateConfirmPassword"
+                    />
+                    <button 
+                      type="button"
+                      @click="showConfirmPassword = !showConfirmPassword"
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      <svg v-if="showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                      <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- Validación de confirmación -->
+                  <div v-if="form.confirmPassword" class="text-xs">
+                    <div class="flex items-center space-x-2">
+                      <svg class="w-4 h-4" :class="confirmPasswordValidation ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
+                        <path v-if="confirmPasswordValidation" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        <path v-else fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                      <span :class="confirmPasswordValidation ? 'text-green-600' : 'text-red-600'">Las contraseñas coinciden</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -272,7 +346,8 @@
               <div class="pt-8">
                 <button 
                   type="submit"
-                  class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black py-5 px-8 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-green-500/50 shadow-xl glow-effect-green text-lg"
+                  :disabled="!isFormValid"
+                  class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black py-5 px-8 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-green-500/50 shadow-xl glow-effect-green text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   Crear Cuenta
                 </button>
@@ -385,12 +460,67 @@ const selectedClubs = ref<string[]>([])
 const showClubs = ref(false)
 const clubsContainer = ref<HTMLElement|null>(null)
 
+// Estados de validación de contraseña
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+const passwordValidation = ref({
+  length: false,
+  noSpaces: false,
+  hasSpecial: false,
+  isValid: null as boolean | null
+})
+const confirmPasswordValidation = ref<boolean | null>(null)
+
 const isAdmin = computed(() => {
   return form.value.email.includes('@sena.edu.co')
 })
 
+const isFormValid = computed(() => {
+  return form.value.firstName &&
+         form.value.lastName &&
+         form.value.email &&
+         form.value.phone &&
+         form.value.password &&
+         form.value.confirmPassword &&
+         selectedClubs.value.length > 0 &&
+         passwordValidation.value.isValid &&
+         confirmPasswordValidation.value &&
+         (!isAdmin.value || form.value.adminCode)
+})
+
 const detectRole = () => {
   // Se ejecuta cuando cambia el email para detectar automáticamente el rol
+}
+
+const validatePassword = () => {
+  const password = form.value.password
+  
+  // Validar longitud (6-12 caracteres)
+  passwordValidation.value.length = password.length >= 6 && password.length <= 12
+  
+  // Validar que no tenga espacios
+  passwordValidation.value.noSpaces = !/\s/.test(password)
+  
+  // Validar que tenga al menos un carácter especial
+  passwordValidation.value.hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+  
+  // Validación general
+  passwordValidation.value.isValid = passwordValidation.value.length && 
+                                   passwordValidation.value.noSpaces && 
+                                   passwordValidation.value.hasSpecial
+  
+  // Revalidar confirmación si ya hay algo escrito
+  if (form.value.confirmPassword) {
+    validateConfirmPassword()
+  }
+}
+
+const validateConfirmPassword = () => {
+  if (form.value.confirmPassword) {
+    confirmPasswordValidation.value = form.value.password === form.value.confirmPassword
+  } else {
+    confirmPasswordValidation.value = null
+  }
 }
 
 const getClubEmoji = (club: string) => {
@@ -433,7 +563,12 @@ const verificationInput = ref('')
 
 const initiateVerification = async () => {
   // Validaciones básicas
-  if (form.value.password !== form.value.confirmPassword) { 
+  if (!passwordValidation.value.isValid) { 
+    toast.error('La contraseña no cumple con los requisitos'); 
+    return 
+  }
+  
+  if (!confirmPasswordValidation.value) { 
     toast.error('Las contraseñas no coinciden'); 
     return 
   }
@@ -491,15 +626,15 @@ const cancelVerification = () => {
 const verifyCode = async () => {
   if (verificationInput.value === sentCode.value) {
     showVerificationModal.value = false
-    await registerUser()
+    await registerAprendiz()
   } else {
     toast.error('Código incorrecto')
   }
 }
 
-const registerUser = async () => {
+const registerAprendiz = async () => {
   try {
-    const rol = isAdmin.value ? 'admin' : 'user'
+    const rol = isAdmin.value ? 'admin' : 'Aprendiz'
     const res = await fetch('http://localhost:3000/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
