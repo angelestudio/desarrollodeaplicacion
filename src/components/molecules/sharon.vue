@@ -17,7 +17,7 @@
 
     <!-- Toggle de tema -->
 <button
-  @click="clubsContainer?.value && !clubsContainer.value.click && themeStore.toggleTheme()"
+  @click="themeStore.toggleTheme()"
   class="fixed top-6 right-6 w-12 h-12 rounded-full glass-effect flex items-center justify-center transition-all duration-300 hover:scale-110 z-50 shadow-lg"
 >
   <svg v-if="theme === 'light'" class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
@@ -27,7 +27,6 @@
     <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd"/>
   </svg>
 </button>
-<div ref="clubsContainer"></div>
 
     
     <!-- Contenedor principal optimizado para pantalla completa -->
@@ -171,54 +170,6 @@
                   class="input-elegant-green"
                   :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
                 />
-              </div>
-
-              <!-- Selección de clubs -->
-              <div ref="clubsContainer" class="relative space-y-3">
-                <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
-                  Clubs de Interés
-                </label>
-                <div 
-                  @click="toggleClubs"
-                  class="input-elegant-green cursor-pointer flex items-center justify-between min-h-[56px]"
-                  :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                >
-                  <div class="flex-1">
-                    <div v-if="selectedClubs.length" class="flex flex-wrap gap-2">
-                      <span v-for="club in selectedClubs.slice(0, 3)" :key="club" 
-                            class="club-tag-green inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold text-white shadow-lg">
-                        {{ getClubEmoji(club) }} {{ club }}
-                      </span>
-                      <span v-if="selectedClubs.length > 3" 
-                            class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold shadow-lg"
-                            :class="theme === 'light' ? 'bg-gray-200 text-gray-700' : 'bg-gray-700 text-gray-200'">
-                        +{{ selectedClubs.length - 3 }} más
-                      </span>
-                    </div>
-                    <span v-else class="text-gray-400 text-base font-medium">Selecciona tus clubs favoritos</span>
-                  </div>
-                  <svg class="w-6 h-6 text-gray-500 transition-transform duration-300" :class="{ 'rotate-180': showClubs }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>                
-                <div v-show="showClubs" class="absolute z-20 w-full mt-3 rounded-2xl shadow-2xl max-h-48 overflow-auto glass-effect-elegant border"
-                     :class="theme === 'light' ? 'border-green-200/50' : 'border-green-800/50'">
-                  <div v-for="club in clubOptions" :key="club" 
-                       class="flex items-center px-5 py-4 hover:bg-green-50/80 dark:hover:bg-green-900/20 cursor-pointer transition-colors duration-300 first:rounded-t-2xl last:rounded-b-2xl"
-                       @click.stop="toggleClub(club)">
-                    <input 
-                      type="checkbox" 
-                      :value="club" 
-                      v-model="selectedClubs" 
-                      class="w-5 h-5 text-green-600 rounded focus:ring-green-500 accent-green-500"
-                    />
-                    <span class="ml-4 capitalize text-base font-semibold flex items-center space-x-3" 
-                          :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
-                      <span class="text-lg">{{ getClubEmoji(club) }}</span>
-                      <span>{{ club }}</span>
-                    </span>
-                  </div>
-                </div>
               </div>
 
               <!-- Teléfono -->
@@ -431,7 +382,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { toast, type Content } from 'vue3-toastify'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
@@ -455,11 +406,6 @@ const form = ref<SignupForm>({
   email: '', password: '', confirmPassword: '', adminCode: ''
 })
 
-const clubOptions = ['futbol','ajedrez','tenis','matematicas','programacion','finanzas','economia','fisica']
-const selectedClubs = ref<string[]>([])
-const showClubs = ref(false)
-const clubsContainer = ref<HTMLElement|null>(null)
-
 // Estados de validación de contraseña
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -482,7 +428,6 @@ const isFormValid = computed(() => {
          form.value.phone &&
          form.value.password &&
          form.value.confirmPassword &&
-         selectedClubs.value.length > 0 &&
          passwordValidation.value.isValid &&
          confirmPasswordValidation.value &&
          (!isAdmin.value || form.value.adminCode)
@@ -502,7 +447,7 @@ const validatePassword = () => {
   passwordValidation.value.noSpaces = !/\s/.test(password)
   
   // Validar que tenga al menos un carácter especial
-  passwordValidation.value.hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+  passwordValidation.value.hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(password)
   
   // Validación general
   passwordValidation.value.isValid = passwordValidation.value.length && 
@@ -522,39 +467,6 @@ const validateConfirmPassword = () => {
     confirmPasswordValidation.value = null
   }
 }
-
-const getClubEmoji = (club: string) => {
-  const emojis: Record<string, string> = {
-    'futbol': '⚽',
-    'ajedrez': '♟️',
-    'tenis': '🎾',
-    'matematicas': '📊',
-    'programacion': '💻',
-    'finanzas': '💰',
-    'economia': '📈',
-    'fisica': '⚡'
-  }
-  return emojis[club] || '🏆'
-}
-
-const toggleClubs = () => showClubs.value = !showClubs.value
-
-const toggleClub = (club: string) => {
-  const index = selectedClubs.value.indexOf(club)
-  if (index > -1) {
-    selectedClubs.value.splice(index, 1)
-  } else {
-    selectedClubs.value.push(club)
-  }
-}
-
-const handleClickOutside = (e: MouseEvent) => {
-  if (clubsContainer.value && !clubsContainer.value.contains(e.target as Node))
-    showClubs.value = false
-}
-
-onMounted(() => document.addEventListener('mousedown', handleClickOutside))
-onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutside))
 
 // Modal y código
 const showVerificationModal = ref(false)
@@ -580,11 +492,6 @@ const initiateVerification = async () => {
   
   if (!/^\d{10}$/.test(form.value.phone)) { 
     toast.error('Teléfono inválido'); 
-    return 
-  }
-  
-  if (selectedClubs.value.length === 0) { 
-    toast.error('Selecciona al menos un club'); 
     return 
   }
   
@@ -641,7 +548,6 @@ const registerAprendiz = async () => {
       body: JSON.stringify({
         ...form.value,
         rol,
-        clubs: selectedClubs.value,
         adminCode: isAdmin.value ? form.value.adminCode : undefined
       })
     })
