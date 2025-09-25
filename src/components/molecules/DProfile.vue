@@ -99,7 +99,7 @@ function showStatus(text: string, success: boolean, duration = 3000) {
 async function apiFetch(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token')
   if (!token) throw new Error('Usuario no autenticado')
-  const res = await fetch(`http://localhost:3000${url}`, { ...options, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...options.headers } })
+  const res = await fetch(`https://backend-senaclub-xtrt.onrender.com${url}`, { ...options, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...options.headers } })
   if (!res.ok) throw new Error((await res.json().catch(() => ({ message: res.statusText }))).message || 'Error en la solicitud a la API')
   return res.json()
 }

@@ -472,7 +472,7 @@ const initiateVerification = async () => {
   // Genera y envía código
   sentCode.value = Math.floor(100000 + Math.random()*900000).toString()
   try {
-    await fetch('http://localhost:3000/auth/send-code', {
+  await fetch('https://backend-senaclub-xtrt.onrender.com/auth/send-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.value.email, code: sentCode.value })
@@ -500,7 +500,7 @@ const verifyCode = async () => {
 const registerUser = async () => {
   try {
     const rol = isAdmin.value ? 'admin' : 'user'
-    const res = await fetch('http://localhost:3000/auth/signup', {
+  const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

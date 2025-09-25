@@ -647,7 +647,7 @@ const displayedNotifications = computed(() => {
     : notifications.value.slice(0, maxNotificationsToShow)
 })
 
-const API_URL = 'http://localhost:3000/api/news'
+const API_URL = 'https://backend-senaclub-xtrt.onrender.com/api/news'
 
 onMounted(async () => {
   // ------------------ NOTIFICACIONES ------------------

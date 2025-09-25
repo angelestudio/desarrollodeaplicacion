@@ -30,9 +30,9 @@ app.use(Vue3Toastify, {
 initializeTheme()
 
 // Configurar axios baseURL
-// Si tu backend NO usa prefijo global: usar '/posts' directamente con baseURL = 'http://localhost:3000'
-// Si tu backend usa prefijo 'api', ajustar: baseURL = 'http://localhost:3000/api'
-const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+// Si tu backend NO usa prefijo global: usar '/posts' directamente con baseURL = 'https://backend-senaclub-xtrt.onrender.com'
+// Si tu backend usa prefijo 'api', ajustar: baseURL = 'https://backend-senaclub-xtrt.onrender.com/api'
+const rawBase = import.meta.env.VITE_API_URL || 'https://backend-senaclub-xtrt.onrender.com'
 axios.defaults.baseURL = rawBase.replace(/\/+$/, '')
 // Configurar token si existe
 const token = localStorage.getItem('token')

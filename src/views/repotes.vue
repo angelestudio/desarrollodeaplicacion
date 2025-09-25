@@ -83,7 +83,7 @@ function generarGrafico() {
 
 onMounted(async () => {
   try {
-    const res = await axios.get<Reporte>('http://localhost:3000/report')
+  const res = await axios.get<Reporte>('https://backend-senaclub-xtrt.onrender.com/report')
     reporte.value = res.data
     await nextTick()
     generarGrafico()

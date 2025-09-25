@@ -4,13 +4,13 @@ import jwt_decode from 'jwt-decode'
 
 const API_URL =
   (import.meta.env.VITE_API_URL && String(import.meta.env.VITE_API_URL).replace(/\/$/, '')) ||
-  'http://localhost:3000'
+  'https://backend-senaclub-xtrt.onrender.com'
 
 export const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: API_URL
 })
 
-apiClient.interceptors.request.use(config => {
+apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
     config.headers = config.headers ?? {}
@@ -79,7 +79,7 @@ export async function loginUser(loginData: any) {
 export async function updatePassword(params: { userId: string; password: string }) {
   try {
     const res = await apiClient.put(`/usuarios/${params.userId}/password`, {
-      password: params.password,
+      password: params.password
     })
     return res.data
   } catch (err: any) {

@@ -24,7 +24,7 @@ export function useNotifications() {
   const fetchNotifications = async () => {
     isLoading.value = true;
     try {
-      const response = await fetch('http://localhost:3000/notifications');
+  const response = await fetch('https://backend-senaclub-xtrt.onrender.com/notifications');
       if (!response.ok) throw new Error('Error al cargar notificaciones');
       const data = await response.json();
       notifications.value = data;
@@ -48,7 +48,7 @@ export function useNotifications() {
         read: false
       };
 
-      const response = await fetch('http://localhost:3000/notifications', {
+  const response = await fetch('https://backend-senaclub-xtrt.onrender.com/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(notificationData),
@@ -80,7 +80,7 @@ export function useNotifications() {
       const notification = notifications.value[index];
       const updatedNotification = { ...notification, read: true };
 
-      const response = await fetch(`http://localhost:3000/notifications/${id}`, {
+  const response = await fetch(`https://backend-senaclub-xtrt.onrender.com/notifications/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedNotification),

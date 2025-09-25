@@ -27,7 +27,7 @@ const isLoading = ref(false);
 const isEditing = ref(false);
 const editingNewsId = ref<string | null>(null);
 
-const API_URL = 'http://localhost:3000/news';
+const API_URL = 'https://backend-senaclub-xtrt.onrender.com/news';
 
 onMounted(async () => {
   await fetchNews();

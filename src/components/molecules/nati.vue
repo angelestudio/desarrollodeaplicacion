@@ -384,7 +384,7 @@ const isLoadingNews = ref(false)
 const notifications = ref([])
 const refreshInterval = ref(null)
 
-const API_URL = 'http://localhost:3000/news'
+const API_URL = 'https://backend-senaclub-xtrt.onrender.com/news'
 
 onMounted(async () => {
   // ------------------ NOTIFICACIONES ------------------
