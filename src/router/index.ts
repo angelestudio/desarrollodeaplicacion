@@ -117,7 +117,14 @@ const router = createRouter({
     {
       path: '/reset-password',
       name: 'ResetPassword',
-      component: () => import('../components/ResetPassword.vue')
+      component: () => import('@/components/ResetPassword.vue'),
+      meta: { requiresAuth: false },
+    },
+     {
+      path: '/iniciosesion',
+      name: 'InicioSesion',
+      component: () => import('@/components/nath.vue'),
+      meta: { requiresAuth: false },
     },
     {
       path: '/user-posts',
@@ -134,14 +141,21 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const user = getUserFromToken()
-    if (!user) {
-      // Si no está autenticado, redirige a la página de login (o signup)
-      //
-      return next({ name: 'SignUp' })
-    }
+  // Obtener el usuario actual
+  const user = getUserFromToken()
+  
+  // Rutas que requieren autenticación
+  if (to.meta.requiresAuth && !user) {
+    // Guardar la ruta intentada para redirigir después del login
+    const loginQuery = to.fullPath ? { redirect: to.fullPath } : {}
+    return next({ name: 'acceder', query: loginQuery })
   }
+
+  // Rutas de autenticación cuando el usuario ya está logueado
+  if (user && (to.name === 'acceder' || to.name === 'SignIn' || to.name === 'SignUp')) {
+    return next({ name: 'Home' })
+  }
+
   next()
 })
 

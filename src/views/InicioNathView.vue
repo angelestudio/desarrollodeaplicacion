@@ -61,7 +61,7 @@
           Conecta con tus compañeros, participa en actividades extracurriculares y enriquece tu formación técnica y tecnológica.         
         </p>         
         <RouterLink 
-          to="/clubs" 
+          to="/" 
           class="inline-flex items-center gap-3 bg-gradient-to-r from-[#3B9D30] to-[#2E7D2E] text-white px-10 py-4 rounded-xl text-xl font-bold shadow-2xl transition-all duration-500 transform hover:scale-110 hover:shadow-green-500/25 group animate-bounce-gentle"
         >           
           <span>Explorar Clubes</span>
