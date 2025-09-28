@@ -485,7 +485,7 @@ const sendRecoveryEmail = async () => {
   isLoading.value = true
   
   try {
-    await axios.post(`${URLS}auth/forgot-password`, {
+    await axios.post(`${URLS}/auth/forgot-password`, {
       email: forgotEmail.value
     })
     
