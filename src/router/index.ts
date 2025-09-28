@@ -117,7 +117,8 @@ const router = createRouter({
     {
       path: '/reset-password',
       name: 'ResetPassword',
-      component: () => import('../components/ResetPassword.vue')
+      component: () => import('@/components/ResetPassword.vue'),
+      meta: { requiresAuth: false }
     },
     {
       path: '/user-posts',
