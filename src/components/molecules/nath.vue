@@ -429,7 +429,7 @@ const loginUser = async () => {
       payload.adminCode = adminCode.value
     }
 
-    const response = await axios.post(`${URLS}auth/login`, payload)
+    const response = await axios.post(`${URLS}/auth/login`, payload)
     const { token, rol, requireAdminCode, message } = response.data
 
     if (requireAdminCode) {
@@ -485,7 +485,7 @@ const sendRecoveryEmail = async () => {
   isLoading.value = true
   
   try {
-    await axios.post(`${URLS}auth/forgot-password`, {
+    await axios.post(`${URLS}/auth/forgot-password`, {
       email: forgotEmail.value
     })
     
