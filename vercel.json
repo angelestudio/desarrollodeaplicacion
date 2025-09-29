@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/InicioNathView.vue" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
