@@ -489,6 +489,7 @@ const sendRecoveryEmail = async () => {
       email: forgotEmail.value
     })
     
+    
     showToast('Correo de recuperación enviado exitosamente', 'success')
     closeModal()
     
