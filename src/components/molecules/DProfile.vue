@@ -358,7 +358,6 @@ onUnmounted(stopPolling)
                         <span class="hidden sm:inline">Comentarios</span>
                       </div>
                     </div>
-                    <div :class="['text-xs font-medium', isDark ? 'text-gray-300' : 'text-gray-500']">Hace 2 horas</div>
                   </div>
                   <div class="flex items-center justify-between">
                     <div class="flex space-x-3">
