@@ -417,9 +417,9 @@ onUnmounted(stopPolling)
                   </button>
                 </div>
                 <div class="flex justify-end">
-                  <button type="submit" class="text-white rounded-full px-6 py-2 text-sm font-bold transition-all duration-300 flex items-center hover:shadow-lg" :class="[formStyles.buttonBg, formStyles.buttonText]" :disabled="loading">
+                  <button type="submit" class="text-white rounded-full px-6 py-2 text-sm font-bold transition-all duration-300 flex items-center hover:shadow-lg" :class="[isDark.value ? 'bg-black hover:bg-gray-800' : 'bg-black hover:bg-gray-800', 'text-white']" :disabled="loading">
                     <svg v-if="!loading" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                    <span>{{ loading ? 'Enviando...' : 'Enviar notificación' }}</span>
+                    <span>{{ loading ? 'Enviando...' : 'Publicar notificación' }}</span>
                   </button>
                 </div>
               </form>
