@@ -496,12 +496,12 @@ const initiateVerification = async () => {
   }
   
   // Validación de correos según el rol
-  if (isAdmin.value && !form.value.email.includes('@')) {
+  if (isAdmin.value && !form.value.email.includes('')) {
     toast.error('El correo del administrador debe contener "@sena.edu.co"');
     return;
   }
   
-  if (!isAdmin.value && !form.value.email.includes('@')) {
+  if (!isAdmin.value && !form.value.email.includes('')) {
     toast.error('El correo del aprendiz debe contener "@soy.sena.edu.co"');
     return;
   }
