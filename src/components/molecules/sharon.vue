@@ -497,12 +497,13 @@ const initiateVerification = async () => {
   }
   
   // Validación de correos según el rol
-   if (isAdmin.value && !form.value.email.endsWith('@sena.edu.co')) {
+   if (isAdmin.value && !form.value.email.endsWith('')) {
     toast.error('El correo del administrador debe terminar en @sena.edu.co');
     return;
   }
-  
-  if (!isAdmin.value && !form.value.email.endsWith('@soy.sena.edu.co')) {
+  // @soy.sena.edu.co
+  // @sena.edu.co
+  if (!isAdmin.value && !form.value.email.endsWith('')) {
     toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co');
     return;
   }
