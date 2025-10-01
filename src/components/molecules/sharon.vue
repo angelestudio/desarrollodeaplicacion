@@ -420,6 +420,7 @@ const confirmPasswordValidation = ref<boolean | null>(null)
 const isAdmin = computed(() => {
   return form.value.email.includes('@sena.edu.co')
 })
+const selectedClubs = ref<string[]>([]) 
 
 const isFormValid = computed(() => {
   return form.value.firstName &&
@@ -496,13 +497,13 @@ const initiateVerification = async () => {
   }
   
   // Validación de correos según el rol
-  if (isAdmin.value && !form.value.email.includes('')) {
-    toast.error('El correo del administrador debe contener "@sena.edu.co"');
+   if (isAdmin.value && !form.value.email.endsWith('@sena.edu.co')) {
+    toast.error('El correo del administrador debe terminar en @sena.edu.co');
     return;
   }
   
-  if (!isAdmin.value && !form.value.email.includes('')) {
-    toast.error('El correo del aprendiz debe contener "@soy.sena.edu.co"');
+  if (!isAdmin.value && !form.value.email.endsWith('@soy.sena.edu.co')) {
+    toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co');
     return;
   }
 
@@ -541,16 +542,25 @@ const verifyCode = async () => {
 
 const registerAprendiz = async () => {
   try {
-    const rol = isAdmin.value ? 'admin' : 'user'
-    // Enviamos sólo los campos del form + rol (sin club)
+    const role = isAdmin.value ? 'admin' : 'user'
+
+    // Asegurar que clubs sea un array de strings
+    const clubsSelected = Array.isArray(selectedClubs.value) ? selectedClubs.value : []
+
+    // Construir payload explícitamente (no usar ...form.value)
     const payload: any = {
-      ...form.value,
-      rol,
-      // Si tu backend espera explícitamente 'clubs', usa: clubs: []
-      // clubs: []
+      firstName: form.value.firstName,
+      lastName:  form.value.lastName,
+      phone:     form.value.phone,
+      email:     form.value.email,
+      password:  form.value.password,
+      role,
+      clubs: clubsSelected.length ? clubsSelected : [] // enviar [] si no hay selección
     }
-    // No enviar adminCode si no aplica
-    if (!isAdmin.value) delete payload.adminCode
+
+    // No enviar adminCode ni confirmPassword
+    // Si por alguna razón adminCode está en form, eliminarlo:
+    if (!isAdmin.value && payload.adminCode) delete payload.adminCode
 
     const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
       method: 'POST',
@@ -564,12 +574,12 @@ const registerAprendiz = async () => {
       return
     }
     toast.success('Usuario creado correctamente')
-    // Redirigir a home en vez de a signin
     router.push('/home')
   } catch {
     toast.error('Error al registrar usuario')
   }
 }
+
 
 </script>
 
