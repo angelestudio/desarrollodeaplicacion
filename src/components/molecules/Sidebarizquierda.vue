@@ -92,6 +92,16 @@ const menuItems = [
   }
 ]
 
+// Filtrar menú para mostrar "Reportes" solo si el usuario es admin
+const filteredMenuItems = computed(() => {
+  return menuItems.filter(item => {
+    if (item.path === '/reportes') {
+      return currentUser.value?.rol === 'admin'
+    }
+    return true
+  })
+})
+
 const isActiveRoute = (path: string): boolean => {
   return route.path === path || (path === '/home' && route.path === '/')
 }
@@ -100,8 +110,8 @@ const isActiveRoute = (path: string): boolean => {
 
 <template>
   <aside
-    :class="[
-      'w-64 md:w-80 flex flex-col justify-between h-screen border-r relative overflow-hidden',
+    :class="[ 
+      'w-64 md:w-80 flex flex-col justify-between h-screen border-r relative overflow-hidden', 
       isDarkMode
         ? 'bg-gradient-to-b from-gray-900 via-black to-gray-900 text-white border-gray-800'
         : 'bg-gradient-to-b from-white via-gray-50 to-white text-green-700 border-gray-200'
@@ -145,7 +155,7 @@ const isActiveRoute = (path: string): boolean => {
     <!-- Menú de navegación mejorado -->
     <nav class="flex-1 px-4 pb-4 relative z-10">
       <div class="space-y-3">
-        <div v-for="item in menuItems" :key="item.path" class="group">
+        <div v-for="item in filteredMenuItems" :key="item.path" class="group">
           <router-link
             :to="item.path"
             class="relative flex items-center p-3 rounded-2xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 overflow-hidden group"
