@@ -542,14 +542,20 @@ const verifyCode = async () => {
 const registerAprendiz = async () => {
   try {
     const rol = isAdmin.value ? 'admin' : 'user'
-  const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
+    // Enviamos sólo los campos del form + rol (sin club)
+    const payload: any = {
+      ...form.value,
+      rol,
+      // Si tu backend espera explícitamente 'clubs', usa: clubs: []
+      // clubs: []
+    }
+    // No enviar adminCode si no aplica
+    if (!isAdmin.value) delete payload.adminCode
+
+    const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form.value,
-        rol,
-        adminCode: isAdmin.value ? form.value.adminCode : undefined
-      })
+      body: JSON.stringify(payload)
     })
     const data = await res.json()
     if (!res.ok) {
@@ -558,11 +564,13 @@ const registerAprendiz = async () => {
       return
     }
     toast.success('Usuario creado correctamente')
-    router.push('/signin')
+    // Redirigir a home en vez de a signin
+    router.push('/home')
   } catch {
     toast.error('Error al registrar usuario')
   }
 }
+
 </script>
 
 <style scoped>
