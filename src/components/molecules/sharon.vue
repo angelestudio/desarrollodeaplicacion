@@ -548,6 +548,7 @@ const registerAprendiz = async () => {
     // Asegurar que clubs sea un array de strings
     const clubsSelected = Array.isArray(selectedClubs.value) ? selectedClubs.value : []
 
+    const clubsFallback = clubsSelected.length ? clubsSelected : ['general']
     // Construir payload explícitamente (no usar ...form.value)
     const payload: any = {
       firstName: form.value.firstName,
@@ -556,7 +557,8 @@ const registerAprendiz = async () => {
       email:     form.value.email,
       password:  form.value.password,
       role,
-      clubs: clubsSelected.length ? clubsSelected : [] // enviar [] si no hay selección
+      rol: role,
+      clubs: clubsFallback // enviar [] si no hay selección
     }
 
     // No enviar adminCode ni confirmPassword
