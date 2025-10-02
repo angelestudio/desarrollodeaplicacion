@@ -420,6 +420,7 @@ const confirmPasswordValidation = ref<boolean | null>(null)
 const isAdmin = computed(() => {
   return form.value.email.includes('@sena.edu.co')
 })
+const selectedClubs = ref<string[]>([]) 
 
 const isFormValid = computed(() => {
   return form.value.firstName &&
@@ -496,13 +497,14 @@ const initiateVerification = async () => {
   }
   
   // Validación de correos según el rol
-  if (isAdmin.value && !form.value.email.includes('@sena.edu.co')) {
-    toast.error('El correo del administrador debe contener "@sena.edu.co"');
+   if (isAdmin.value && !form.value.email.endsWith('sena.edu.co')) {
+    toast.error('El correo del administrador debe terminar en @sena.edu.co');
     return;
   }
-  
-  if (!isAdmin.value && !form.value.email.includes('@soy.sena.edu.co')) {
-    toast.error('El correo del aprendiz debe contener "@soy.sena.edu.co"');
+  // @soy.sena.edu.co
+  // @sena.edu.co                                   
+  if (!isAdmin.value && !form.value.email.endsWith('soy.sena.edu.co')) {
+    toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co');
     return;
   }
 
@@ -541,28 +543,70 @@ const verifyCode = async () => {
 
 const registerAprendiz = async () => {
   try {
-    const rol = isAdmin.value ? 'admin' : 'user'
-  const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
+    const role = isAdmin.value ? 'admin' : 'user'
+
+    const clubsSelected = Array.isArray(selectedClubs.value) ? selectedClubs.value : []
+    const clubsFallback = clubsSelected.length ? clubsSelected : ['general']
+
+    const payload: any = {
+      firstName: form.value.firstName,
+      lastName:  form.value.lastName,
+      phone:     form.value.phone,
+      email:     form.value.email,
+      password:  form.value.password,
+      role,
+      rol: role,
+      clubs: clubsFallback
+    }
+
+    if (!isAdmin.value && payload.adminCode) {
+      delete payload.adminCode
+    }
+
+    const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form.value,
-        rol,
-        adminCode: isAdmin.value ? form.value.adminCode : undefined
-      })
+      body: JSON.stringify(payload)
     })
+
+    // 👇 Ahora sí parseamos la respuesta
     const data = await res.json()
+    console.log('[signup] response', data)
+    console.log('[signup] res.ok', res.ok)
+
     if (!res.ok) {
-      if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
-      else toast.error(data.message)
+      if (Array.isArray(data.message)) {
+        data.message.forEach((m: Content) => toast.error(m))
+      } else {
+        toast.error(data.message || 'Error desconocido del servidor')
+      }
       return
     }
+
     toast.success('Usuario creado correctamente')
-    router.push('/signin')
-  } catch {
-    toast.error('Error al registrar usuario')
+
+    const token = data?.token ?? data?.accessToken ?? data?.access_token ?? data?.tokens?.access
+    console.log('[signup] token found:', token)
+
+    if (token) {
+      localStorage.setItem('token', token)
+      if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+
+      await router.push({ name: 'Home' })
+      return
+    }
+
+    console.warn('[signup] no token returned by signup endpoint')
+    toast.info('Cuenta creada. Por favor inicia sesión para continuar.')
+    await router.push({ name: 'Signin' })
+  } catch (error) {
+    console.error('[signup] error:', error)
+    toast.error('Error en el registro, intenta de nuevo más tarde')
   }
 }
+
+
+
 </script>
 
 <style scoped>
@@ -656,7 +700,7 @@ const registerAprendiz = async () => {
   animation-delay: -3s;
 }
 
-@keyframes float {
+@keyfconst data = await res.json()rames float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
 }
