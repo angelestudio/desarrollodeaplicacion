@@ -497,13 +497,13 @@ const initiateVerification = async () => {
   }
   
   // Validación de correos según el rol
-   if (isAdmin.value && !form.value.email.endsWith('m')) {
+   if (isAdmin.value && !form.value.email.endsWith('sena.edu.co')) {
     toast.error('El correo del administrador debe terminar en @sena.edu.co');
     return;
   }
   // @soy.sena.edu.co
   // @sena.edu.co
-  if (!isAdmin.value && !form.value.email.endsWith('m')) {
+  if (!isAdmin.value && !form.value.email.endsWith('@soy.sena.edu.co')) {
     toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co');
     return;
   }
@@ -566,61 +566,45 @@ const registerAprendiz = async () => {
     if (!isAdmin.value && payload.adminCode) delete payload.adminCode
 
     const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload)
-})
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    // --- DEBUG: mostrar exactamente lo que llega desde el backend ---
+    console.log('[signup] response', data)
+    console.log('[signup] res.ok', res.ok)
 
-// obtener body
-const data = await res.json()
-// debug
-console.log('[signup] response', data)
-console.log('[signup] res.ok', res.ok)
+    if (!res.ok) {
+      if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
+      else toast.error(data.message || 'Error desconocido del servidor')
+      return
+    }
 
-if (!res.ok) {
-  // normalizar mensaje a string para analizarlo
-  const rawMsg = data?.message ?? ''
-  const combinedMsg = Array.isArray(rawMsg) ? rawMsg.join(' ') : String(rawMsg)
-  const text = combinedMsg.toLowerCase()
+    // Éxito en el registro
+    toast.success('Usuario creado correctamente')
 
-  // detectar frases típicas que indican "email ya existe" (español/inglés)
-  const emailExists = (
-    (text.includes('email') || text.includes('correo')) &&
-    (text.includes('exist') || text.includes('already') || text.includes('ya está') || text.includes('ya esta') || text.includes('ya registrado') || text.includes('ya registrado'))
-  )
+    // Intentar detectar un token que el backend pudiera devolver
+    const token = data?.token ?? data?.accessToken ?? data?.access_token ?? data?.tokens?.access
 
-  if (emailExists) {
-    // en vez de bloquear, redirigimos a signin (el backend evita duplicados)
-    toast.info('El correo ya está registrado. Te redirigimos a iniciar sesión.')
+    console.log('[signup] token found:', token)
+
+    if (token) {
+      // Guardar token localmente para que el guard de rutas te permita entrar
+      localStorage.setItem('token', token)
+
+      // (Opcional) guardar datos del usuario si vienen en la respuesta
+      if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+
+      // Forzar que el guard tenga tiempo de leer el token: actualizar store si usas Pinia (ver abajo)
+      // Redirigir a home ya autenticado
+      await router.push({ name: 'Home' })
+      return
+    }
+
+    // Si llegamos aquí: no hay token en la respuesta
+    console.warn('[signup] no token returned by signup endpoint')
+    toast.info('Cuenta creada. Por favor inicia sesión para continuar.')
     router.push({ name: 'Signin' })
-    return
-  }
-
-  // comportamiento por defecto para otros errores
-  if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
-  else toast.error(data.message || 'Error desconocido del servidor')
-  return
-}
-
-// Éxito en el registro
-toast.success('Usuario creado correctamente')
-
-// Intentar detectar un token que el backend pudiera devolver
-const token = data?.token ?? data?.accessToken ?? data?.access_token ?? data?.tokens?.access
-console.log('[signup] token found:', token)
-
-if (token) {
-  localStorage.setItem('token', token)
-  if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
-  await router.push({ name: 'Home' })
-  return
-}
-
-// Si no hay token devuelto, pedimos login
-console.warn('[signup] no token returned by signup endpoint')
-toast.info('Cuenta creada. Por favor inicia sesión para continuar.')
-router.push({ name: 'Signin' })
-
 }
 
 
