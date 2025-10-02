@@ -572,15 +572,32 @@ const registerAprendiz = async () => {
     })
     const data = await res.json()
     if (!res.ok) {
-      if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
-      else toast.error(data.message)
-      return
-    }
-    toast.success('Usuario creado correctamente')
-    router.push('/home')
-  } catch {
-    toast.error('Error al registrar usuario')
-  }
+  if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
+  else toast.error(data.message)
+  return
+}
+
+// Éxito en el registro
+toast.success('Usuario creado correctamente')
+
+// Intentar detectar un token que el backend pudiera devolver
+const token = data.token ?? data.accessToken ?? data.access_token ?? data?.tokens?.access
+
+if (token) {
+  // Guardar token localmente para que el guard de rutas te permita entrar
+  localStorage.setItem('token', token)
+
+  // (Opcional) guardar datos del usuario si vienen en la respuesta
+  if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+
+  // Redirigir a home ya autenticado
+  router.push('/home')
+} else {
+  // Si no hay token, redirigir al signin para que inicie sesión manualmente
+  toast.info('Inicia sesión para continuar')
+  router.push('/signin')
+}
+
 }
 
 
