@@ -417,9 +417,15 @@ const passwordValidation = ref({
 })
 const confirmPasswordValidation = ref<boolean | null>(null)
 
+// Normalizar email para todas las comprobaciones
+const emailNormalized = computed(() => (form.value.email || '').trim().toLowerCase())
+
+// isAdmin: termina en @sena.edu.co pero NO en @soy.sena.edu.co
 const isAdmin = computed(() => {
-  return form.value.email.includes('@sena.edu.co')
+  return emailNormalized.value.endsWith('@sena.edu.co') &&
+         !emailNormalized.value.endsWith('@soy.sena.edu.co')
 })
+
 const selectedClubs = ref<string[]>([]) 
 
 const isFormValid = computed(() => {
@@ -486,10 +492,7 @@ const initiateVerification = async () => {
     return 
   }
   
-  if (!/^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.value.email)) { 
-    toast.error('Correo inválido'); 
-    return 
-  }
+  
   
   if (!/^\d{10}$/.test(form.value.phone)) { 
     toast.error('Teléfono inválido'); 
@@ -497,16 +500,25 @@ const initiateVerification = async () => {
   }
   
   // Validación de correos según el rol
-   if (isAdmin.value && !form.value.email.endsWith('sena.edu.co')) {
-    toast.error('El correo del administrador debe terminar en @sena.edu.co');
-    return;
+  // Normaliza el email y valida formato
+const email = emailNormalized.value
+if (!/^[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
+  toast.error('Correo inválido')
+  return
+}
+
+// Validación según rol (admin vs aprendiz)
+if (isAdmin.value) {
+  if (!email.endsWith('@sena.edu.co')) {
+    toast.error('El correo del administrador debe terminar en @sena.edu.co')
+    return
   }
-  // @soy.sena.edu.co
-  // @sena.edu.co
-  if (!isAdmin.value && !form.value.email.endsWith('@soy.sena.edu.co')) {
-    toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co');
-    return;
+} else {
+  if (!email.endsWith('@soy.sena.edu.co')) {
+    toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co')
+    return
   }
+}
 
   if (isAdmin.value && !form.value.adminCode) {
     toast.error('Ingresa el código de administrador');
@@ -566,13 +578,17 @@ const registerAprendiz = async () => {
     if (!isAdmin.value && payload.adminCode) delete payload.adminCode
 
     const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    // --- DEBUG: mostrar exactamente lo que llega desde el backend ---
-    console.log('[signup] response', data)
-    console.log('[signup] res.ok', res.ok)
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+
+// obtener el body JSON antes de usarlo
+const data = await res.json()
+
+// --- DEBUG: mostrar exactamente lo que llega desde el backend ---
+console.log('[signup] response', data)
+console.log('[signup] res.ok', res.ok)
 
     if (!res.ok) {
       if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
@@ -701,10 +717,11 @@ const registerAprendiz = async () => {
   animation-delay: -3s;
 }
 
-@keyfconst data = await res.json()rames float {
+@keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
 }
+
 
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
