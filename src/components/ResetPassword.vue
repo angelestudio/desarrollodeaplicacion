@@ -105,8 +105,8 @@ const handleUpdate = async () => {
   isLoading.value = true;
   try {
     if (!API_URL) throw new Error('URL de API no configurada');
-    
-    await axios.post(`${API_URL}/reset-password`, {
+    // Usar la ruta correcta del backend
+    await axios.post(`${API_URL}/auth/reset-password`, {
       token,
       newPassword: newPassword.value,
     });
