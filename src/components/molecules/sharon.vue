@@ -566,14 +566,39 @@ const registerAprendiz = async () => {
     if (!isAdmin.value && payload.adminCode) delete payload.adminCode
 
     const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    const data = await res.json()
-    if (!res.ok) {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+
+// obtener body
+const data = await res.json()
+// debug
+console.log('[signup] response', data)
+console.log('[signup] res.ok', res.ok)
+
+if (!res.ok) {
+  // normalizar mensaje a string para analizarlo
+  const rawMsg = data?.message ?? ''
+  const combinedMsg = Array.isArray(rawMsg) ? rawMsg.join(' ') : String(rawMsg)
+  const text = combinedMsg.toLowerCase()
+
+  // detectar frases típicas que indican "email ya existe" (español/inglés)
+  const emailExists = (
+    (text.includes('email') || text.includes('correo')) &&
+    (text.includes('exist') || text.includes('already') || text.includes('ya está') || text.includes('ya esta') || text.includes('ya registrado') || text.includes('ya registrado'))
+  )
+
+  if (emailExists) {
+    // en vez de bloquear, redirigimos a signin (el backend evita duplicados)
+    toast.info('El correo ya está registrado. Te redirigimos a iniciar sesión.')
+    router.push({ name: 'Signin' })
+    return
+  }
+
+  // comportamiento por defecto para otros errores
   if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
-  else toast.error(data.message)
+  else toast.error(data.message || 'Error desconocido del servidor')
   return
 }
 
@@ -581,22 +606,20 @@ const registerAprendiz = async () => {
 toast.success('Usuario creado correctamente')
 
 // Intentar detectar un token que el backend pudiera devolver
-const token = data.token ?? data.accessToken ?? data.access_token ?? data?.tokens?.access
+const token = data?.token ?? data?.accessToken ?? data?.access_token ?? data?.tokens?.access
+console.log('[signup] token found:', token)
 
 if (token) {
-  // Guardar token localmente para que el guard de rutas te permita entrar
   localStorage.setItem('token', token)
-
-  // (Opcional) guardar datos del usuario si vienen en la respuesta
   if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
-
-  // Redirigir a home ya autenticado
-  router.push('/home')
-} else {
-  // Si no hay token, redirigir al signin para que inicie sesión manualmente
-  toast.info('Inicia sesión para continuar')
-  router.push('/signin')
+  await router.push({ name: 'Home' })
+  return
 }
+
+// Si no hay token devuelto, pedimos login
+console.warn('[signup] no token returned by signup endpoint')
+toast.info('Cuenta creada. Por favor inicia sesión para continuar.')
+router.push({ name: 'Signin' })
 
 }
 
@@ -694,7 +717,7 @@ if (token) {
   animation-delay: -3s;
 }
 
-@keyframes float {
+@keyfconst data = await res.json()rames float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
 }
