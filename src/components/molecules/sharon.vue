@@ -545,11 +545,9 @@ const registerAprendiz = async () => {
   try {
     const role = isAdmin.value ? 'admin' : 'user'
 
-    // Asegurar que clubs sea un array de strings
     const clubsSelected = Array.isArray(selectedClubs.value) ? selectedClubs.value : []
-
     const clubsFallback = clubsSelected.length ? clubsSelected : ['general']
-    // Construir payload explícitamente (no usar ...form.value)
+
     const payload: any = {
       firstName: form.value.firstName,
       lastName:  form.value.lastName,
@@ -558,54 +556,55 @@ const registerAprendiz = async () => {
       password:  form.value.password,
       role,
       rol: role,
-      clubs: clubsFallback // enviar [] si no hay selección
+      clubs: clubsFallback
     }
 
-    // No enviar adminCode ni confirmPassword
-    // Si por alguna razón adminCode está en form, eliminarlo:
-    if (!isAdmin.value && payload.adminCode) delete payload.adminCode
+    if (!isAdmin.value && payload.adminCode) {
+      delete payload.adminCode
+    }
 
     const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-    // --- DEBUG: mostrar exactamente lo que llega desde el backend ---
+
+    // 👇 Ahora sí parseamos la respuesta
+    const data = await res.json()
     console.log('[signup] response', data)
     console.log('[signup] res.ok', res.ok)
 
     if (!res.ok) {
-      if (Array.isArray(data.message)) data.message.forEach((m: Content) => toast.error(m))
-      else toast.error(data.message || 'Error desconocido del servidor')
+      if (Array.isArray(data.message)) {
+        data.message.forEach((m: Content) => toast.error(m))
+      } else {
+        toast.error(data.message || 'Error desconocido del servidor')
+      }
       return
     }
 
-    // Éxito en el registro
     toast.success('Usuario creado correctamente')
 
-    // Intentar detectar un token que el backend pudiera devolver
     const token = data?.token ?? data?.accessToken ?? data?.access_token ?? data?.tokens?.access
-
     console.log('[signup] token found:', token)
 
     if (token) {
-      // Guardar token localmente para que el guard de rutas te permita entrar
       localStorage.setItem('token', token)
-
-      // (Opcional) guardar datos del usuario si vienen en la respuesta
       if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
 
-      // Forzar que el guard tenga tiempo de leer el token: actualizar store si usas Pinia (ver abajo)
-      // Redirigir a home ya autenticado
       await router.push({ name: 'Home' })
       return
     }
 
-    // Si llegamos aquí: no hay token en la respuesta
     console.warn('[signup] no token returned by signup endpoint')
     toast.info('Cuenta creada. Por favor inicia sesión para continuar.')
-    router.push({ name: 'Signin' })
+    await router.push({ name: 'Signin' })
+  } catch (error) {
+    console.error('[signup] error:', error)
+    toast.error('Error en el registro, intenta de nuevo más tarde')
+  }
 }
+
 
 
 </script>
