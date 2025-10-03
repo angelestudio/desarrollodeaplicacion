@@ -16,17 +16,17 @@
     </div>
 
     <!-- Toggle de tema -->
-<button
-  @click="themeStore.toggleTheme()"
-  class="fixed top-6 right-6 w-12 h-12 rounded-full glass-effect flex items-center justify-center transition-all duration-300 hover:scale-110 z-50 shadow-lg"
->
-  <svg v-if="theme === 'light'" class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
-  </svg>
-  <svg v-else class="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-    <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd"/>
-  </svg>
-</button>
+    <button
+      @click="themeStore.toggleTheme()"
+      class="fixed top-6 right-6 w-12 h-12 rounded-full glass-effect flex items-center justify-center transition-all duration-300 hover:scale-110 z-50 shadow-lg"
+    >
+      <svg v-if="theme === 'light'" class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+      </svg>
+      <svg v-else class="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+        <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd"/>
+      </svg>
+    </button>
 
     
     <!-- Contenedor principal optimizado para pantalla completa -->
@@ -139,6 +139,35 @@
                 </div>
               </div>
 
+              <!-- Selector de Rol -->
+              <div class="space-y-3">
+                <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
+                  Tipo de Cuenta
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    @click="selectedRole = 'user'"
+                    class="px-6 py-4 rounded-2xl border-2 font-bold transition-all duration-300 hover:scale-105"
+                    :class="selectedRole === 'user' 
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-600 shadow-xl glow-effect-green' 
+                      : (theme === 'light' ? 'border-gray-300 text-gray-700 hover:border-green-400' : 'border-gray-600 text-gray-300 hover:border-green-500')"
+                  >
+                    👤 Aprendiz
+                  </button>
+                  <button
+                    type="button"
+                    @click="selectedRole = 'admin'"
+                    class="px-6 py-4 rounded-2xl border-2 font-bold transition-all duration-300 hover:scale-105"
+                    :class="selectedRole === 'admin' 
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-600 shadow-xl glow-effect-green' 
+                      : (theme === 'light' ? 'border-gray-300 text-gray-700 hover:border-green-400' : 'border-gray-600 text-gray-300 hover:border-green-500')"
+                  >
+                    🔑 Admin
+                  </button>
+                </div>
+              </div>
+
               <!-- Email -->
               <div class="space-y-3">
                 <label class="block text-sm font-bold" :class="theme === 'light' ? 'text-gray-800' : 'text-gray-200'">
@@ -148,11 +177,10 @@
                   id="email" 
                   type="email" 
                   v-model="form.email" 
-                  placeholder="tu@soy.sena.edu.co" 
+                  placeholder="tu@gmail.com" 
                   required
                   class="input-elegant-green"
                   :class="theme === 'light' ? 'input-light-green' : 'input-dark-green'"
-                  @input="detectRole"
                 />
               </div>
 
@@ -417,9 +445,13 @@ const passwordValidation = ref({
 })
 const confirmPasswordValidation = ref<boolean | null>(null)
 
+// Nuevo: selector manual de rol
+const selectedRole = ref<'user' | 'admin'>('user')
+
 const isAdmin = computed(() => {
-  return form.value.email.includes('@sena.edu.co')
+  return selectedRole.value === 'admin'
 })
+
 const selectedClubs = ref<string[]>([]) 
 
 const isFormValid = computed(() => {
@@ -433,10 +465,6 @@ const isFormValid = computed(() => {
          confirmPasswordValidation.value &&
          (!isAdmin.value || form.value.adminCode)
 })
-
-const detectRole = () => {
-  // Se ejecuta cuando cambia el email para detectar automáticamente el rol
-}
 
 const validatePassword = () => {
   const password = form.value.password
@@ -496,16 +524,10 @@ const initiateVerification = async () => {
     return 
   }
   
-  // Validación de correos según el rol
-   if (isAdmin.value && !form.value.email.endsWith('sena.edu.co')) {
-    toast.error('El correo del administrador debe terminar en @sena.edu.co');
-    return;
-  }
-  // @soy.sena.edu.co
-  // @sena.edu.co                                   
-  if (!isAdmin.value && !form.value.email.endsWith('soy.sena.edu.co')) {
-    toast.error('El correo del aprendiz debe terminar en @soy.sena.edu.co');
-    return;
+  // Validación de correo electrónico básica
+  if (!/^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.value.email)) { 
+    toast.error('Correo inválido'); 
+    return 
   }
 
   if (isAdmin.value && !form.value.adminCode) {
@@ -543,7 +565,7 @@ const verifyCode = async () => {
 
 const registerAprendiz = async () => {
   try {
-    const role = isAdmin.value ? 'admin' : 'user'
+    const role = selectedRole.value === 'admin' ? 'admin' : 'user'
 
     const clubsSelected = Array.isArray(selectedClubs.value) ? selectedClubs.value : []
     const clubsFallback = clubsSelected.length ? clubsSelected : ['general']
@@ -559,8 +581,8 @@ const registerAprendiz = async () => {
       clubs: clubsFallback
     }
 
-    if (!isAdmin.value && payload.adminCode) {
-      delete payload.adminCode
+    if (selectedRole.value === 'admin' && form.value.adminCode) {
+      payload.adminCode = form.value.adminCode
     }
 
     const res = await fetch('https://backend-senaclub-xtrt.onrender.com/auth/signup', {
@@ -604,9 +626,6 @@ const registerAprendiz = async () => {
     toast.error('Error en el registro, intenta de nuevo más tarde')
   }
 }
-
-
-
 </script>
 
 <style scoped>
@@ -700,7 +719,7 @@ const registerAprendiz = async () => {
   animation-delay: -3s;
 }
 
-@keyfconst data = await res.json()rames float {
+@keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
 }
