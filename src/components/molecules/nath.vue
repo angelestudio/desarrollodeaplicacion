@@ -466,7 +466,7 @@ const loginUser = async () => {
 // Nueva función para continuar al home desde la ventana de bienvenida
 const continueToHome = () => {
   showWelcomeModal.value = false
-  router.push('/SignIn')
+  router.push('/home')
 }
 
 // Recuperación de contraseña profesional
