@@ -146,7 +146,7 @@ router.beforeEach((to, from, next) => {
     if (!user) {
       // Si no está autenticado, redirige a la página de login (o signup)
       //
-      return next({ name: 'SignIn' })
+      return next({ name: '/Home' })
     }
   }
   next()
